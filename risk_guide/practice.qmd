@@ -1,0 +1,190 @@
+# Practice and Limitations {#sec-practice}
+
+## Which quantity for which job {#sec-which-job}
+
+| Job | Use | Why |
+|------------------------|------------------------|------------------------|
+| Compare a specific pet with the base or the book | $\hat\mu(\mathbf{x})$ or $R(\mathbf{x})$ | Exact for any model, interactions included |
+| Express the model as multiplicative tables | Base-risk relativities plus interaction tables | The interaction tables carry $I(\mathbf{x})$; base-risk relativities alone don't reproduce predictions |
+| Explain what the model says about a variable across the book | Partial relativity | Removes the arbitrary baseline pet; weights contexts by expected dollars |
+| Show how much a variable's effect varies | ICE relativities, or partial relativities within subgroups | Makes interactions visible |
+| Check the model against the data | One-way: $\bar y_j(z)$ vs. $M_j(z)$ | Actual vs. fitted by level is A/E for each level |
+| Compare relativities with the current manual | Whatever the manual uses, usually base-risk relativities at the manual's base | Like-for-like comparison |
+
+: Which quantity for which job {#tbl-which-job}
+
+Partial relativities are for explanation and comparison. They are not rating factors. Multiplying partial relativities across variables does not reproduce predictions, any more than multiplying base-risk relativities does when there are interactions.
+
+## Choosing the base and reference values {#sec-reference}
+
+**Overall relativity.** The base sets only the units; predictions are unchanged by it (@sec-overall). The default is the **portfolio average**,
+
+$$
+\bar\mu = \frac{\sum_i ee_i\,\hat\mu(\mathbf{x}_i)}{\sum_i ee_i},
+\qquad
+R(\mathbf{x}) = \frac{\hat\mu(\mathbf{x})}{\bar\mu},
+$$
+
+so that $R(\mathbf{x})$ reads as "this pet relative to the average pet-year in the book." In the example, $\bar\mu = 2175 / 3.5 = 621.43$.
+
+**Partial relativity.** The default is again the portfolio average. Normalize the PD curve by its exposure-weighted average over the values the pets actually have:
+
+$$
+c_j = \frac{\sum_i ee_i\, PD_j(x_{ij})}{\sum_i ee_i},
+\qquad
+\bar r_j(z) = \frac{PD_j(z)}{c_j}.
+$$ {#eq-offbalance}
+
+The exposure-weighted average of $\bar r_j$ over the book is then 1. This is the same calculation as the familiar off-balance factor: the exposure-weighted average relativity, divided out so the book averages 1. In the example, $c_{\text{age}} = 584.82$, so $\bar r_{\text{age}}(2) = 0.75$ and $\bar r_{\text{age}}(7) = 1.34$. Their ratio is still 1.79; only the reference changed. A related choice is to divide by $\bar\mu$ instead, which reads as "if every pet had value $z$, how would the book's average compare with what it is now?" In the example, that is $781.71 / 621.43 = 1.26$ for age 7.
+
+**Base-risk relativity.** A complete baseline pet is unavoidable here; that is the weakness partial relativities remove.
+
+**Natural bases.** Some variables have a meaningful reference level of their own: a standard deductible, annual limit, or copay, or the most common coverage level or plan. When a level like that exists, especially one the current rate manual already uses, use it. Whatever the choice, avoid thinly populated levels as references, because every relativity inherits the reference level's noise.
+
+## Choosing the portfolio {#sec-portfolio}
+
+**Book versus portfolio.** *Book of business* is the insurance term for the policies a company has written, usually within a line or program: "the pet book," "the renewal book." *Portfolio* is the more general term from finance and risk theory: any collection of risks considered together. In conversation they are mostly interchangeable. In this guide, *portfolio* means specifically **the set of rows we average over**, which need not be the whole book.
+
+Choosing it is a real decision. Reasonable choices include:
+
+-   the experience-period data the model was fit on;
+-   the current in-force book;
+-   recent new business, if the mix is shifting; or
+-   a single state, for a state filing.
+
+Without interactions, the choice does not matter: every portfolio gives the same partial relativity (@sec-no-interactions). With interactions, it does matter, because the partial relativity is a weighted vote of the pets and different portfolios have different voters. Choose the portfolio whose mix matches the question, and state which one you used.
+
+## Impossible and implausible counterfactuals {#sec-counterfactuals}
+
+Partial dependence and ICE assign a value to every pet regardless of whether that combination makes sense. The model will return a number either way.
+
+**Impossible combinations.** Breed is nested within species. Computing $PD_{\text{species}}(\text{Cat})$ by setting species to Cat on a row whose breed is Labrador asks the model about a Labrador cat. Whatever the model returns is meaningless. Options:
+
+-   **Vary nested variables together.** Treat species and breed as one focal variable, so that assigning a breed also assigns its species.
+-   **Restrict the portfolio.** Compute partial relativities for age separately within dogs and within cats. This also displays the interaction directly.
+
+**Implausible combinations.** Age 15 for a giant breed that rarely lives that long, or a plan option that isn't sold at some enrollment ages, is possible but rare. The model is extrapolating into regions with little or no data, and its predictions there deserve little trust.
+
+This is where correlation re-enters, indirectly (@sec-interactions-revisited). When $x_j$ is strongly correlated with other variables, assigning it to every pet creates many such combinations. Practical safeguards:
+
+-   Restrict the grid to values with real exposure behind them, and show an exposure histogram under every PD or ICE plot.
+-   Check exposure for the combinations of $z$ with the focal variable's main interaction partners.
+-   For continuous variables with strong correlations, consider **accumulated local effects (ALE)** (Apley and Zhu, 2020). ALE avoids unrealistic combinations by making only small changes within local neighborhoods of the data. It is not covered here.
+
+## Three ways to average relativities {#sec-averaging}
+
+When ICE relativities differ across pets, there are at least three reasonable ways to combine them into one number:
+
+| Method | Formula | Weights on $r_{ij}$ | Example |
+|-----------------|-----------------|-----------------|--------------------:|
+| Ratio of averages (partial relativity) | $\dfrac{\sum_i ee_i\,\hat\mu(z, x_{i,-j})}{\sum_i ee_i\,\hat\mu(z^b, x_{i,-j})}$ | exposure × predicted cost at $z^b$ | 1.79 |
+| Arithmetic average of ICE relativities | $\dfrac{\sum_i ee_i\, r_{ij}(z)}{\sum_i ee_i}$ | exposure | 1.74 |
+| Geometric average of ICE relativities | $\exp\!\left[\dfrac{\sum_i ee_i \log r_{ij}(z)}{\sum_i ee_i}\right]$ | exposure, on the log scale | 1.72 |
+
+: Three ways to average ICE relativities, for age 7 in the example {#tbl-averaging}
+
+The geometric average is what you get by computing partial dependence on the **link (log) scale** and exponentiating the difference. Some software does this by default for GLMs and GAMs, so check which scale your tool averages predictions on.
+
+The geometric average is never larger than the arithmetic one. The ratio of averages can fall on either side of them, depending on whether expensive pets have larger or smaller relativities. Without interactions with $x_j$, all three are equal.
+
+This guide uses the ratio of averages because it answers a dollar question: by what factor would the **total expected loss of the same book** change? That is the quantity that adds up across the book, and the one that eventually flows through to premium. The other two answer "how does the typical pet's relativity change," with each pet-year counted equally regardless of its cost.
+
+## Offset or weights: which form the formulas assume {#sec-offsets}
+
+Every formula in this guide is written in terms of the **rate** $\hat\mu(\mathbf{x})$, the expected loss per pet-year, with exposure appearing only as the weight $ee_i$. A Tweedie GAM can be fit to produce that rate in two ways, and `predict()` returns different things for each.
+
+|   | Offset model | Rate model |
+|------------------------|------------------------|------------------------|
+| Response | aggregate loss $y_i$ | loss rate $y_i / ee_i$ |
+| How exposure enters | `offset(log(ee))` in the formula | `weights = ee` |
+| What the model says | $E[y_i] = ee_i\,\mu(\mathbf{x}_i)$ | $E[y_i / ee_i] = \mu(\mathbf{x}_i)$ |
+| `predict(type = "response")` returns | the policy total $ee_i\,\hat\mu(\mathbf{x}_i)$, using the `ee` column of `newdata` | the rate $\hat\mu(\mathbf{x}_i)$; weights play no part in prediction |
+| To get the rate $\hat\mu$ | set `ee = 1` in `newdata` | use the prediction as is |
+| To get a policy total | use the prediction as is | multiply by $ee_i$ |
+
+: Offset model versus rate model {#tbl-offset-rate}
+
+Both approaches estimate the same function $\mu(\mathbf{x})$. They are not quite the same fit, because they imply different variances for partial-year policies. The pricing notation document works through this and shows that adding `weights = ee^(xi - 1)` to the offset model makes the two fits identical. Nothing in this guide depends on which approach you choose. What matters is knowing whether a prediction already includes exposure.
+
+### The same formulas in total form {#sec-total-form}
+
+With an offset model, it is often convenient to work directly with predicted policy totals. Write
+
+$$
+\hat y_i = ee_i\,\hat\mu(\mathbf{x}_i),
+\qquad
+\hat y_i(z) = ee_i\,\hat\mu(z,\, x_{i,-j})
+$$ {#eq-yhat}
+
+for the expected aggregate loss of row $i$: as it is, and with the focal variable set to $z$. Each row keeps its own exposure. This is exactly what an offset model's `predict()` returns on the data or on a counterfactual copy of it. The exposure-weighted formulas then simplify, because the weight $ee_i$ is already inside each prediction:
+
+| Quantity | Rate form (as written in this guide) | Total form |
+|------------------------|------------------------|------------------------|
+| Partial dependence $PD_j(z)$ | $\dfrac{\sum_i ee_i\,\hat\mu(z, x_{i,-j})}{\sum_i ee_i}$ | $\dfrac{\sum_i \hat y_i(z)}{\sum_i ee_i}$ |
+| Partial relativity $\bar r_j(z)$ | $\dfrac{\sum_i ee_i\,\hat\mu(z, x_{i,-j})}{\sum_i ee_i\,\hat\mu(z^b, x_{i,-j})}$ | $\dfrac{\sum_i \hat y_i(z)}{\sum_i \hat y_i(z^b)}$ |
+| ICE relativity $r_{ij}(z)$ | $\dfrac{\hat\mu(z, x_{i,-j})}{\hat\mu(z^b, x_{i,-j})}$ | $\dfrac{\hat y_i(z)}{\hat y_i(z^b)}$, since exposure cancels |
+| Model-based one-way average $M_j(z)$ | $\dfrac{\sum_{i \in S_j(z)} ee_i\,\hat\mu(\mathbf{x}_i)}{\sum_{i \in S_j(z)} ee_i}$ | $\dfrac{\sum_{i \in S_j(z)} \hat y_i}{\sum_{i \in S_j(z)} ee_i}$ |
+| Observed one-way average $\bar y_j(z)$ | $\dfrac{\sum_{i \in S_j(z)} ee_i\,(y_i / ee_i)}{\sum_{i \in S_j(z)} ee_i}$ | $\dfrac{\sum_{i \in S_j(z)} y_i}{\sum_{i \in S_j(z)} ee_i}$ |
+
+: The formulas in rate form and total form {#tbl-total-form}
+
+The total form of the partial relativity says in symbols what @sec-weighted-vote said in words: it is the ratio of the book's total expected loss under two values of the focal variable.
+
+Quantities built on a single hypothetical pet, such as the overall and base-risk relativities, have no row exposure to keep. Compute them from rates, which for an offset model means predicting with `ee = 1`.
+
+### Mistakes to avoid {#sec-exposure-mistakes}
+
+-   **Counting exposure twice (offset model).** Weighting offset-model predictions by $ee_i$ computes $\sum_i ee_i^2\,\hat\mu_i / \sum_i ee_i$. That averages policy totals instead of rates, and long policies get too much say. Either predict with `ee = 1` and then weight by $ee_i$, or keep each row's own exposure in the prediction and don't weight again.
+-   **Leaving exposure out (rate model).** A plain average of rate-model predictions counts every policy row equally, so a six-month policy counts as much as a full year. Weight by $ee_i$.
+-   **Treating a ratio of totals as a relativity.** A six-month policy's expected total is half of a full-year policy's with the same rate, so a ratio of two policies' totals mixes exposure into the comparison. Relativities always compare rates.
+
+A quick way to see what a fitted model returns: predict one row twice, once with `ee = 1` and once with `ee = 0.5`. If the prediction halves, `predict()` returns policy totals, as an offset model does. If it doesn't change, it returns rates. That is the case for a rate model, and also for an offset supplied through the `offset =` argument, which `predict()` ignores.
+
+## Computing them {#sec-computing}
+
+The recipe is the same for every model-based quantity:
+
+1.  Copy the portfolio.
+2.  Set the focal variable to $z$ on every row (for base-risk, on the baseline pet only).
+3.  Predict the **rate per unit exposure** on the response scale. For an offset model, set `ee = 1` in the copy before predicting; a rate model's prediction is already the rate (@sec-offsets).
+4.  Weight by the **original** exposures and average.
+5.  Repeat for each $z$ on the grid, then normalize if you want relativities.
+
+A minimal version in R:
+
+``` r
+# Exposure-weighted partial dependence of `model` on `var`, over values `grid`.
+# Works for an offset model or a rate model (see "Offset or weights"): an offset model needs
+# ee = 1 to return the rate, and a rate model ignores ee when predicting.
+partial_dependence <- function(model, data, var, grid) {
+  sapply(grid, function(z) {
+    cf <- data
+    cf[[var]][] <- z     # assign z to every row; keeps factor levels for categoricals
+    cf$ee <- 1           # predict the rate per pet-year, not the policy total
+    mu <- predict(model, newdata = cf, type = "response")
+    sum(data$ee * mu) / sum(data$ee)
+  })
+}
+
+ages <- 0:15
+pd   <- partial_dependence(m, dat, "age", ages)
+rbar <- pd / pd[ages == 2]                                          # reference age 2
+rbar_book <- pd / weighted.mean(pd[match(dat$age, ages)], dat$ee)   # portfolio-average reference
+```
+
+Practical notes:
+
+-   **Cost.** PD needs $N \times K$ predictions for $N$ rows and $K$ grid values. That is cheap for GLMs and GAMs. For very large portfolios, an exposure-weighted random subsample of rows gives nearly the same curve.
+-   **Grids.** For continuous variables, use natural units (each year of age) or quantiles of the observed values, and trim the tails where exposure is thin.
+-   **ICE plots.** Plot ICE relativities $r_{ij}(z)$ on a log scale for a few hundred sampled pets, colored by a suspected interaction partner. A fan of curves that separates by color shows the interaction.
+-   **Packages.** In R, `marginaleffects` (average predictions over counterfactual grids, with weights), `pdp`, `iml`, and `DALEX` all compute PD and ICE. Check how each handles exposure weights, offsets, and the prediction scale (@sec-averaging) before relying on its defaults.
+
+## Beyond one variable {#sec-beyond}
+
+Everything above generalizes from one focal variable $j$ to a set of variables, such as species and age together. Replace $x_j$ by the pair, assign both values to every pet, and average:
+
+$$
+PD_{\text{species, age}}(s, a) = \frac{\sum_i ee_i\,\hat\mu(s, a, x_{i,-\{\text{species, age}\}})}{\sum_i ee_i}.
+$$
+
+The result is a two-way table, which is the natural way to display an interaction across the portfolio. Comparing a two-way PD with the product of the two single-variable partial relativities measures how strong the interaction is; this is the idea behind Friedman's H-statistic.

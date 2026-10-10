@@ -1,0 +1,480 @@
+# Building the Framework {#sec-framework}
+
+## Notation {#sec-notation}
+
+**Rating variables.** $\mathbf{x} = (x_1, x_2, \ldots, x_p)$ is a complete vector of rating variables, the whole pet. Bold means the whole vector.
+
+**Focal variable.** $j$ is the variable of interest, such as age. $x_j$ is its value, and $x_{-j}$ means *all of the other variables*. We write
+
+$$
+\hat\mu(\mathbf{x}) = \hat\mu(x_j, x_{-j}).
+$$
+
+This notation does not reorder the variables. It just says "variable $j$ takes this value, and the others take those values."
+
+**Assigned value.** $z$ is a value we *assign* to the focal variable, such as age 7. It is distinct from $x_j$, the value a pet actually has.
+
+**Base risk.** $\mathbf{x}^b = (x^b_1, \ldots, x^b_p)$ is the baseline pet, with one reference value for every variable. $z^b = x^b_j$ is the reference value of the focal variable.
+
+**Portfolio.** Rows $i = 1, \ldots, N$ are the policy terms we average over (@sec-portfolio discusses how to choose them). For row $i$:
+
+-   $\mathbf{x}_i$ is the pet's full vector of rating variables,
+-   $x_{ij}$ is its value of variable $j$,
+-   $x_{i,-j}$ is its values of all other variables,
+-   $ee_i$ is its earned exposure, and
+-   $y_i$ is its observed aggregate loss over the term.
+
+**Model.** $\hat\mu(\mathbf{x})$ is the fitted expected loss per unit exposure (pure premium) for a pet with characteristics $\mathbf{x}$. The target can be eligible loss or paid loss ($\hat\mu_u$ or $\hat\mu_\pi$ in the pricing notation). Everything here applies to either, so the subscript is dropped. For a log-link model, $\log\hat\mu(\mathbf{x})$ is the model's predictor on the link scale, the scale on which its terms add up.
+
+**Rates, not totals.** Throughout this guide, $\hat\mu$ is a **rate**, per pet-year, and exposure enters the formulas only through the weights $ee_i$. The formulas therefore hold whether the model was fit with aggregate loss as the response and an exposure offset, or with the loss rate as the response and exposure weights. The two fits return different things from `predict()`, though: an offset model returns policy totals $ee_i\,\hat\mu$, which already include exposure. @sec-offsets shows how to convert, and gives the formulas in both forms.
+
+Two symbols are easy to confuse:
+
+$$
+\boxed{i = \text{which pet (portfolio row)}}
+\qquad
+\boxed{z = \text{which value of the focal variable}}
+$$
+
+For example, if $j$ is age, then $i$ might be policy term 18347 and $z$ might be age 7.
+
+Every quantity below, except the observed one-way average, is computed from the fitted model. To keep the notation light, those quantities carry no hats.
+
+## The running example {#sec-example}
+
+To keep the arithmetic visible, we write the model down directly instead of fitting it. It has three rating variables: species, age, and state.
+
+$$
+\hat\mu(\text{species}, \text{age}, \text{state})
+= 300 \times S(\text{species}) \times A(\text{age} \mid \text{species}) \times G(\text{state})
+$$
+
+| Species | $S$ |
+|---------|----:|
+| Cat     | 1.0 |
+| Dog     | 1.5 |
+
+: Species factor $S$ {#tbl-species}
+
+| Age | $A$ for a cat | $A$ for a dog |
+|----:|--------------:|--------------:|
+|   2 |           1.0 |           1.0 |
+|   7 |           1.4 |           2.0 |
+
+: Age factor $A$, which depends on species {#tbl-age}
+
+| State | $G$ |
+|-------|----:|
+| WA    | 1.0 |
+| OR    | 0.9 |
+| CA    | 1.3 |
+
+: State factor $G$ {#tbl-state}
+
+The age factor depends on species: in this model, a dog's expected cost rises faster with age than a cat's. That dependence is an **interaction** between age and species. State does not interact with anything. The numbers are illustrative, not real.
+
+The portfolio has four pets:
+
+| Pet $i$ | Species | Age | State | $ee_i$ | $\hat\mu(\mathbf{x}_i)$ |
+|--------:|---------|----:|-------|-------:|------------------------:|
+|       1 | Dog     |   2 | OR    |    1.0 |                     405 |
+|       2 | Cat     |   7 | WA    |    0.5 |                     420 |
+|       3 | Dog     |   7 | CA    |    1.0 |                    1170 |
+|       4 | Cat     |   2 | CA    |    1.0 |                     390 |
+
+: The four-pet portfolio {#tbl-portfolio}
+
+The baseline pet is **Cat, age 2, WA**, with $\hat\mu = 300$.
+
+## Overall relativity {#sec-overall}
+
+Define the base rate as the prediction for the baseline pet:
+
+$$
+B = \hat\mu(\mathbf{x}^b).
+$$
+
+The **overall relativity** of any risk $\mathbf{x}$ is
+
+$$
+R(\mathbf{x}) = \frac{\hat\mu(\mathbf{x})}{\hat\mu(\mathbf{x}^b)},
+\qquad\text{so}\qquad
+\hat\mu(\mathbf{x}) = B\,R(\mathbf{x}).
+$$ {#eq-overall}
+
+For a log-link model, $R(\mathbf{x}) = \exp[\log\hat\mu(\mathbf{x}) - \log\hat\mu(\mathbf{x}^b)]$: a relativity is a difference on the link scale, exponentiated.
+
+> **Plain language:** How expensive is this pet compared with the baseline pet?
+
+In the example (@tbl-portfolio), for pet 3:
+
+$$
+R(\text{Dog, 7, CA}) = \frac{\hat\mu(\text{Dog, 7, CA})}{\hat\mu(\text{Cat, 2, WA})} = \frac{1170}{300} = 3.90.
+$$
+
+| Pet               |    1 |    2 |    3 |    4 |
+|-------------------|-----:|-----:|-----:|-----:|
+| $R(\mathbf{x}_i)$ | 1.35 | 1.40 | 3.90 | 1.30 |
+
+: Overall relativities of the four pets {#tbl-overall}
+
+Every characteristic in the numerator can differ from the baseline. The overall relativity makes no attempt to separate age from species from state. It compares **one whole pet with another whole pet**.
+
+For the same reason, interactions cause no difficulty here. The model is evaluated at two complete points, and whatever interactions it contains are included in both predictions.
+
+The base sets only the units. Changing the base pet moves $B$ and every $R(\mathbf{x})$ in opposite directions, so their product, the predicted rate, does not change.
+
+## Base-risk relativity {#sec-base-risk}
+
+Now we want to isolate one variable $j$. The **base-risk relativity** changes only $x_j$ and holds every other variable at the baseline pet's values:
+
+$$
+r_j(z) = \frac{\hat\mu(z,\, x^b_{-j})}{\hat\mu(z^b,\, x^b_{-j})} = \frac{\hat\mu(z,\, x^b_{-j})}{\hat\mu(\mathbf{x}^b)}.
+$$ {#eq-base-risk}
+
+> **Plain language:** How would the baseline pet's predicted risk change if only this one variable changed?
+
+To get the base-risk relativity for age 7, start from the baseline pet (Cat, 2, WA), change only its age, and compare:
+
+$$
+r_{\text{age}}(7) = \frac{\hat\mu(\text{Cat, 7, WA})}{\hat\mu(\text{Cat, 2, WA})} = \frac{420}{300} = 1.40.
+$$
+
+The same procedure gives $r_{\text{species}}(\text{Dog}) = 450/300 = 1.50$, $r_{\text{state}}(\text{OR}) = 0.90$, and $r_{\text{state}}(\text{CA}) = 1.30$.
+
+Base-risk relativities are what a multiplicative rate table lists. In a log-link GLM whose baseline pet sits at the reference levels, they are the exponentiated coefficients $e^{\hat\beta}$. If the model has no interactions, multiplying them reproduces every overall relativity exactly:
+
+$$
+R(\mathbf{x}) = \prod_j r_j(x_j) \qquad \text{(no interactions)}.
+$$
+
+## What interactions do to base-risk relativities {#sec-interactions}
+
+An interaction between age and species means that **the effect of age depends on species**. In the example, moving from age 2 to age 7 multiplies a cat's expected cost by 1.4 and a dog's by 2.0.
+
+Interactions are always mutual. If the effect of age depends on species, then the effect of species depends on age: a dog costs 1.5 times as much as a cat at age 2, but $900/420 = 2.14$ times as much at age 7.
+
+Interactions have three consequences for base-risk relativities.
+
+**First, the base-risk relativity depends on the baseline pet.** With a cat as the baseline, $r_{\text{age}}(7) = 1.40$. With a dog as the baseline, it is $\hat\mu(\text{Dog, 7, WA}) / \hat\mu(\text{Dog, 2, WA}) = 900/450 = 2.00$. Neither number is wrong. Each is the age relativity *for its baseline pet*. The reported "age relativity" therefore depends on a choice about species that has nothing to do with age.
+
+**Second, multiplying base-risk relativities no longer reproduces predictions.** For pet 3:
+
+$$
+r_{\text{species}}(\text{Dog}) \times r_{\text{age}}(7) \times r_{\text{state}}(\text{CA}) = 1.5 \times 1.4 \times 1.3 = 2.73,
+\qquad\text{but}\qquad
+R(\mathbf{x}_3) = 3.90.
+$$
+
+We can always write
+
+$$
+R(\mathbf{x}) = \Big[\prod_j r_j(x_j)\Big]\, I(\mathbf{x}),
+$$ {#eq-interaction-factor}
+
+where $I(\mathbf{x})$ is the part of the overall relativity that the base-risk relativities cannot reconstruct. For pet 3, $I = 3.90 / 2.73 = 1.43$. That is exactly the dog's extra aging compared with the cat baseline, $2.0 / 1.4$. For pet 1 (Dog, 2, OR), $I = 1$: the dog is still at the base age, so the interaction never comes into play. An interaction contributes only when both of its partners move away from the base. In a rate table, $I(\mathbf{x})$ appears as a two-way table, such as species by age.
+
+**Third, "the age relativity" stops being a single number.** Age has a relativity in each context, meaning for each combination of the other variables. The rest of @sec-framework is about which contexts to use and how to summarize across them.
+
+### A note on scale {#sec-scale}
+
+"No interaction" here means the model factors multiplicatively, which is the same as being additive on the log scale. A model that is additive on the log scale has interactions on the dollar scale automatically: a 40% increase is more dollars for an expensive pet than for a cheap one. Relativities are multiplicative, so the multiplicative scale is the relevant one. In this guide, "interaction" always means an interaction on that scale.
+
+## ICE: one real pet at a time {#sec-ice}
+
+The base-risk relativity evaluates the focal variable in the context of a hypothetical baseline pet. The obvious alternative is to use real pets instead.
+
+For portfolio row $i$, the **individual conditional expectation (ICE)** curve is
+
+$$
+ICE_{ij}(z) = \hat\mu(z,\, x_{i,-j}).
+$$ {#eq-ice}
+
+Pet $i$ keeps all of its other characteristics, and only the focal variable is set to $z$. Normalizing at the reference value gives the pet's **ICE relativity**:
+
+$$
+r_{ij}(z) = \frac{\hat\mu(z,\, x_{i,-j})}{\hat\mu(z^b,\, x_{i,-j})}.
+$$ {#eq-ice-relativity}
+
+> **Plain language:** Take this particular pet. How would its predicted risk change if only this one variable changed?
+
+For age in the example:
+
+| Pet | Others held at | $ICE_{i,\text{age}}(2)$ | $ICE_{i,\text{age}}(7)$ | $r_{i,\text{age}}(7)$ |
+|--------------:|---------------|--------------:|--------------:|--------------:|
+| 1 | Dog, OR | 405 | 810 | 2.00 |
+| 2 | Cat, WA | 300 | 420 | 1.40 |
+| 3 | Dog, CA | 585 | 1170 | 2.00 |
+| 4 | Cat, CA | 390 | 546 | 1.40 |
+
+: ICE predictions and ICE relativities for age {#tbl-ice}
+
+Every pet gets its own curve. Three features of this table are worth noticing.
+
+-   **The predictions differ by state, but the relativities do not.** Pets 1 and 3 are both dogs with different states, and both have ICE relativity 2.00. State does not interact with age, so it scales a pet's curve up or down without changing its shape.
+-   **The relativities differ by species.** Species interacts with age, so the dogs' curves rise more steeply than the cats'.
+-   **The base-risk relativity is the ICE relativity of the baseline pet.** The calculation is identical; only the starting pet differs:
+
+$$
+\text{base-risk: } \hat\mu(z,\, x^b_{-j})
+\qquad\text{vs.}\qquad
+\text{ICE: } \hat\mu(z,\, x_{i,-j}).
+$$
+
+That makes ICE a direct picture of interactions. If the focal variable interacts with nothing, every pet's ICE relativity curve is the same curve. When it does interact, the curves fan out, and the way they spread shows which pets the variable affects differently.
+
+## Partial dependence: average over the portfolio {#sec-pd}
+
+ICE gives one curve per pet. **Partial dependence** summarizes them by averaging the predictions across the portfolio at each value $z$. Our predictions are per unit exposure, so we weight by earned exposure:
+
+$$
+PD_j(z) = \frac{\sum_{i=1}^N ee_i\,\hat\mu(z,\, x_{i,-j})}{\sum_{i=1}^N ee_i} = \frac{\sum_i ee_i\, ICE_{ij}(z)}{\sum_i ee_i}.
+$$ {#eq-pd}
+
+The exposure-weighted average is the average over **pet-years** in the portfolio, not over policy rows. Setting every $ee_i = 1$ gives the unweighted version found in most machine-learning software.
+
+> **Plain language:** Across the portfolio, how would the average predicted risk change if every pet were assigned this value?
+
+To compute $PD_{\text{age}}(7)$, build a counterfactual copy of the portfolio in which every pet is age 7 and nothing else changes:
+
+| Pet | Species |   Age | State | $ee_i$ | $\hat\mu(7,\, x_{i,-\text{age}})$ |
+|----:|---------|------:|-------|-------:|----------------------------------:|
+|   1 | Dog     | **7** | OR    |    1.0 |                               810 |
+|   2 | Cat     | **7** | WA    |    0.5 |                               420 |
+|   3 | Dog     | **7** | CA    |    1.0 |                              1170 |
+|   4 | Cat     | **7** | CA    |    1.0 |                               546 |
+
+: The counterfactual portfolio, with every pet set to age 7 {#tbl-counterfactual}
+
+$$
+PD_{\text{age}}(7) = \frac{810 + 0.5(420) + 1170 + 546}{3.5} = \frac{2736}{3.5} = 781.71.
+$$
+
+Doing the same with every pet set to age 2 gives
+
+$$
+PD_{\text{age}}(2) = \frac{405 + 0.5(300) + 585 + 390}{3.5} = \frac{1530}{3.5} = 437.14.
+$$
+
+Several points are easy to get wrong.
+
+**This is a question about the model, not about real pets.** Nobody claims these pets are age 7. The question is: *what would the model predict if this portfolio were age 7, with everything else about it unchanged?*
+
+**The pets and the exposure weights are the same at every** $z$. The $ee_i$ are the original exposures of the original rows. They are not recomputed for each age, and they are not "the exposure of age-7 pets." The portfolio is held fixed on purpose, so that the only thing changing between $PD(2)$ and $PD(7)$ is the age the model sees.
+
+**Categorical and continuous variables work the same way.** For species, set every row to Dog, predict, and average; then do the same for Cat. For age, choose a grid of values $z_1, \ldots, z_K$ and do the same at each one. In short:
+
+$$
+\boxed{\text{a grid over } x_j; \quad \text{an empirical average over the portfolio's } x_{-j}}
+$$
+
+For a categorical variable, the levels are the natural grid.
+
+**PD is a prediction, not an effect.** $PD_j(z)$ is in dollars per pet-year. It becomes an effect or a relativity only when you compare two of its values (@sec-effects).
+
+## Partial relativity {#sec-partial}
+
+To express partial dependence as a relativity, divide by its value at a reference value $z^b$:
+
+$$
+\bar r_j(z) = \frac{PD_j(z)}{PD_j(z^b)}
+= \frac{\sum_i ee_i\,\hat\mu(z,\, x_{i,-j})}{\sum_i ee_i\,\hat\mu(z^b,\, x_{i,-j})}.
+$$ {#eq-partial}
+
+The bar is a reminder that this relativity has been averaged over the portfolio. @sec-weighted-vote shows that it is, in fact, a weighted average of the pets' ICE relativities.
+
+> **Plain language:** For this same portfolio, by what factor would average predicted risk change if this one variable moved from its reference value to $z$?
+
+In the example:
+
+$$
+\bar r_{\text{age}}(7) = \frac{781.71}{437.14} = \frac{2736}{1530} = 1.79.
+$$
+
+Compare the structure of the three relativities:
+
+| Relativity | Numerator vs. denominator | Plain language |
+|------------------------|------------------------|------------------------|
+| Overall $R(\mathbf{x})$ | $\mathbf{x}$ vs. $\mathbf{x}^b$: every variable can differ | This whole pet vs. the whole baseline pet |
+| Base-risk $r_j(z)$ | $(z, x^b_{-j})$ vs. $(z^b, x^b_{-j})$: only $x_j$ differs | Change one variable, for the baseline pet |
+| Partial $\bar r_j(z)$ | $\{(z, x_{i,-j})\}_{i}$ vs. $\{(z^b, x_{i,-j})\}_{i}$: only $x_j$ differs | Change one variable, for the same whole portfolio |
+
+: What differs between numerator and denominator {#tbl-structure}
+
+Base-risk and partial relativities have the same structure. In both, only $x_j$ differs between numerator and denominator. The difference is the context:
+
+$$
+\begin{aligned}
+\text{Base-risk:}\quad & X_j = z, \quad X_{-j} = x^b_{-j} && \text{(one context: the baseline pet)} \\
+\text{Partial:}\quad & X_j = z, \quad X_{-j} \sim \text{portfolio} && \text{(every context, weighted as in the book)}
+\end{aligned}
+$$
+
+The partial relativity no longer depends on an arbitrary choice of a whole baseline pet. It still needs a reference value for the focal variable itself, and @sec-reference shows how to avoid even that.
+
+## Partial relativity as a weighted vote of the pets {#sec-weighted-vote}
+
+The partial relativity has a second reading that connects it directly to ICE. Multiply and divide each term by $\hat\mu(z^b, x_{i,-j})$:
+
+$$
+\bar r_j(z)
+= \frac{\sum_i ee_i\,\hat\mu(z^b, x_{i,-j}) \cdot r_{ij}(z)}{\sum_k ee_k\,\hat\mu(z^b, x_{k,-j})}
+= \sum_i \omega_i\, r_{ij}(z),
+\qquad
+\omega_i = \frac{ee_i\,\hat\mu(z^b, x_{i,-j})}{\sum_k ee_k\,\hat\mu(z^b, x_{k,-j})}.
+$$ {#eq-weighted-vote}
+
+**The partial relativity is a weighted average of the pets' ICE relativities.** Each pet's weight is its exposure times its predicted cost at the reference value, which is its share of expected dollars.
+
+In the example, the weights at the reference age 2 are $405, 150, 585, 390$ out of $1530$. The dogs (pets 1 and 3) hold 65% of the weight and the cats hold 35%:
+
+$$
+\bar r_{\text{age}}(7) = 0.65 \times 2.00 + 0.35 \times 1.40 = 1.79.
+$$
+
+This reading explains three things.
+
+-   **Where the number lands.** The partial relativity always lies between the smallest and largest ICE relativity. Here it falls between the cats' 1.40 and the dogs' 2.00, nearer the dogs because dogs carry more exposure and cost more per pet-year.
+-   **What it summarizes.** It is the relativity of *expected dollars*: how much the book's total expected loss would change. That is why it is the natural summary for risk, and it carries straight through to pricing.
+-   **Why it differs from a plain average of ICE relativities.** Weighting by exposure alone gives dogs 57% and cats 43%, which yields 1.74 instead of 1.79. The two answer slightly different questions. @sec-averaging compares them.
+
+## One-way relativity: the comparison we used to make {#sec-one-way}
+
+Now compare all of this with the traditional calculation from @sec-familiar. Let $S_j(z) = \{i : x_{ij} = z\}$ be the pets that *actually have* value $z$. For a continuous variable, use a bin around $z$.
+
+The observed **one-way average** is the actual pure premium for that group, and the **one-way relativity** compares two such groups:
+
+$$
+\bar y_j(z) = \frac{\sum_{i \in S_j(z)} y_i}{\sum_{i \in S_j(z)} ee_i},
+\qquad
+m_j(z) = \frac{\bar y_j(z)}{\bar y_j(z^b)}.
+$$ {#eq-one-way}
+
+To see what the one-way relativity measures, replace each pet's actual loss with the model's prediction for it. That gives the model-based one-way average for the same group:
+
+$$
+M_j(z) = \frac{\sum_{i \in S_j(z)} ee_i\,\hat\mu(\mathbf{x}_i)}{\sum_{i \in S_j(z)} ee_i}.
+$$ {#eq-one-way-model}
+
+If the model is right, $\bar y_j(z)$ scatters around $M_j(z)$, so $M_j(z) / M_j(z^b)$ is the one-way relativity with the noise removed. The example has no actual losses, so it uses $M_j$. We write $m_j$ for the ratio either way.
+
+> **Plain language:** How do the pets that actually have this value compare with the pets that actually have the reference value?
+
+In the example, the age-2 pets are pets 1 and 4, and the age-7 pets are pets 2 and 3:
+
+$$
+M_{\text{age}}(2) = \frac{405 + 390}{2.0} = 397.50,
+\qquad
+M_{\text{age}}(7) = \frac{0.5(420) + 1170}{1.5} = 920.00,
+\qquad
+m_{\text{age}}(7) = 2.31.
+$$
+
+The one-way relativity is **larger than every pet's ICE relativity**. No pet in this model has its cost multiplied by more than 2.00 when it ages from 2 to 7, yet the one-way comparison shows 2.31. The reason is that the age-7 group is a different set of pets: two-thirds of its exposure is dogs, and two-thirds is in California, while the age-2 group is half dogs and includes a cheap Oregon pet. The one-way relativity mixes these species and state differences into the age comparison.
+
+The key contrast:
+
+$$
+\begin{aligned}
+\text{Partial dependence:}\quad & \text{keep the pets the same, change the value of } x_j. \\
+\text{One-way average:}\quad & \text{keep the value the same, change which pets are compared.}
+\end{aligned}
+$$
+
+$PD_{\text{age}}(2)$ uses all four pets set to age 2. $M_{\text{age}}(2)$ uses only pets 1 and 4.
+
+The one-way calculation remains valuable as a **model check**. Plotting $\bar y_j(z)$ and $M_j(z)$ by level is the familiar actual-versus-fitted chart, and their ratio $\bar y_j(z) / M_j(z)$ is the A/E for the group $S_j(z)$. A large gap means the model is missing something about pets at that level. What the chart does not show is the effect of the variable itself.
+
+## Interactions, revisited {#sec-interactions-revisited}
+
+With every quantity defined, here are all the answers to "what is the age-7 relativity?" for the example:
+
+| Quantity                           | Age 7 vs. age 2 |
+|------------------------------------|----------------:|
+| Base-risk, cat baseline            |            1.40 |
+| Base-risk, dog baseline            |            2.00 |
+| ICE, each cat                      |            1.40 |
+| ICE, each dog                      |            2.00 |
+| Partial relativity                 |            1.79 |
+| One-way relativity (from the data) |            2.31 |
+
+: Six answers to "what is the age-7 relativity?" {#tbl-answers}
+
+Two different forces produce this spread.
+
+**Interactions** make the effect of $x_j$ depend on the other variables. They separate the model-based quantities from one another: base-risk relativities from different baselines, ICE relativities of different pets, and partial relativities over different portfolios.
+
+**Correlation**, meaning which other characteristics tend to come with $x_j$ in the book, separates the one-way relativity from all the others. Base-risk, ICE, and partial relativities never change which pets are compared, so correlation does not enter them. (@sec-counterfactuals notes one indirect way it does matter.)
+
+### The special case: no interactions {#sec-no-interactions}
+
+Suppose $x_j$ interacts with nothing, so the model factors as $\hat\mu(z, x_{-j}) = g_j(z)\,h(x_{-j})$. Then every model-based relativity is the same number:
+
+$$
+r_j(z) = r_{ij}(z) = \bar r_j(z) = \frac{g_j(z)}{g_j(z^b)}
+\quad\text{for every baseline pet, every pet } i\text{, and every portfolio.}
+$$ {#eq-no-interactions}
+
+In a main-effects GLM, this common value is $e^{\hat\beta}$. That is why the classic literature never needed to tell these quantities apart.
+
+The one-way relativity can still differ. Change the example so that dogs age like cats (factor 1.4 for both). Then the base-risk, ICE, and partial relativities all equal 1.40, but the one-way relativity is $686.00 / 397.50 = 1.73$. That gap is pure correlation. It is the double counting described in @sec-familiar, and the reason multivariate models replaced one-way analysis.
+
+### What a single summary costs {#sec-single-summary}
+
+Under interactions, the partial relativity is a weighted average over contexts (@sec-weighted-vote), so it depends on the portfolio's mix. If the book shifted toward dogs, the partial age relativity would move toward 2.00. That is not a flaw. It is what summarizing a non-constant effect with one number has to mean. But it does mean a partial relativity is a summary of **a particular portfolio**, and it should be reported that way.
+
+When interactions are important, report more than the headline number:
+
+-   the **partial relativity**, as the portfolio-level summary;
+-   the **spread of ICE relativities**, or partial relativities computed within subgroups (for example, separately for dogs and cats), to show how much the effect varies; and
+-   for a rate table, the **interaction tables** themselves, because neither base-risk nor partial relativities multiply back to predictions.
+
+## Predictions, relativities, and "effects" {#sec-effects}
+
+Two separate decisions go into every quantity in this guide:
+
+1.  **How do I construct the prediction?** At the baseline pet, at one real pet, or averaged over the portfolio.
+2.  **How do I compare predictions?** Not at all (keep the prediction), by a difference, or by a ratio.
+
+$ICE_{ij}(z)$ and $PD_j(z)$ are predictions, in dollars per pet-year. Neither is an "effect" until it is compared with something:
+
+$$
+PD_j(z_1) - PD_j(z_0) \quad \text{(an additive effect, in dollars)},
+\qquad
+\frac{PD_j(z_1)}{PD_j(z_0)} \quad \text{(a relativity)}.
+$$
+
+So avoid describing a PD curve as "the effect of $x_j$ averaged across the portfolio." It is the *average prediction* as a function of $x_j$. Keeping the two decisions separate prevents several similar-looking objects from being confused with one another.
+
+## The whole system on one page {#sec-system}
+
+| Quantity | Symbol | Formula | What happens to $x_j$ | What happens to $x_{-j}$ | Output |
+|------------|------------|------------|------------|------------|------------|
+| Overall relativity | $R(\mathbf{x})$ | $\hat\mu(\mathbf{x}) / \hat\mu(\mathbf{x}^b)$ | Not singled out | Not singled out: the whole pet changes | Ratio |
+| Base-risk relativity | $r_j(z)$ | $\hat\mu(z, x^b_{-j}) / \hat\mu(\mathbf{x}^b)$ | Set to $z$ | Held at the baseline pet | Ratio |
+| ICE | $ICE_{ij}(z)$ | $\hat\mu(z, x_{i,-j})$ | Set to $z$ | Held at real pet $i$ | Prediction |
+| ICE relativity | $r_{ij}(z)$ | $ICE_{ij}(z) / ICE_{ij}(z^b)$ | Set to $z$ | Held at real pet $i$ | Ratio |
+| Partial dependence | $PD_j(z)$ | $\sum_i ee_i\, ICE_{ij}(z) / \sum_i ee_i$ | Set to $z$ for every pet | Each pet keeps its own; then average | Prediction |
+| Partial relativity | $\bar r_j(z)$ | $PD_j(z) / PD_j(z^b)$ | Set to $z$ for every pet | Each pet keeps its own; then average | Ratio |
+| One-way average | $\bar y_j(z)$, $M_j(z)$ | Average over pets with $x_{ij} = z$ | Not assigned: select pets that have $z$ | Whatever those pets have | Actual or prediction |
+| One-way relativity | $m_j(z)$ | $\bar y_j(z) / \bar y_j(z^b)$ | Not assigned | Whatever those pets have | Ratio |
+
+: The whole system {#tbl-system}
+
+The model-based quantities form two parallel paths:
+
+$$
+\text{ICE predictions}
+\;\xrightarrow{\text{average over pets}}\;
+\text{partial dependence}
+\;\xrightarrow{\text{normalize}}\;
+\text{partial relativity}
+$$
+
+$$
+\text{prediction at } (z, x^b_{-j})
+\;\xrightarrow{\text{normalize}}\;
+\text{base-risk relativity}
+$$
+
+In words: **a base-risk relativity evaluates a variable in one context. A partial relativity averages it over the portfolio's contexts.** ICE is the machinery underneath both, and without interactions both reduce to the GLM coefficient. The overall relativity answers a different question, comparing whole pets. The one-way relativity is the odd one out: it compares different groups of pets rather than changing a value for the same pets.

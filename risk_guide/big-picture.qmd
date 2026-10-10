@@ -1,0 +1,101 @@
+# The Big Picture {#sec-big-picture}
+
+## General idea of relativity in math
+
+R = g(x)/g(x^b)
+
+What is the loss relative to a chosen baseline. In some cases x can be the entire risk vector (all of the portfolio variables). In other case we will choose a _focus_variable. We can additionally place constraints on what values other variables can take. Each of these choices creates a different view into the internal mechanics of the model.
+
+## Choosing a baseline
+For some variables there may be a natural baseline. For instance, if you have a range of deductibles, you might want to use the lowest deductible as the baseline. If you have add-ons, you might want to use "no add-on" as the baseline. In some cases you might want to use the most common factor level as the baseline. However, quite often what makes the most sense is to use the portfolio average, which serves as a natural baseline.
+
+## Two familiar relativities, and why they are no longer enough {#sec-familiar}
+
+To begin understanding relativities, let's look at the two most familiar ways to get relativities.
+
+### One-way relativities from the data.
+
+Group the policies by the levels of one rating variable. For each level, divide total loss by total exposure to get the observed pure premium. Then divide each level's pure premium by the base level's. No model is involved.
+
+Formula.
+
+What does it show? Examples?
+
+This is simple and transparent, but it credits a variable with everything that travels with it. 
+
+Rephrase "everything that travels with it" to be more transparent.
+
+If older pets in the book tend to be dogs, and dogs cost more, the one-way age relativities absorb part of the dog effect. Multiplying one-way relativities across variables then counts the same risk more than once.
+
+### Coefficients from a GLM
+
+Fit a multiplicative (log-link) GLM with all the rating variables at once, and read off $e^{\hat\beta}$ for each level. Because the variables are fit together, each coefficient is adjusted for the others, which solves the double-counting problem. The rate table is then a base rate times a product of these factors.
+
+A GLM with main effects only has one more property, and that property is what made its coefficients so easy to use: **the effect of each variable is the same for every pet.** Moving a pet from age 2 to age 7 multiplies its expected loss by the same factor whether it is a cat in Washington or a dog in California. So $e^{\hat\beta}$ simply *is* the age-7 relativity. It doesn't matter which pet you ask about, which pet you take as the base, or what the book looks like.
+
+**That property disappears once a model has interactions.** Computing power, machine learning, and statistical science have moved on. GAMs with smooth interaction surfaces, gradient-boosted trees, and GLMs with many interaction terms are now routine. They fit risk better because real risk has interactions: dogs may age differently from cats. In such a model there is no single coefficient to read off. The effect of age on a cat differs from its effect on a dog, and "the age relativity" splits into several distinct quantities, each answering a different question.
+
+Explainable machine learning developed tools for exactly this situation, notably partial dependence and individual conditional expectation (ICE). The actuarial literature has mostly not caught up. In the classic main-effects GLM, all of these quantities collapse to the same number, so there was never a need to tell them apart; the only distinction that mattered was one-way versus multivariate. That is why the terminology for these ideas isn't settled in insurance, and why the same ideas keep being rebuilt from scratch.
+
+This guide organizes the modern relativities into one system. Both familiar relativities have a place in it. The GLM coefficient is the special case that all the model-based relativities reduce to when there are no interactions. The one-way relativity becomes a check on the model rather than a measure of a variable's effect.
+
+## A model is a function you can ask questions {#sec-model-function}
+
+Treat the fitted model as a function. Give it a pet's rating characteristics and it returns the expected loss per unit of exposure, that is, per pet-year:
+
+$$
+\hat\mu(\text{Dog, age 7, Oregon}) = \$810.
+$$
+
+Every model-based quantity in this guide is built the same way: call this function on carefully chosen inputs, then possibly average the outputs, divide one output by another, or both. The quantities differ only in **which inputs you feed in** and **what you do with the outputs**.
+
+## Three questions {#sec-three-questions}
+
+Whenever someone reports "the age relativity" or "the effect of species," three questions pin down what was actually computed.
+
+1.  **What am I varying?** The whole pet, or one rating variable?
+2.  **What am I doing with everything else?** If I vary one variable, what values do the other variables take?
+3.  **Am I keeping the prediction, or turning it into a ratio?** A prediction is in dollars per pet-year. A ratio of predictions is a relativity.
+
+The second question matters most, and it is the one most often left unstated.
+
+## The family at a glance {#sec-family}
+
+Take age as the variable of interest, and take a **baseline pet**: Cat, age 2, Washington.
+
+| Quantity | Recipe in plain words | Question it answers |
+|------------------------|------------------------|------------------------|
+| **Overall relativity** | Predict for this pet. Divide by the prediction for the baseline pet. | How expensive is this pet compared with the baseline pet? |
+| **Base-risk relativity** | Take the baseline pet. Change its age to 7. Divide by the baseline pet's prediction. | How would the baseline pet's predicted risk change if only its age changed? |
+| **ICE** | Take one real pet from the portfolio. Predict for it at age 1, 2, 3, … while leaving everything else about it unchanged. | How would *this* pet's predicted risk change if only its age changed? |
+| **Partial dependence** | Do the ICE calculation for every pet in the portfolio. At each age, average the predictions. | Across the portfolio, how would average predicted risk change if every pet had this age? |
+| **Partial relativity** | Divide the partial dependence at age 7 by its value at a reference age. | Across the portfolio, by what factor would average predicted risk change if age moved from the reference to 7? |
+| **One-way relativity** | Divide the losses of the pets that *are* age 7 by their exposure. Divide that by the same calculation for the pets that *are* age 2. | How do pets that actually are 7 compare with pets that actually are 2? |
+
+: The family of relativities, for age, with baseline pet Cat, age 2, WA {#tbl-family}
+
+The same family, organized by the answer to question 2:
+
+$$
+\text{Pick a variable }j
+\;\longrightarrow\;
+\text{vary }x_j
+\;\longrightarrow\;
+\text{what do I do with everything else?}
+$$
+
+-   **Don't single out a variable at all** → overall relativity
+-   **Hold everything else at the baseline pet** → base-risk relativity
+-   **Hold everything else at one real pet** → ICE
+-   **Do that for every real pet, then average** → partial dependence
+-   **…then divide by a reference value** → partial relativity
+-   **Let everything else be whatever it is for the pets that actually have that value** → one-way relativity
+
+The last item is different in kind from the others. The first five keep the pets fixed and change a value. The one-way relativity changes *which pets are being compared*. @sec-one-way explains why that matters.
+
+Here is where the two familiar relativities from @sec-familiar fit:
+
+-   The **one-way relativity** is the last row.
+-   The **GLM coefficient** $e^{\hat\beta}$ is the common value of the base-risk relativity, every ICE relativity, and the partial relativity when the model has no interactions involving the variable (@sec-no-interactions). With interactions, these quantities come apart.
+
+**A note on names.** In this guide, "one-way" always means the traditional calculation from the data, which is its standard meaning in ratemaking (it is also called univariate analysis). The model-based calculation that changes one variable on a baseline pet is the **base-risk relativity**. Names in this area are not settled, so when a colleague says "the one-way relativity" or "the age relativity," ask which calculation they mean.

@@ -1,0 +1,273 @@
+# Relativities and Calculus {#sec-calculus}
+
+If you have studied calculus or physics, the family of relativities in this guide will look familiar. @sec-what-are-relativities compared relativities to derivatives. This chapter makes that comparison precise. Every relativity is a finite-difference version of a derivative of the log of expected loss. The relativities differ from one another in the same ways that partial derivatives, total derivatives, and integrals along different paths differ.
+
+Nothing here is needed to compute or use relativities. What calculus adds is a compact language for *why* they differ:
+
+-   interactions are mixed partial derivatives;
+-   correlation in the data turns a partial derivative into a total derivative; and
+-   averaging over the portfolio is averaging slopes, with weights.
+
+## The dictionary {#sec-calc-dictionary}
+
+Write
+
+$$
+\eta(\mathbf{x}) = \log\hat\mu(\mathbf{x})
+$$
+
+for the log of expected loss, the model's predictor on the link scale. GLM and GAM texts call it the linear or additive predictor and also write it $\eta$. Every model-based relativity is the exponential of a change in $\eta$:
+
+| Relativity | Calculus counterpart | Section |
+|------------------------|------------------------|------------------------|
+| Overall $R(\mathbf{x})$ | The change in $\eta$ between two points. By the gradient theorem, it is the same along every path. | @sec-calc-path |
+| Base-risk $r_j(z)$ | The partial derivative $\partial\eta/\partial x_j$, accumulated along the line through the baseline pet | @sec-calc-partial |
+| ICE relativity $r_{ij}(z)$ | The same partial derivative, accumulated along the line through pet $i$ | @sec-calc-partial |
+| Interaction factor $I(\mathbf{x})$ | The mixed partial derivative $\partial^2\eta/\partial x_j\,\partial x_k$, accumulated over a rectangle | @sec-calc-mixed |
+| Partial relativity $\bar r_j(z)$ | A weighted average of the pets' partial derivatives, accumulated | @sec-calc-averaged |
+| One-way relativity $m_j(z)$ | A total derivative: the other variables move along with $x_j$, the way they do in the data | @sec-calc-total |
+
+: Relativities and their calculus counterparts {#tbl-calc-dictionary}
+
+## Relativities are finite differences of $\log\hat\mu$ {#sec-calc-log}
+
+Every relativity is a ratio of expected losses, so its logarithm is a difference of $\eta$. For the base-risk relativity,
+
+$$
+\log r_j(z) = \eta(z,\, x^b_{-j}) - \eta(z^b,\, x^b_{-j}).
+$$
+
+Divide by the size of the step and you have a difference quotient. As the step shrinks, it becomes a derivative:
+
+$$
+\lim_{z \to z^b}\frac{\log r_j(z)}{z - z^b}
+= \frac{\partial \eta}{\partial x_j}(\mathbf{x}^b)
+= \frac{1}{\hat\mu}\frac{\partial\hat\mu}{\partial x_j}(\mathbf{x}^b).
+$$
+
+The derivative of $\eta$ is the *proportional* rate of change of expected loss, which economists call a semi-elasticity. For small changes, it is the percent change in expected loss per unit of $x_j$. If $\partial\eta/\partial\,\text{age} = 0.07$ at some age, one more year multiplies expected loss by about $e^{0.07} \approx 1.07$.
+
+> **Plain language:** A derivative is the percent change in expected loss per unit of a variable, at one point. A relativity adds up those percent changes over a finite step.
+
+The fundamental theorem of calculus makes "adds up" exact. For a continuous variable,
+
+$$
+\log r_j(z) = \int_{z^b}^{z} \frac{\partial \eta}{\partial x_j}\big(t,\, x^b_{-j}\big)\,dt.
+$$ {#eq-calc-ftc}
+
+A base-risk relativity curve is the exponential of the slope of $\eta$, accumulated along a line through the baseline pet.
+
+Categorical variables such as species and state have no derivative, only the finite difference. That is one reason relativities, rather than derivatives, are the natural currency of rating: they work the same way for every kind of variable.
+
+## Partial derivatives: base-risk and ICE relativities {#sec-calc-partial}
+
+Picture $\eta$ as a surface over the space of rating variables. Holding every variable except $x_j$ fixed cuts a one-dimensional slice through that surface, and a partial derivative is the slope of that slice.
+
+-   The **base-risk relativity** follows the slice through the baseline pet (@eq-calc-ftc).
+-   The **ICE relativity** for pet $i$ follows the slice through pet $i$:
+
+$$
+\log r_{ij}(z) = \int_{z^b}^{z} \frac{\partial \eta}{\partial x_j}\big(t,\, x_{i,-j}\big)\,dt.
+$$
+
+Both are partial derivatives, accumulated. They differ only in which slice they follow. This is the calculus version of the observation in @sec-ice that the base-risk relativity is the ICE relativity of the baseline pet.
+
+Whether different slices have different slopes is exactly the question of interactions.
+
+## Interactions are mixed partial derivatives {#sec-calc-mixed}
+
+The slope $\partial\eta/\partial x_j$ changes with another variable $x_k$ when the mixed partial derivative is not zero:
+
+$$
+\frac{\partial^2 \eta}{\partial x_k\,\partial x_j} \neq 0.
+$$
+
+That is the precise meaning of "the effect of $x_j$ depends on $x_k$." If every mixed partial involving $x_j$ is zero, then $\partial\eta/\partial x_j$ depends on $x_j$ alone. Every slice then has the same slope, and the base-risk, ICE and partial relativities are all the same number (@sec-no-interactions).
+
+**Interactions are mutual because mixed partials are symmetric.** For smooth functions, the order of differentiation doesn't matter:
+
+$$
+\frac{\partial^2 \eta}{\partial x_k\,\partial x_j} = \frac{\partial^2 \eta}{\partial x_j\,\partial x_k}.
+$$
+
+How much the age slope changes with species equals how much the species slope changes with age. @sec-interactions observed the same thing in the running example. There, species and age are categorical, so derivatives become differences, and the mixed partial becomes a *difference in differences*. With state held at WA:
+
+$$
+\begin{aligned}
+\big[\eta(\text{Dog}, 7) - \eta(\text{Dog}, 2)\big] - \big[\eta(\text{Cat}, 7) - \eta(\text{Cat}, 2)\big] &= \log\frac{2.00}{1.40} = \log 1.43, \\[4pt]
+\big[\eta(\text{Dog}, 7) - \eta(\text{Cat}, 7)\big] - \big[\eta(\text{Dog}, 2) - \eta(\text{Cat}, 2)\big] &= \log\frac{2.14}{1.50} = \log 1.43.
+\end{aligned}
+$$
+
+The first line compares the age effect for dogs and cats. The second compares the species effect at ages 7 and 2. They are the same four terms in a different order, so they must agree.
+
+**The interaction factor is an accumulated mixed partial.** The 1.43 is exactly $I(\mathbf{x}_3)$ from @sec-interactions. In general, when $x_j$ and $x_k$ are the only variables that interact,
+
+$$
+\log I(\mathbf{x}) = \int_{x^b_j}^{x_j}\int_{x^b_k}^{x_k} \frac{\partial^2 \eta}{\partial s\,\partial t}\,dt\,ds,
+$$ {#eq-calc-mixed}
+
+the mixed partial accumulated over the rectangle between the baseline pet and this pet. This explains why an interaction contributes only when both partners leave the base: if either side of the rectangle has zero length, the integral is zero. With more interacting variables, $\log I$ collects the mixed terms of every order.
+
+### Scale, revisited {#sec-calc-scale}
+
+@sec-scale noted that a model with no interactions on the log scale has interactions on the dollar scale. Calculus makes this exact. Because $\hat\mu = e^{\eta}$,
+
+$$
+\frac{\partial^2 \hat\mu}{\partial x_j\,\partial x_k}
+= \hat\mu\left(\frac{\partial^2 \eta}{\partial x_j\,\partial x_k} + \frac{\partial \eta}{\partial x_j}\,\frac{\partial \eta}{\partial x_k}\right).
+$$
+
+Even when the first term is zero, the second is not: on the dollar scale, every pair of variables with nonzero slopes interacts. Relativities live on the log scale, so the first term is the one that matters for them.
+
+## Partial relativity: an averaged slope {#sec-calc-averaged}
+
+Differentiate the log of partial dependence:
+
+$$
+\frac{d}{dz}\log PD_j(z)
+= \frac{\sum_i ee_i\,\partial\hat\mu(z, x_{i,-j})/\partial x_j}{\sum_k ee_k\,\hat\mu(z, x_{k,-j})}
+= \sum_i \omega_i(z)\,\frac{\partial \eta}{\partial x_j}\big(z,\, x_{i,-j}\big),
+\qquad
+\omega_i(z) = \frac{ee_i\,\hat\mu(z, x_{i,-j})}{\sum_k ee_k\,\hat\mu(z, x_{k,-j})}.
+$$ {#eq-calc-pd-slope}
+
+**The log-slope of partial dependence is a weighted average of the pets' slopes.** Each pet is weighted by its share of expected dollars at $z$. This is the infinitesimal version of the weighted vote in @sec-weighted-vote. Accumulating it from $z^b$ to $z$ gives $\log\bar r_j(z)$. In the finite version, the weights are fixed at the reference value. Here they move with $z$, as some pets become more expensive relative to others.
+
+The other averages in @sec-averaging have slopes of their own. Partial dependence computed on the link scale, which gives the geometric average, has a slope equal to the exposure-weighted average of the same partial derivatives:
+
+$$
+\frac{d}{dz}\,\frac{\sum_i ee_i\,\eta(z, x_{i,-j})}{\sum_i ee_i}
+= \frac{\sum_i ee_i\,\partial\eta(z, x_{i,-j})/\partial x_j}{\sum_i ee_i}.
+$$
+
+The two averages differ only in their weights: expected dollars, or pet-years. Without interactions every pet has the same slope, and the weights don't matter.
+
+## One-way relativity: a total derivative {#sec-calc-total}
+
+Recall the total derivative. Suppose $\eta$ depends on $x_j$ directly, and also through other variables that move with it along curves $x_k = h_k(x_j)$. The chain rule gives
+
+$$
+\frac{d\eta}{dx_j}
+= \underbrace{\frac{\partial \eta}{\partial x_j}}_{\text{direct}}
++ \underbrace{\sum_{k \neq j} \frac{\partial \eta}{\partial x_k}\,\frac{dh_k}{dx_j}}_{\text{carried along}}.
+$$ {#eq-calc-total}
+
+The one-way relativity behaves like a total derivative. It compares pets that actually have different values of $x_j$, and in the data the other variables move with $x_j$: older pets may be more often dogs, more often in certain states, and so on. The direct term is what the partial relativity measures. The carried-along terms are the double counting of @sec-familiar: the effects of other variables that happen to travel with $x_j$.
+
+In real data, the other variables don't follow single curves $h_k$. What moves with $x_j$ is the whole *mix* of pets. Write $p(x_{-j} \mid z)$ for the exposure-weighted distribution of the other variables among pets with $x_j = z$, so that
+
+$$
+M_j(z) = \int \hat\mu(z, x_{-j})\;p(x_{-j} \mid z)\;dx_{-j}.
+$$
+
+Differentiating gives the same two parts:
+
+$$
+\frac{d}{dz}\log M_j(z)
+= \underbrace{\int \frac{\hat\mu\,p}{M_j}\,\frac{\partial \eta}{\partial x_j}\;dx_{-j}}_{\text{within: average slope of the pets at } z}
++ \underbrace{\frac{1}{M_j}\int \hat\mu\;\frac{\partial p(x_{-j} \mid z)}{\partial z}\;dx_{-j}}_{\text{mix: how the pets at } z \text{ change}}.
+$$ {#eq-calc-oneway-slope}
+
+The within term is an averaged partial derivative, like the partial relativity. The mix term is new. It is zero when the mix of other variables doesn't change with $x_j$. In fact, if the other variables are distributed the same way at every value of $x_j$, then $M_j(z) = PD_j(z)$ exactly, and **the one-way and partial relativities coincide, even with interactions**. Correlation, not interaction, is what separates them. That matches @sec-interactions-revisited.
+
+### A finite version, with numbers {#sec-calc-rate-mix}
+
+Split the one-way relativity from the running example, $m_{\text{age}}(7) = 2.31$ (@sec-one-way), into the two parts. Take the age-7 pets (pets 2 and 3 in @tbl-portfolio) and ask what the model predicts for them at age 2:
+
+$$
+m_{\text{age}}(7)
+= \underbrace{\frac{0.5(420) + 1170}{0.5(300) + 585}}_{\text{within: the age-7 pets, at age 7 vs. age 2}}
+\times
+\underbrace{\frac{\big(0.5(300) + 585\big)/1.5}{397.50}}_{\text{mix: age-7 pets vs. age-2 pets, both at age 2}}
+= 1.88 \times 1.23 = 2.31.
+$$
+
+Ageing from 2 to 7 multiplies the age-7 pets' expected loss by 1.88. On top of that, the age-7 pets are a 23% more expensive mix even at the same age, because more of their exposure is dogs and in California. The one-way relativity reports the product.
+
+The split is not unique. Doing it the other way, with the age-2 pets as the group that changes age, gives $1.71 \times 1.36$. The total is the same, but how much is credited to age and how much to the mix depends on the order. This is the same path dependence that appears in @sec-calc-path.
+
+Demographers know this as the Kitagawa decomposition of a difference between two rates into a rate effect and a composition effect. Economists know it as the Oaxaca–Blinder decomposition. Both fields often average the two orders to make the split symmetric, which is the same idea as the Shapley split below.
+
+## Overall relativity: path independence {#sec-calc-path}
+
+The overall relativity compares two whole pets. By the gradient theorem, the change in $\eta$ between them is the same along every path:
+
+$$
+\log R(\mathbf{x}) = \eta(\mathbf{x}) - \eta(\mathbf{x}^b) = \int_C \nabla\eta \cdot d\mathbf{x}
+\quad\text{for any path } C \text{ from } \mathbf{x}^b \text{ to } \mathbf{x}.
+$$ {#eq-calc-gradient}
+
+This is the calculus behind the remark in @sec-overall that interactions cause the overall relativity no difficulty: the total doesn't depend on how you get there.
+
+How the total is *split among the variables* does depend on the path. Move pet 3 (Dog, 7, CA) away from the baseline pet (Cat, 2, WA) one variable at a time:
+
+| Order | First step | Second step | Then state | Product |
+|------------------|------------------|------------------|-----------------:|-----------------:|
+| Species, then age | Dog: 1.50 | Age 7, for a dog: 2.00 | CA: 1.30 | 3.90 |
+| Age, then species | Age 7, for a cat: 1.40 | Dog, at age 7: 2.14 | CA: 1.30 | 3.90 |
+
+: Two orders for moving pet 3 away from the baseline pet {#tbl-calc-orders}
+
+Both orders reach 3.90. But one credits species with 1.50 and age with 2.00, and the other credits age with 1.40 and species with 2.14. The base-risk relativities credit each variable with the factor it gets when it moves first, $1.50 \times 1.40 \times 1.30 = 2.73$, and leave the rest, $I = 1.43$, unassigned (@eq-interaction-factor).
+
+Explainable machine learning has two standard ways to make the split unique:
+
+-   **Shapley values** average over every order in which the variables can be moved. On the log scale, each variable's factor becomes the geometric mean of its factors across orders. Age gets $\sqrt{1.40 \times 2.00} = 1.67$, and species gets $\sqrt{1.50 \times 2.14} = 1.79$. Together with state, $1.79 \times 1.67 \times 1.30 = 3.90$ exactly, with nothing left over. SHAP values for log-link models are usually reported on this log scale.
+-   **Integrated gradients**, for continuous variables, follow the straight-line path from $\mathbf{x}^b$ to $\mathbf{x}$. They credit each variable with its own term of @eq-calc-gradient along that path.
+
+Both split *one pet's* overall relativity. Like partial relativities, they explain predictions. They are not rating factors to apply to other pets.
+
+## Connection to marginal effects {#sec-calc-marginal-effects}
+
+Econometrics has its own vocabulary for these objects, built around the *marginal effect*. For a continuous variable, that is the derivative of the prediction with respect to one variable, $\partial\hat\mu/\partial x_j$. For a categorical variable, it is a difference or ratio of predictions. The R package `marginaleffects` organizes them as **predictions** (levels), **slopes** (derivatives) and **comparisons** (differences and ratios).
+
+| Marginal-effects term | In this guide |
+|------------------------------------|------------------------------------|
+| Prediction at a chosen point | $\hat\mu$ at the baseline pet, or at any pet |
+| Marginal effect at a representative value, or at the means | Base-risk relativity, in derivative form. "At the means" uses an average pet, which may not exist when variables are categorical. |
+| Unit-level marginal effect or comparison | ICE |
+| Average counterfactual prediction | Partial dependence |
+| Average marginal effect or average comparison | An average over pets, like the partial relativity. Check the scale and the weights (@sec-averaging). |
+| Semi-elasticity, $\partial\log\hat\mu/\partial x_j$ | The slope of $\eta$: log-relativity per unit of $x_j$ |
+
+: Marginal-effects vocabulary and this guide {#tbl-calc-marginal}
+
+Two details matter when translating between the vocabularies.
+
+-   **Where the slope is evaluated.** The usual average marginal effect evaluates each pet at its *own* value of $x_j$. The slope of partial dependence evaluates every pet at the *same* assigned value $z$. They agree only when the slope is the same at every value of $x_j$, as it is for a variable that enters $\eta$ linearly.
+-   **Ratio of averages, or average of ratios.** For ratio comparisons averaged over pets, `marginaleffects` offers both. The "ratioavg" comparison takes the ratio of average predictions, which is the partial relativity when the averages are weighted by exposure. With an offset model, the exposure is already inside each prediction (@sec-offsets). Check the package documentation for the current argument names.
+
+## Where the analogy stops {#sec-calc-limits}
+
+-   **Categorical variables** have no derivatives. Everything above still holds with differences in place of derivatives, which is how the running example works.
+-   **Tree-based models**, such as gradient-boosted trees, are piecewise constant. Their derivatives are zero almost everywhere and undefined at the splits, so slopes say nothing useful about them. Relativities over finite steps work fine.
+-   **Estimated slopes are noisier than estimated levels.** For a GAM the derivatives exist, but the slope of a fitted smooth is estimated less precisely than the smooth itself. A relativity over a meaningful step is usually more stable than a slope at a point.
+
+## Summary {#sec-calc-summary}
+
+Every model-based relativity is the exponential of the slope of $\eta$, accumulated along some path and possibly averaged over pets:
+
+| Relativity | Which slope | Accumulated along | Averaged over |
+|------------------|------------------|------------------|------------------|
+| Base-risk | $\partial\eta/\partial x_j$ | the line through the baseline pet | (one pet) |
+| ICE | $\partial\eta/\partial x_j$ | the line through pet $i$ | (one pet) |
+| Partial | $\partial\eta/\partial x_j$ | the lines through every pet | pets, weighted by expected dollars |
+| Overall | $\nabla\eta$ | any path from the baseline pet to this pet | (one pet) |
+| One-way | $d/dx_j$, a total derivative | the path the data take | the pets at each value |
+
+: Relativities as accumulated slopes {#tbl-calc-summary}
+
+In this language, the two forces from @sec-interactions-revisited have precise names.
+
+-   **Interactions** are nonzero mixed partial derivatives. They make the slope differ from one line to the next, which separates the base-risk, ICE and partial relativities.
+-   **Correlation** is the path the data take through the space of rating variables. It turns a partial derivative into a total derivative, which separates the one-way relativity from the rest.
+
+**References for this chapter**
+
+-   Blinder, A. S. (1973). Wage discrimination: Reduced form and structural estimates. *Journal of Human Resources*, 8(4), 436–455.
+-   Kitagawa, E. M. (1955). Components of a difference between two rates. *Journal of the American Statistical Association*, 50(272), 1168–1194.
+-   Lundberg, S. M., and Lee, S.-I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems* 30.
+-   Oaxaca, R. (1973). Male-female wage differentials in urban labor markets. *International Economic Review*, 14(3), 693–709.
+-   Shapley, L. S. (1953). A value for n-person games. In *Contributions to the Theory of Games II*, 307–317.
+-   Sundararajan, M., Taly, A., and Yan, Q. (2017). Axiomatic attribution for deep networks. *Proceedings of the 34th International Conference on Machine Learning*.

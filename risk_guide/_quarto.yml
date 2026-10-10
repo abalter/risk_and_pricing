@@ -1,0 +1,22 @@
+project:
+  type: book
+
+book:
+  title: "Relativities: A Unified Framework for Understanding Insurance Risk"
+  author: "Draft"
+  date: "October 6, 2026"
+  chapters:
+    - index.qmd
+    - background.qmd
+    - big-picture.qmd
+    - framework.qmd
+    - practice.qmd
+    - calculus.qmd
+  appendices:
+    - notation.qmd
+    - names-and-references.qmd
+
+format:
+  html:
+    theme: cosmo
+    toc-depth: 3

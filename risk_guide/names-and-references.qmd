@@ -1,0 +1,25 @@
+# Standard Names and References {#sec-appendix-names}
+
+| This guide | Names you will see elsewhere |
+|------------------------------------|------------------------------------|
+| Overall relativity $R(\mathbf{x})$ | relativity; total relativity; product of rating factors |
+| Base-risk relativity $r_j(z)$ | GLM relativity; rating factor; $e^{\hat\beta}$ in a GLM (with interactions, a main-effect coefficient is the relativity at the base levels of its interaction partners) |
+| ICE $ICE_{ij}(z)$ | individual conditional expectation curve (Goldstein et al.) |
+| ICE relativity $r_{ij}(z)$ | the multiplicative version of a *centered* ICE (c-ICE) curve |
+| Partial dependence $PD_j(z)$ | partial dependence (Friedman); average counterfactual predictions (`marginaleffects`) |
+| Partial relativity $\bar r_j(z)$ | no standard name; normalized partial dependence |
+| One-way $\bar y_j$, $M_j$, $m_j$ | one-way or univariate analysis (ratemaking); M-plot (Apley and Zhu); the actual and fitted lines of an actual-vs-fitted chart |
+
+The machine-learning literature usually writes the focal set as $S$ and its complement as $C$. Partial dependence there is $\hat f_S(x_S) = \frac{1}{n}\sum_i \hat f(x_S, x_C^{(i)})$, and ICE curves are $\hat f_S^{(i)}$. This guide writes $\hat\mu$ explicitly because what we average is expected dollars, not an abstract score. There is no standard symbol for a partial relativity.
+
+**A caution about "marginal."** The word is used in opposite senses. Apley and Zhu's "marginal plot" (M-plot) is the *conditional* average used in one-way analysis. Econometric "marginal effects" are derivatives or differences of predictions. In probability, a "marginal" distribution is what partial dependence averages over. This guide avoids the word.
+
+**References**
+
+-   Apley, D. W., and Zhu, J. (2020). Visualizing the effects of predictor variables in black box supervised learning models. *Journal of the Royal Statistical Society, Series B*, 82(4), 1059–1086.
+-   Arel-Bundock, V. *marginaleffects* (R and Python package) and documentation.
+-   Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. *Annals of Statistics*, 29(5), 1189–1232.
+-   Goldburd, M., Khare, A., Tevet, D., and Guller, D. *Generalized Linear Models for Insurance Rating*. CAS Monograph No. 5.
+-   Goldstein, A., Kapelner, A., Bleich, J., and Pitkin, E. (2015). Peeking inside the black box: Visualizing statistical learning with plots of individual conditional expectation. *Journal of Computational and Graphical Statistics*, 24(1), 44–65.
+-   Molnar, C. *Interpretable Machine Learning*. Online book, chapters on PD, ICE, and ALE.
+-   Werner, G., and Modlin, C. *Basic Ratemaking*. Casualty Actuarial Society, chapters on traditional (univariate) and multivariate classification ratemaking.

@@ -1,0 +1,41 @@
+# Introduction {#sec-intro}
+
+*Draft, October 6, 2026*
+
+Traditional insurance and actuarial science have long relied on the concept of relativities to compare risks and set premiums. The most broadly understood relativities are:
+
+-   **One-way**[^1] **or two-way relativities:** These are calculated on the observed data itself, and compare created from the data (observations).
+-   **Model-based relativities:** These are derived from a fitted statistical model, such as a Generalized Linear Model (GLM), and use the model's coefficients to estimate the effect of each
+
+[^1]: Prepare for terminology clash. There is another entity called "one-way relativity" we will discuss.
+
+These traditional methods have many limitations and can miss important interactions between variables. Modern statistical models allow us to estimate relativities in a more flexible and comprehensive way, capturing complex relationships in the data. These include:
+
+| Quantity | Question it answers |
+|------------------------------------|------------------------------------|
+| **Overall relativity** | What is the predicted risk of this pet relative to the baseline pet? |
+| **One-way relativity** | How would the predicted baseline risk vary if I changed this one variable? |
+| **ICE relativity** | Take a given pet. How would its predicted risk vary if I changed this one variable? |
+| **Partial relativity** | Across the portfolio, how would the average predicted risk change relative to a reference value if I changed this one variable? |
+
+: The modern relativities and the questions they answer {#tbl-intro-questions}
+
+We will discuss each of these in detail and explain how they are calculated and interpreted in the context of a fitted model, and how they allow us to better understand and compare risks across different scenarios. But most importantly, we will present these different relativities as part of unified system. Every one of the relativities we will discuss fits into the following framework:
+
+$$
+\text{Pick a variable }j
+\;\longrightarrow\;
+\text{vary }x_j
+\;\longrightarrow\;
+\text{what do I do with everything else?}
+$$
+
+1.  **What am I varying?** The whole pet, or one rating variable?
+2.  **What am I doing with everything else?** If I vary one variable, what values do the other variables take?
+3.  **Am I keeping the prediction, or turning it into a ratio?** A prediction is in dollars per pet-year. A ratio of predictions is a relativity.
+
+The second question matters most, and it is the one most often left unstated. Interactions are the theme throughout. Modern risk models almost always contain them, and they are the reason "what does age do to risk?" has more than one honest answer.
+
+While the concept of relativities is general, this guide focuses on their application to insurance risk. That is, we will discuss *risk relativities*. In another guide we will apply the same concept to *pricing relativities.* We are starting with risk because it is the foundation for pricing. But even moreso, it is a more natural concept. The data generating process (DGP) for risk is exogenous--the random incidence of claims. The DGP for pricing is endogenous because it overlays business concerns such as expenses, profit, competition, and regulation.
+
+The guide is structured to gradually build your understanding of relativities, starting from basic concepts and moving towards more complex applications.

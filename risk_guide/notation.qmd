@@ -1,0 +1,27 @@
+# Notation {#sec-appendix-notation}
+
+| Symbol | Meaning |
+|------------------------------------|------------------------------------|
+| $\mathbf{x} = (x_1, \ldots, x_p)$ | full vector of rating variables (a whole pet) |
+| $j$ | focal rating variable |
+| $x_j$, $x_{-j}$ | value of the focal variable; values of all other variables |
+| $z$ | a value assigned to the focal variable |
+| $\mathbf{x}^b$, $z^b$ | baseline pet; reference value of the focal variable |
+| $i = 1, \ldots, N$ | portfolio row (policy term) |
+| $\mathbf{x}_i$, $x_{ij}$, $x_{i,-j}$ | row $i$'s full vector; its focal value; its other values |
+| $ee_i$ | earned exposure of row $i$ |
+| $y_i$ | observed aggregate loss of row $i$ |
+| $\hat y_i$, $\hat y_i(z)$ | expected aggregate loss of row $i$, $ee_i\,\hat\mu$: as it is, and with $x_j$ set to $z$ (@eq-yhat) |
+| $\hat\mu(\mathbf{x})$ | fitted expected loss per unit exposure; $\log\hat\mu$ is the link-scale predictor for a log link |
+| $B = \hat\mu(\mathbf{x}^b)$ | base rate |
+| $\bar\mu$ | exposure-weighted average prediction over the portfolio |
+| $R(\mathbf{x})$ | overall relativity (@eq-overall) |
+| $r_j(z)$ | base-risk relativity (@eq-base-risk) |
+| $I(\mathbf{x})$ | interaction factor: $R(\mathbf{x}) / \prod_j r_j(x_j)$ (@eq-interaction-factor) |
+| $ICE_{ij}(z)$, $r_{ij}(z)$ | ICE prediction and ICE relativity for row $i$ (@eq-ice, @eq-ice-relativity) |
+| $PD_j(z)$ | exposure-weighted partial dependence (@eq-pd) |
+| $\bar r_j(z)$ | partial relativity (@eq-partial) |
+| $\omega_i$ | weight of row $i$ in the partial relativity (@eq-weighted-vote) |
+| $c_j$ | portfolio-average reference for partial relativities (@eq-offbalance) |
+| $S_j(z)$ | rows whose actual value of $x_j$ is $z$ |
+| $\bar y_j(z)$, $M_j(z)$, $m_j(z)$ | observed one-way average; model-based one-way average; one-way relativity (@eq-one-way, @eq-one-way-model) |

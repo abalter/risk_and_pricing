@@ -1,0 +1,7 @@
+# Quarto build output
+.quarto/
+_book/
+*_files/
+
+# Office lock files
+~$*

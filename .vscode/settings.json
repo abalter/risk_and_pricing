@@ -1,0 +1,14 @@
+{
+  // No AI ghost-text completions while writing prose in this repo.
+  "[markdown]": {
+    "editor.inlineSuggest.enabled": false
+  },
+  "[quarto]": {
+    "editor.inlineSuggest.enabled": false
+  },
+  "github.copilot.enable": {
+    "markdown": false,
+    "quarto": false
+  },
+  "github.copilot.nextEditSuggestions.enabled": false
+}

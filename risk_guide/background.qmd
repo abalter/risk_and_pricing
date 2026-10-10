@@ -1,0 +1,48 @@
+# Background (or Review) {#sec-background}
+
+## What are Losses and Risk {#sec-losses}
+Losses refer to the financial cost incurred due to claims made on an insurance policy. Risk, in the context of insurance, is the uncertainty associated with the occurrence and magnitude of these losses. Understanding the relationship between input variables (such as age, breed, or location) and the expected losses helps insurers price policies accurately and manage their overall risk exposure.
+
+Eligible Loss (the total amount of loss that could potentially be claimed under the policy, whether or not it has been paid)
+
+Paid Loss (the actual amount paid out by the insurer for claims) is always less than or equal to the eligible loss.
+
+Exposure (a measure of the amount of insurance coverage in force, often expressed in policy-years or another relevant unit)
+Exposure is used to normalize losses, allowing insurers to compare risk across policies of different sizes or durations.
+Normalized Loss (the loss amount divided by exposure, often referred to as the pure premium)
+
+Normalized loss allows for a fair comparison of risk across policies with different levels of coverage or durations.
+
+While not discussed here, pricing is based on risk, and risk is quantified through measures such as expected losses. Therefore, to price policies accurately, insurers must understand and model the factors that drive these expected losses. Actual claims data is noisy and incomplete (your book may not contain a breed + age + sex + state combination yet, but might in the future). To smooth out the noise and fill in the gaps we build models that predict expected losses based on the available data.
+
+## What is a Model? {#sec-what-is-a-model}
+Before diving into the different types of relativities, it is important to understand the underlying model that generates these predictions.
+
+To build a model, we start with a set of data
+
+| $Y$      | $X_1$     | $X_2$     | $X_3$     | $\cdots$ | $X_p$     |
+|----------|-----------|-----------|-----------|----------|-----------|
+| $y_1$    | $x_{1,1}$ | $x_{1,2}$ | $x_{1,3}$ | $\cdots$ | $x_{1,p}$ |
+| $y_2$    | $x_{2,1}$ | $x_{2,2}$ | $x_{2,3}$ | $\cdots$ | $x_{2,p}$ |
+| $\vdots$ | $\vdots$  | $\vdots$  | $\vdots$  | $\ddots$ | $\vdots$  |
+| $y_N$    | $x_{N,1}$ | $x_{N,2}$ | $x_{N,3}$ | $\cdots$ | $x_{N,p}$ |
+
+and try to model the expected value of the response $Y$ given the input variables $\mathbf{x} = (x_1, x_2, \dots, x_p)$. We imagine that the response (or outcome or target) variable is some true function of the input variables:
+
+$$
+Y(\mathbf{x}) = \mu(\mathbf{x}) + \epsilon
+\epsilon \sim \text{mean zero noise}
+$$
+
+In reality, we do not know the true function $\mu$ and must estimate it from the data. Nevertheless, it is useful to think in terms of this true function because it clarifies what we are trying to achieve. Also, we are less interested in a function that works only for our specific data than one which generalizes to new data. In that sense, the true function is really an _expectation_, a function that gives the expected response for any combination of input values.
+
+$$
+\mu(\mathbf{x}) = \mathbb{E}[Y \mid \mathbf{X} = \mathbf{x}].
+$$ {#eq-mu}
+
+Fitting a model to the data gives an estimate of this function, $\hat\mu(\mathbf{x})$. The fitted model *is* $\hat\mu$: give it a set of input values and it returns an expected response. We are using standard statistical notation in which values which are statistical estimates, rather than observed or true values, cover their heads with a hat to let us know who they are.
+
+A fitted model answers one question directly: what is the expected value of the response variable for a set of input variables with specific values. If we model pet insurance loss, then a fitted model answers the question "what is the expected loss for a pet with these specific characteristics?" (Of course, you have to give the characteristics.) In practice, we rarely care about the absolute expected loss for a single pet. Most of the questions we actually ask are comparisons. How much more does a dog cost than a cat? What does age do to risk? How much of a pet's expected loss comes from its breed? The way to answer these questions is by calculating *Relativities*: ratios of expected losses that isolate the effect of one variable while holding others constant.
+
+## What are Relativities? {#sec-what-are-relativities}
+Relativities are tools that help us understand how changes in input variables affect the predicted outcome. In that sense, relativities are also _rates_ of change with respect to the input variables, and therefore are constructed as ratios or derivatives. If you have studied calculus or physics, you know that there are different kinds of rates and derivatives (e.g., total, partial, directional) which can be calculated in different ways to show different relationships. In a similar way, relativities offer different perspectives on how input variables influence the predicted outcome, depending on how we vary one variable while holding others constant or allowing them to change in specific ways.
