@@ -322,7 +322,9 @@ age_draws <- exp(sweep(L[-1, ], 2, L[1, ]))     # each column is one draw's age 
 t(apply(age_draws, 1, quantile, c(0.05, 0.5, 0.95)))
 
 # 7. The marginal relativity of age on a book P, for comparison: set, average, ratio.
-mu <- function(d) predict(m, newdata = d, type = "response")
+#    mu scores the rate at unit exposure; avg supplies the exposure weights, so exposure counts once.
+P  <- D                                         # the book to average over: training data, in-force, forecast
+mu <- function(d) predict(m, newdata = mutate(d, exposure = 1), type = "response")
 marginal_age <- sapply(0:14, function(z) P |> T_j("age", z) |> avg(mu, w = "exposure"))
 marginal_age / marginal_age[match(4, 0:14)]     # moves with P; r_age does not
 ```
