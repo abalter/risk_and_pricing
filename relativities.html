@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ariel Balter">
+<meta name="dcterms.date" content="2026-10-13">
+
+<title>Relativities, Partial Dependence, and Coefficients</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="relativities_files/libs/clipboard/clipboard.min.js"></script>
+<script src="relativities_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="relativities_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="relativities_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="relativities_files/libs/quarto-html/popper.min.js"></script>
+<script src="relativities_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="relativities_files/libs/quarto-html/anchor.min.js"></script>
+<link href="relativities_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="relativities_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="relativities_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="relativities_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="relativities_files/libs/bootstrap/bootstrap-07f16892f9593dec5d424086e903c39b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sec-summary" id="toc-sec-summary" class="nav-link active" data-scroll-target="#sec-summary"><span class="header-section-number">1</span> Summary</a></li>
+  <li><a href="#sec-three-operations" id="toc-sec-three-operations" class="nav-link" data-scroll-target="#sec-three-operations"><span class="header-section-number">2</span> Three operations, three words</a></li>
+  <li><a href="#sec-rating-table" id="toc-sec-rating-table" class="nav-link" data-scroll-target="#sec-rating-table"><span class="header-section-number">3</span> The rating table is the model</a></li>
+  <li><a href="#sec-familiar" id="toc-sec-familiar" class="nav-link" data-scroll-target="#sec-familiar"><span class="header-section-number">4</span> Where the familiar relativities land</a></li>
+  <li><a href="#sec-worked-example" id="toc-sec-worked-example" class="nav-link" data-scroll-target="#sec-worked-example"><span class="header-section-number">5</span> A worked 2×2 example</a></li>
+  <li><a href="#sec-gauge" id="toc-sec-gauge" class="nav-link" data-scroll-target="#sec-gauge"><span class="header-section-number">6</span> Gauge: the base cell and the base rate</a></li>
+  <li><a href="#sec-misspecified" id="toc-sec-misspecified" class="nav-link" data-scroll-target="#sec-misspecified"><span class="header-section-number">7</span> When the model is misspecified</a></li>
+  <li><a href="#sec-estimation" id="toc-sec-estimation" class="nav-link" data-scroll-target="#sec-estimation"><span class="header-section-number">8</span> Estimation: credibility and intervals</a></li>
+  <li><a href="#sec-recipe" id="toc-sec-recipe" class="nav-link" data-scroll-target="#sec-recipe"><span class="header-section-number">9</span> Recipe: building the table from an mgcv GAM</a></li>
+  <li><a href="#sec-right-tool" id="toc-sec-right-tool" class="nav-link" data-scroll-target="#sec-right-tool"><span class="header-section-number">10</span> When marginal relativities are the right tool</a></li>
+  <li><a href="#sec-checklist" id="toc-sec-checklist" class="nav-link" data-scroll-target="#sec-checklist"><span class="header-section-number">11</span> Checklist</a></li>
+  <li><a href="#sec-literature" id="toc-sec-literature" class="nav-link" data-scroll-target="#sec-literature"><span class="header-section-number">12</span> Where this sits in the literature</a></li>
+  <li><a href="#sec-notation" id="toc-sec-notation" class="nav-link" data-scroll-target="#sec-notation"><span class="header-section-number">13</span> Objects and notation</a></li>
+  <li><a href="#sec-lemma" id="toc-sec-lemma" class="nav-link" data-scroll-target="#sec-lemma"><span class="header-section-number">14</span> The separability lemma, with proof</a></li>
+  <li><a href="#sec-manuscript-checklist" id="toc-sec-manuscript-checklist" class="nav-link" data-scroll-target="#sec-manuscript-checklist">Manuscript checklist</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="relativities.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Relativities, Partial Dependence, and Coefficients</h1>
+<p class="subtitle lead">Which operations on data return a rating model’s coefficients, and which return a portfolio average</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ariel Balter </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 13, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+<div>
+  <div class="abstract">
+    <div class="block-title">Abstract</div>
+    <p>A coefficient is a property of a rating model; a marginal relativity, the normalized partial dependence, is an average of the model over some data. For a log-link model built from main effects and interactions, the two agree exactly when every variable that interacts with the one being measured is held fixed, and the average then depends on no data at all. Fix fewer, and the average depends on the book it was computed on and moves when the book moves. We state the condition term by term, show how to recover every coefficient from data when interactions are present, and identify which interaction coefficients survive averaging and when averaging manufactures one. The vocabulary that keeps the operations apart follows the statistics usage: conditional, marginal, partial.</p>
+  </div>
+</div>
+
+
+</header>
+
+
+<!-- Converted from the collaborative guide. Display equations, section/table/figure labels, citations and the
+     diagram were converted mechanically. Inline math was converted by a heuristic: tokens with Greek letters,
+     hats, bars, subscripts or set symbols were wrapped in $...$. Expect some over- and under-wrapping, and
+     check every inline expression once. Code blocks are shown, not executed (eval: false). -->
+<section id="sec-summary" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="sec-summary"><span class="header-section-number">1</span> Summary</h2>
+<ol type="1">
+<li>A coefficient is a property of the model. A marginal relativity, the normalized partial dependence, is an average of the model over some data.</li>
+<li>Fix every variable that interacts with the ones being measured, and the average equals the coefficient on any data; the data cancels. Fix fewer, and the average depends on which data was used.</li>
+<li>So, for rating factors, report the model’s own tables, relative to a base cell, one per term with interactions included. They need no data and do not move when the book moves.</li>
+<li>If someone wants one number per level for a variable that interacts, that number is an average over some book and must say which book.</li>
+</ol>
+<p>Everything that follows elaborates one of these four points and changes none of them. <a href="#sec-three-operations" class="quarto-xref">Section&nbsp;2</a> fixes the vocabulary. <a href="#sec-rating-table" class="quarto-xref">Section&nbsp;3</a> and the sections on gauge, estimation, and the mgcv recipe are point 3. <a href="#sec-familiar" class="quarto-xref">Section&nbsp;4</a>, the worked example, and <a href="#sec-right-tool" class="quarto-xref">Section&nbsp;10</a> are points 2 and 4. <a href="#sec-misspecified" class="quarto-xref">Section&nbsp;7</a> is the one caveat, on points 1 and 3. The notation, the operators, and the proof of point 2 are in the appendices.</p>
+<p><strong>What this adds.</strong> CAS Monograph 16 <span class="citation" data-cites="chalk2026glms">(<a href="#ref-chalk2026glms" role="doc-biblioref">Chalk et al. 2026, sec. 9.3</a>)</span> shows that setting a variable to each level across the book and taking the ratio of summed predictions returns the GLM relativity when the variable is in no interaction, and becomes a portfolio average when it is. <span class="citation" data-cites="lindholm2024blackbox">Lindholm and Palmquist (<a href="#ref-lindholm2024blackbox" role="doc-biblioref">2024</a>)</span> give the algebra. This guide takes the next steps: it states the condition variable by variable in terms of the model’s terms; shows that the average moves with the book, and by how much; gives the operation that returns the coefficient on any book when interactions are present; and identifies which interaction coefficients survive averaging and when averaging manufactures one. We are not aware of these steps in the actuarial literature. The mathematical ingredients are in the functional-ANOVA and anchored-decomposition literatures, cited in <a href="#sec-literature" class="quarto-xref">Section&nbsp;12</a>.</p>
+</section>
+<section id="sec-three-operations" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="sec-three-operations"><span class="header-section-number">2</span> Three operations, three words</h2>
+<p><em>The vocabulary clash that motivates the guide, and the words used from here on.</em></p>
+<p>Every relativity in this guide is built from one of three operations on a model <span class="math inline">\hat{\mu}</span> and a data set, followed by the same ratio to a base value. The operations differ only in what happens to the variables other than the ones being measured.</p>
+<div id="tbl-three-operations" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-three-operations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: The three operations and the words used for them
+</figcaption>
+<div aria-describedby="tbl-three-operations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Operation</th>
+<th>The other variables</th>
+<th>Operator form</th>
+<th>Sum form</th>
+<th>Word used here</th>
+<th>Also called</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Filter</td>
+<td>whatever the selected rows have</td>
+<td><span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{F}_S(z)\, D</span></td>
+<td><span class="math inline">\sum_{i:\, x_{i,S} = z} w_i\, \hat{\mu}(x_i) \big/ \sum_{i:\, x_{i,S} = z} w_i</span></td>
+<td><strong>conditional</strong> (one-way)</td>
+<td>one-way relativity; Apley &amp; Zhu’s “M-plot” (M for marginal, the reverse of the statistics usage)</td>
+</tr>
+<tr class="even">
+<td>Set and average</td>
+<td>keep each row’s own values and are averaged over</td>
+<td><span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, D</span></td>
+<td><span class="math inline">\sum_i w_i\, \hat{\mu}(z_S; x_{i,\bar{S}}) \big/ \sum_i w_i</span></td>
+<td><strong>marginal</strong></td>
+<td>Friedman’s “partial dependence” (PDP); the econometric average marginal effect</td>
+</tr>
+<tr class="odd">
+<td>Set and hold</td>
+<td>held at the base cell</td>
+<td><span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\} = \hat{\mu}(z_S; x^0_{\bar{S}})</span></td>
+<td>no sum: one evaluation</td>
+<td><strong>partial</strong></td>
+<td>the GLM coefficient relativity; pricing shop talk’s “partial relativity”; the econometric partial effect at a representative point; the anchored decomposition</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><span class="math inline">\mathbb{F}_S(z)\, D</span> keeps the rows of <span class="math inline">D</span> with <span class="math inline">x_S = z</span>. <span class="math inline">\mathbb{T}_S(z)\, D</span> overwrites <span class="math inline">x_S</span> with <span class="math inline">z</span> in every row and leaves exposure untouched. <span class="math inline">\boldsymbol{\Sigma}_w\, f\, D</span> is the exposure-weighted mean of <span class="math inline">f</span> over the rows of <span class="math inline">D</span>. <span class="math inline">\{x^0\}</span> is the one-row data set holding the base cell. <a href="#sec-notation" class="quarto-xref">Section&nbsp;13</a> has the definitions.</p>
+<p>The words follow the statistics usage. <em>Conditional</em> is <span class="math inline">E[\hat{\mu} \mid X_S = z]</span>. <em>Marginal</em> integrates the other variables out against their marginal distribution. <em>Partial</em> is the partial derivative’s finite cousin, everything else held fixed, which is also what pricing teams mean by a partial relativity. The cost is that the machine-learning literature attached “partial” to the marginal operation when it named partial dependence, so the table is the translation. Earlier drafts of this guide used “partial relativity” for the marginal operation; from here on, the marginal relativity <span class="math inline">\bar{r}_S(z; P)</span> is the set-and-average ratio, and the partial relativity <span class="math inline">r_t(z)</span> is the held-at-base ratio, which is the coefficient. Point 2 in one line: the marginal relativity equals the partial relativity exactly when no term overlaps <span class="math inline">S</span> partway.</p>
+</section>
+<section id="sec-rating-table" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="sec-rating-table"><span class="header-section-number">3</span> The rating table is the model</h2>
+<p><em>Point 3: what to report, and why it needs no data.</em></p>
+<p>Take any set <span class="math inline">S</span> that no term overlaps partway. Then the marginal relativity <span class="math inline">\bar{r}_S(z; P)</span> does not depend on <span class="math inline">P</span>, and it equals the product of the partial relativities of the terms inside <span class="math inline">S</span>:</p>
+<p><span id="eq-rating-table-1"><span class="math display">
+r_S(z) = \prod_{t \in M,\; t \subseteq S} \exp\big(\beta_t(z_t) - \beta_t(x^0_t)\big)
+\tag{1}</span></span></p>
+<p>So the model’s term tables, expressed relative to a base cell, are the unique population-free relativities. Delivered one per main effect and one per interaction, they multiply with the base rate to reproduce <span class="math inline">\hat{\mu}(x)</span> at every cell, for any future book in which the way loss depends on the variables has not changed.</p>
+<p><strong>Reading any coefficient off the model.</strong> Every coefficient is a ratio of model evaluations in which the variables of its term are set and every other variable is held at the base cell <span class="math inline">x^0</span>:</p>
+<p><span id="eq-rating-table-2"><span class="math display">
+\begin{aligned}
+e^{\beta_j(z)} &amp;= \frac{\hat{\mu}(z_j,\, x^0_{\text{rest}})}{\hat{\mu}(x^0)}\\
+e^{\beta_{jk}(z_j, z_k)} &amp;= \frac{\hat{\mu}(z_j, z_k,\, x^0_{\text{rest}})\;\hat{\mu}(x^0)}{\hat{\mu}(z_j,\, x^0_{\text{rest}})\;\hat{\mu}(z_k,\, x^0_{\text{rest}})}
+\end{aligned}
+\tag{2}</span></span></p>
+<p>and for higher orders the same alternating pattern over the subsets of the term. On the log scale these are <span class="math inline">\beta_j(z)</span> and <span class="math inline">\beta_{jk}(z_j, z_k)</span>: the coefficients themselves, relative to the base cell. This returns the coefficient exactly, in the gauge whose base cell is <span class="math inline">x^0</span>, for any model built from terms, and it needs no data: every variable outside the term is held at one value. Written as a sum over data rows instead, any variable that shares no interaction term with the term’s variables may be left moving, because its contribution appears identically in numerator and denominator and cancels; any variable that does share one must be pinned. Leaving such a variable moving is the only way to obtain a number that is not the coefficient, and that is the whole content of the lemma.</p>
+<p><strong>What “coefficient” means for a smooth or penalized term.</strong> For a factor in a GLM the coefficient table is the vector of fitted <span class="math inline">\beta</span>’s, one per non-base level. For a smooth <code>s(age)</code> in a GAM the basis coefficients mean nothing one at a time; the coefficient is the term function on a grid, <span class="math inline">s(0), s(1), \ldots</span>, and the partial relativity is <span class="math inline">\exp(s(z) - s(z^0))</span>. For a tensor-product interaction the same holds on a two-dimensional grid: <code>te()</code> carries the whole joint surface in one term, <code>ti()</code> carries the pure interaction under sum-to-zero constraints over the training margins (<a href="#sec-gauge" class="quarto-xref">Section&nbsp;6</a>). For a penalized or random-effect factor (<code>bs = "re"</code>, or a lasso-penalized level set) the coefficients are the shrunken level effects, and those, not the raw per-level means, are the table. In every case the recipe is the same: evaluate <span class="math inline">\hat{\mu}</span> on the grid with everything else at the base cell and take ratios, which never touches the software’s internal parameterization.</p>
+<p>Everything else is an average of them. A marginal relativity over a set that some term overlaps partway depends on <span class="math inline">P</span>, by the lemma, and is a <span class="math inline">P</span>-weighted average of the partial relativities. The weights are the population. Change the book and the number moves while <span class="math inline">\hat{\mu}</span> stays put.</p>
+<p>Two things follow for practice. “Report the coefficients” means report every table the model has, interactions included; a main-effect table on its own, for a variable that interacts, is one of the averages. And the only decision left is which cell is the base cell (<a href="#sec-gauge" class="quarto-xref">Section&nbsp;6</a>), not which population.</p>
+</section>
+<section id="sec-familiar" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="sec-familiar"><span class="header-section-number">4</span> Where the familiar relativities land</h2>
+<p><em>Points 2 and 4: which averages equal coefficients, and what the others are.</em></p>
+<p>Each familiar relativity is one of the three operations over some set, against some population. The table says which operation, which population, and whether the population cancels.</p>
+<div id="tbl-familiar" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-familiar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Where the familiar relativities land
+</figcaption>
+<div aria-describedby="tbl-familiar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Relativity</th>
+<th>Operation</th>
+<th>Set</th>
+<th>Reference population <span class="math inline">P</span></th>
+<th><span class="math inline">P</span>-free?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Conditional (one-way) actual: exposure-weighted mean of <span class="math inline">y</span> over the rows with <span class="math inline">x_j = z</span></td>
+<td>filter</td>
+<td><span class="math inline">\{j\}</span></td>
+<td>the rows that have <span class="math inline">x_j = z</span>: a different population at each level</td>
+<td>No, and the per-level populations differ, which is confounding</td>
+</tr>
+<tr class="even">
+<td>Conditional (one-way) fitted: the same with <span class="math inline">\hat{y}</span></td>
+<td>filter</td>
+<td><span class="math inline">\{j\}</span></td>
+<td>same</td>
+<td>No, same reason</td>
+</tr>
+<tr class="odd">
+<td>Marginal relativity on the training data</td>
+<td>set and average</td>
+<td><span class="math inline">\{j\}</span></td>
+<td>the training data</td>
+<td>Only if <span class="math inline">j</span> is in no interaction</td>
+</tr>
+<tr class="even">
+<td>Marginal relativity on a forecast book</td>
+<td>set and average</td>
+<td><span class="math inline">\{j\}</span></td>
+<td>the forecast book</td>
+<td>Only if <span class="math inline">j</span> is in no interaction</td>
+</tr>
+<tr class="odd">
+<td>Partial relativity: the treatment-contrast main effect <span class="math inline">\exp(\beta_j(z) - \beta_j(x^0_j))</span></td>
+<td>set and hold</td>
+<td><span class="math inline">\{j\}</span></td>
+<td>a single cell: the base cell</td>
+<td>Yes; with interactions present it is the effect at the base levels of the others</td>
+</tr>
+<tr class="even">
+<td>Two-way marginal relativity over <span class="math inline">\{j, k\}</span></td>
+<td>set and average</td>
+<td><span class="math inline">\{j, k\}</span></td>
+<td>any</td>
+<td>Only if no term overlaps <span class="math inline">\{j, k\}</span> partway; the double ratio can survive regardless (<a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a>)</td>
+</tr>
+<tr class="odd">
+<td>Partial relativities: the term tables <span class="math inline">\exp(\beta_t)</span>, every <span class="math inline">t</span> in <span class="math inline">M</span></td>
+<td>set and hold</td>
+<td>all</td>
+<td>none: nothing is averaged</td>
+<td>Yes, by construction</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><strong>Confounding is the one-way case.</strong> The one-way relativity at level <span class="math inline">z</span> averages <span class="math inline">\hat{\mu}</span> over whatever other characteristics the policies at level <span class="math inline">z</span> happen to have. If age correlates with tenure, the age one-way carries tenure’s effect. In this notation it is the statement that <span class="math inline">P</span> changes with <span class="math inline">z</span>.</p>
+<p><strong>A partial relativity is a single-cell marginal relativity.</strong> With <span class="math inline">\beta_{AB}</span> in the model, <span class="math inline">\exp(\beta_A(a) - \beta_A(a^0))</span> is the effect of <span class="math inline">A</span> for policies at the base level of <span class="math inline">B</span>. That is a legitimate conditional effect. It is not “the” effect of <span class="math inline">A</span>, because there is no such thing when <span class="math inline">\beta_{AB} \neq 0</span>; there is one effect per level of <span class="math inline">B</span>, and every one-way number is some average of them. The full set of tables is the answer.</p>
+<p><strong>Overlapping interactions need every variable they touch.</strong> With <span class="math inline">A \times B</span> and <span class="math inline">B \times C</span> both in the model, a two-way partial dependence over <span class="math inline">(A, B)</span> averages over <span class="math inline">C</span>:</p>
+<p><span id="eq-familiar-1"><span class="math display">
+\mathrm{PD}_{AB}(a, b; P) = e^{\beta_0+\beta_A(a)+\beta_B(b)+\beta_{AB}(a,b)} \cdot E_P\!\left[e^{\beta_C(c)+\beta_{BC}(b,c)}\right]
+\tag{3}</span></span></p>
+<p>The trailing average depends on <span class="math inline">b</span> through <span class="math inline">\beta_{BC}</span>, so the <span class="math inline">(A, B)</span> relativity depends on the mix of <span class="math inline">C</span> in <span class="math inline">P</span>. The term tables <span class="math inline">\exp(\beta_{AB})</span> and <span class="math inline">\exp(\beta_{BC})</span> have no such problem: they are separate and multiply. The interaction factor alone does survive as the double ratio <span class="math inline">\mathrm{PD}(a,b) \cdot \mathrm{PD}(a^0,b^0) / \big(\mathrm{PD}(a,b^0) \cdot \mathrm{PD}(a^0,b)\big)</span>, where the averages cancel because the <span class="math inline">C</span>-dependent factor is a function of <span class="math inline">b</span> alone; this holds provided no third variable interacts with both <span class="math inline">A</span> and <span class="math inline">B</span> (<a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a> gives the condition and a counterexample), and it is also how to read an interaction off a two-dimensional partial-dependence plot of a model that has no terms to tabulate.</p>
+</section>
+<section id="sec-worked-example" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="sec-worked-example"><span class="header-section-number">5</span> A worked 2×2 example</h2>
+<p><em>Point 2, with numbers.</em></p>
+<p>Two binary factors with an interaction:</p>
+<p><span id="eq-worked-example-1"><span class="math display">
+\ln \hat{\mu} = \beta_0 + \beta_A[A{=}a_1] + \beta_B[B{=}b_1] + \gamma[A{=}a_1,\,B{=}b_1]
+\tag{4}</span></span></p>
+<p>The model has two conditional relativities for <span class="math inline">A</span>: <span class="math inline">\exp(\beta_A)</span> when <span class="math inline">B = b_0</span>, and <span class="math inline">\exp(\beta_A + \gamma)</span> when <span class="math inline">B = b_1</span>. The marginal relativity of <span class="math inline">A</span> on a population in which a fraction <span class="math inline">p</span> of the exposure has <span class="math inline">B = b_1</span> is</p>
+<p><span id="eq-worked-example-2"><span class="math display">
+r_A(a_1; p) = e^{\beta_A}\cdot\frac{(1-p) + p\,e^{\beta_B+\gamma}}{(1-p) + p\,e^{\beta_B}}
+\tag{5}</span></span></p>
+<p>The two conditional relativities are blended with weights <span class="math inline">(1 - p)</span> and <span class="math inline">p \cdot \exp(\beta_B)</span>: frequency times base prediction, because the relativity is a ratio of averages. With <span class="math inline">\beta_A = 0.5</span>, <span class="math inline">\beta_B = 0.3</span>, <span class="math inline">\gamma = 0.4</span>:</p>
+<div id="tbl-mix" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: The marginal relativity of <span class="math inline">A</span> as the mix of <span class="math inline">B</span> varies
+</figcaption>
+<div aria-describedby="tbl-mix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><span class="math inline">B</span> mix, <span class="math inline">p</span></th>
+<th><span class="math inline">r_A(a_1; p)</span></th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>1.65</td>
+<td><span class="math inline">\exp(\beta_A)</span>: the partial relativity, the treatment-contrast main effect</td>
+</tr>
+<tr class="even">
+<td>0.5</td>
+<td>2.11</td>
+<td>the marginal relativity on a book that is half <span class="math inline">b_1</span></td>
+</tr>
+<tr class="odd">
+<td>0.9</td>
+<td>2.40</td>
+<td>the marginal relativity on a book that is 90% <span class="math inline">b_1</span></td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>2.46</td>
+<td><span class="math inline">\exp(\beta_A + \gamma)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Set <span class="math inline">\gamma = 0</span> and every row reads 1.65. That is the lemma in one table: the number moves with <span class="math inline">p</span> exactly when a term joins <span class="math inline">A</span> to another variable.</p>
+<p>The same in R, with a helper that takes the reference population as an argument:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pd_curve <span class="ot">&lt;-</span> <span class="cf">function</span>(model, S, grid, P, <span class="at">w =</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(P)),</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">pred =</span> <span class="cf">function</span>(m, d) <span class="fu">predict</span>(m, <span class="at">newdata =</span> d, <span class="at">type =</span> <span class="st">"response"</span>)) {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sapply</span>(grid, <span class="cf">function</span>(z) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    cf <span class="ot">&lt;-</span> P</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    cf[[S]] <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">is.factor</span>(P[[S]])) <span class="fu">factor</span>(z, <span class="at">levels =</span> <span class="fu">levels</span>(P[[S]])) <span class="cf">else</span> z</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">weighted.mean</span>(<span class="fu">pred</span>(model, cf), w)             <span class="co"># PD_S(z; P): set, score, average</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>marginal_rel <span class="ot">&lt;-</span> <span class="cf">function</span>(model, S, grid, P, <span class="at">z0 =</span> grid[<span class="dv">1</span>], ...) {</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  pd <span class="ot">&lt;-</span> <span class="fu">pd_curve</span>(model, S, grid, P, ...)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  pd <span class="sc">/</span> pd[<span class="fu">match</span>(z0, grid)]                        <span class="co"># marginal relativity r-bar_S(z; P)</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>sim <span class="ot">&lt;-</span> <span class="cf">function</span>(n, pA, pB) {</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">A =</span> <span class="fu">factor</span>(<span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"a0"</span>, <span class="st">"a1"</span>), n, <span class="cn">TRUE</span>, <span class="fu">c</span>(<span class="dv">1</span> <span class="sc">-</span> pA, pA))),</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                  <span class="at">B =</span> <span class="fu">factor</span>(<span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">"b0"</span>, <span class="st">"b1"</span>), n, <span class="cn">TRUE</span>, <span class="fu">c</span>(<span class="dv">1</span> <span class="sc">-</span> pB, pB))))</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  mu  <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fl">0.5</span> <span class="sc">*</span> (d<span class="sc">$</span>A <span class="sc">==</span> <span class="st">"a1"</span>) <span class="sc">+</span> <span class="fl">0.3</span> <span class="sc">*</span> (d<span class="sc">$</span>B <span class="sc">==</span> <span class="st">"b1"</span>) <span class="sc">+</span> <span class="fl">0.4</span> <span class="sc">*</span> (d<span class="sc">$</span>A <span class="sc">==</span> <span class="st">"a1"</span> <span class="sc">&amp;</span> d<span class="sc">$</span>B <span class="sc">==</span> <span class="st">"b1"</span>))</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  d<span class="sc">$</span>y <span class="ot">&lt;-</span> <span class="fu">rpois</span>(n, mu)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  d</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>D   <span class="ot">&lt;-</span> <span class="fu">sim</span>(<span class="fl">2e5</span>, <span class="at">pA =</span> <span class="fl">0.5</span>, <span class="at">pB =</span> <span class="fl">0.5</span>)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>Dp  <span class="ot">&lt;-</span> <span class="fu">sim</span>(<span class="fl">2e5</span>, <span class="at">pA =</span> <span class="fl">0.2</span>, <span class="at">pB =</span> <span class="fl">0.9</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>mD  <span class="ot">&lt;-</span> <span class="fu">glm</span>(y <span class="sc">~</span> A <span class="sc">*</span> B, <span class="at">data =</span> D,  <span class="at">family =</span> poisson)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>mDp <span class="ot">&lt;-</span> <span class="fu">glm</span>(y <span class="sc">~</span> A <span class="sc">*</span> B, <span class="at">data =</span> Dp, <span class="at">family =</span> poisson)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(<span class="fu">exp</span>(<span class="fu">coef</span>(mD)), <span class="fu">exp</span>(<span class="fu">coef</span>(mDp)))              <span class="co"># same coefficients from either sample</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"a0"</span>, <span class="st">"a1"</span>)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="fu">marginal_rel</span>(mD,  <span class="st">"A"</span>, grid, <span class="at">P =</span> D )[<span class="dv">2</span>]           <span class="co"># 2.11  fit on D,  evaluated on D</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="fu">marginal_rel</span>(mDp, <span class="st">"A"</span>, grid, <span class="at">P =</span> D )[<span class="dv">2</span>]           <span class="co"># 2.11  fit on D', evaluated on D</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="fu">marginal_rel</span>(mD,  <span class="st">"A"</span>, grid, <span class="at">P =</span> Dp)[<span class="dv">2</span>]           <span class="co"># 2.40  fit on D,  evaluated on D'</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="fu">marginal_rel</span>(mDp, <span class="st">"A"</span>, grid, <span class="at">P =</span> Dp)[<span class="dv">2</span>]           <span class="co"># 2.40  fit on D', evaluated on D'</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="fu">marginal_rel</span>(mD,  <span class="st">"A"</span>, grid, <span class="at">P =</span> D[D<span class="sc">$</span>B <span class="sc">==</span> <span class="st">"b0"</span>, ][<span class="dv">1</span>, ])[<span class="dv">2</span>]</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>                                                  <span class="co"># 1.65: a one-row P at base B is the partial relativity</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The coefficients depend on the data-generating process; the marginal relativity depends on the evaluation population and not at all on the fitting data. The mix of <span class="math inline">A</span> itself never enters: the counterfactual overwrites <span class="math inline">A</span>, so only the distribution of the other variables matters.</p>
+</section>
+<section id="sec-gauge" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="sec-gauge"><span class="header-section-number">6</span> Gauge: the base cell and the base rate</h2>
+<p><em>Point 3: “relative to a base cell” is a choice, and this is how to make it.</em></p>
+<p>“Gauge” here means the convention that decides which cell every table reads 1.0 at. The split of <span class="math inline">\hat{\mu}</span> into tables is unique only up to that convention: any function of <span class="math inline">a</span> alone can be moved between <span class="math inline">\beta_{AB}</span> and <span class="math inline">\beta_A</span>, any function of <span class="math inline">b</span> alone between <span class="math inline">\beta_{AB}</span> and <span class="math inline">\beta_B</span>, and constants into <span class="math inline">\beta_0</span>, without changing <span class="math inline">\hat{\mu}</span>. Software fixes the freedom by a default, and each default is a hidden choice of population.</p>
+<ul>
+<li>Treatment contrasts (R’s default for factors) force the interaction table to be 1 along the base row and base column. The main-effect table is then the effect at the base levels of the other variables.</li>
+<li>mgcv constrains each smooth to sum to zero over the observed covariate values in the training data, so the intercept and the level of every smooth are set by the training population. <code>ti()</code> splits a tensor product into mains and a pure interaction under the same training-data constraints; <code>te()</code> keeps the whole joint surface in one term.</li>
+</ul>
+<p>The consequence is that coefficients and intercepts move on every refit, even when the model is correctly specified and <span class="math inline">\hat{\mu}</span> has not changed. The convention moved, not the model.</p>
+<p>Express everything relative to a named base cell <span class="math inline">x^0</span> at delivery. Each one-way table is the model’s profile through <span class="math inline">x^0</span>, each interaction table is the double ratio about <span class="math inline">x^0</span>, and the base rate absorbs the rest:</p>
+<p><span id="eq-gauge-1"><span class="math display">
+r_j(z) = \frac{\hat{\mu}(z_j,\, x^0_{V\setminus\{j\}})}{\hat{\mu}(x^0)}, \qquad r_{jk}(z_j, z_k) = \frac{\hat{\mu}(z_j, z_k,\, x^0_{V\setminus\{j,k\}})\; \hat{\mu}(x^0)}{\hat{\mu}(z_j,\, x^0_{V\setminus\{j\}})\; \hat{\mu}(z_k,\, x^0_{V\setminus\{k\}})}, \qquad \text{base rate} = \hat{\mu}(x^0)
+\tag{6}</span></span></p>
+<p>These are ratios of <span class="math inline">\hat{\mu}</span> on grids anchored at <span class="math inline">x^0</span>, so they need no access to the software’s internal term labels and are exact for any term structure. Every table reads 1.0 at the base cell, the base rate is the fitted rate there, and base rate × tables reproduces <span class="math inline">\hat{\mu}</span> at every cell. Under a correct model the tables are stable across refits.</p>
+<p>Choose the base cell for stability, not habit: a cell with heavy exposure, so that its fitted value, and with shrinkage its shrunken effect, is well determined. Write the base cell down next to the tables.</p>
+</section>
+<section id="sec-misspecified" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="sec-misspecified"><span class="header-section-number">7</span> When the model is misspecified</h2>
+<p><em>The one caveat, on points 1 and 3: they assume the model is right.</em></p>
+<p>The lemma is a statement about the fitted function <span class="math inline">\hat{\mu}</span> and holds whether or not the model is correctly specified: pin the partners and the data cancels, for any <span class="math inline">\hat{\mu}</span> built from terms. Correct specification matters for a different claim, that the coefficients themselves stay put when the model is refit on a different mix. Omit a term the data-generating process has, and that claim fails: the fitted coefficients become population-dependent before any relativity is computed.</p>
+<p><strong>Why.</strong> The maximum-likelihood fit converges to the best approximation of the truth within the model family, where “best” is judged on average over the covariate distribution of the training data. When the family contains the truth, the approximation is exact and the covariate distribution drops out. When it does not, “best on average over the training data” is the same operation a marginal relativity performs.</p>
+<p><strong>The 2×2 case is exact.</strong> Fit <span class="math inline">\ln \hat{\mu} = \beta_0 + \beta_A + \beta_B</span>, with no interaction, to the interacting process of <a href="#sec-worked-example" class="quarto-xref">Section&nbsp;5</a>, with <span class="math inline">A</span> and <span class="math inline">B</span> independent in the sample. The score equations match the sample’s one-way margins, and in the large-sample limit</p>
+<p><span id="eq-misspecified-1"><span class="math display">
+e^{\hat{\beta}_A} = \frac{\sum_b q_b\, \mu_{a_1 b}}{\sum_b q_b\, \mu_{a_0 b}}
+\tag{7}</span></span></p>
+<p>with <span class="math inline">q_b</span> the sample frequencies of <span class="math inline">B</span> and <span class="math inline">\mu_{ab}</span> the true cell means. That is the true model’s marginal relativity on the training mix. The misspecified main effect is a marginal relativity wearing coefficient clothing.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(<span class="fu">glm</span>(y <span class="sc">~</span> A <span class="sc">+</span> B, <span class="at">data =</span> D,  <span class="at">family =</span> poisson)))[<span class="st">"Aa1"</span>]   <span class="co"># 2.11</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="fu">coef</span>(<span class="fu">glm</span>(y <span class="sc">~</span> A <span class="sc">+</span> B, <span class="at">data =</span> Dp, <span class="at">family =</span> poisson)))[<span class="st">"Aa1"</span>]   <span class="co"># 2.40</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Compare the table in <a href="#sec-worked-example" class="quarto-xref">Section&nbsp;5</a>: same numbers, now produced by refitting rather than by changing the evaluation population.</p>
+<p><strong>Implications.</strong></p>
+<ul>
+<li>A rating model that omits interactions on purpose has coefficients standardized to the training mix. They drift on refit as the book drifts. That is the mechanism, not noise.</li>
+<li>Marginal relativities of a misspecified model do not help. A partial dependence is computed from <span class="math inline">\hat{\mu}</span> and cannot restore a term <span class="math inline">\hat{\mu}</span> lacks. If the fitted model is additive on the log scale, its marginal relativities equal its partial relativities for every <span class="math inline">P</span>.</li>
+<li>The levers are the model or the fitting weights. Add the missing term, which a flexible model’s partial-dependence plots are a good way to find, or fit under weights that match the expected future mix. The summary is never the lever.</li>
+</ul>
+</section>
+<section id="sec-estimation" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="sec-estimation"><span class="header-section-number">8</span> Estimation: credibility and intervals</h2>
+<p><em>Point 3: how well the tables are estimated. This section is also a standalone practical note for colleagues on shrinkage as credibility; it stays in the guide and is not part of the manuscript.</em></p>
+<p>Identification and estimation are separate questions. The lemma says which quantities are population-free; shrinkage and uncertainty say how well they are estimated. Nothing in this section changes which tables to report.</p>
+<p><strong>Shrinkage is credibility.</strong> A factor with many thin levels, fit as a ridge-penalized or random-effect term, is the generalized-linear-mixed-model analog of Bühlmann–Straub credibility. Each level’s effect is pulled toward a complement with a weight that rises with the level’s exposure, and the credibility constant is estimated by REML rather than assumed. In mgcv, <code>s(breed, bs = "re")</code> shrinks toward the book average on the log scale; <code>bs = "mrf"</code> shrinks territories toward their neighbors; a smooth over an ordered index shrinks adjacent bands toward each other.</p>
+<p>Two consequences for the table. The base level must carry heavy exposure, because a thin base level is itself shrunk and the whole table would be normalized to a shrunken number. And the shrunken relativities are the ones to report: they are the model’s estimate, and the raw per-level means are what the model was built to replace.</p>
+<p><strong>Intervals on every cell.</strong> The posterior covariance <span class="math inline">\Sigma</span> of the coefficients gives intervals on any derived quantity, ratios included. Draw coefficient vectors from <span class="math inline">N(\hat{\beta}, \Sigma)</span>, evaluate the table for each draw, and take quantiles. Thin levels show wide bands. That is the honest display of credibility, and it usually ends the argument about whether a level “has enough data”. The code is in <a href="#sec-recipe" class="quarto-xref">Section&nbsp;9</a>.</p>
+</section>
+<section id="sec-recipe" class="level2" data-number="9">
+<h2 data-number="9" class="anchored" data-anchor-id="sec-recipe"><span class="header-section-number">9</span> Recipe: building the table from an mgcv GAM</h2>
+<p><em>Point 3: the code.</em></p>
+<p>Every table below is a ratio of <span class="math inline">\hat{\mu}</span> on a grid anchored at the base cell, so the recipe is exact for any term structure and never touches the software’s internal term labels. It works unchanged for a <code>glm</code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mgcv)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Fit. Few-level factors as parametric terms, thin factors as random effects,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#    continuous variables as smooths, interactions as pure tensor interactions.</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">gam</span>(claims <span class="sc">~</span> sex <span class="sc">+</span> <span class="fu">s</span>(age) <span class="sc">+</span> <span class="fu">s</span>(weight) <span class="sc">+</span> <span class="fu">ti</span>(age, weight) <span class="sc">+</span> <span class="fu">s</span>(breed, <span class="at">bs =</span> <span class="st">"re"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(exposure)),</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">family =</span> poisson, <span class="at">data =</span> D, <span class="at">method =</span> <span class="st">"REML"</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Base cell x0: heavy exposure, named once, written down next to the tables.</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>x0 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">sex =</span> <span class="st">"F"</span>, <span class="at">age =</span> <span class="dv">4</span>, <span class="at">weight =</span> <span class="dv">25</span>, <span class="at">breed =</span> <span class="st">"mixed"</span>, <span class="at">exposure =</span> <span class="dv">1</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>x0<span class="sc">$</span>sex   <span class="ot">&lt;-</span> <span class="fu">factor</span>(x0<span class="sc">$</span>sex,   <span class="at">levels =</span> <span class="fu">levels</span>(D<span class="sc">$</span>sex))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>x0<span class="sc">$</span>breed <span class="ot">&lt;-</span> <span class="fu">factor</span>(x0<span class="sc">$</span>breed, <span class="at">levels =</span> <span class="fu">levels</span>(D<span class="sc">$</span>breed))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>eta <span class="ot">&lt;-</span> <span class="cf">function</span>(model, d) <span class="fu">as.numeric</span>(<span class="fu">predict</span>(model, <span class="at">newdata =</span> d, <span class="at">type =</span> <span class="st">"link"</span>))   <span class="co"># ln mu_hat</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Copies of the base cell with chosen columns overwritten by z; factor levels kept.</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>at_base <span class="ot">&lt;-</span> <span class="cf">function</span>(...) {</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  z <span class="ot">&lt;-</span> <span class="fu">list</span>(...)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> x0[<span class="fu">rep</span>(<span class="dv">1</span>, <span class="fu">length</span>(z[[<span class="dv">1</span>]])), ]</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (v <span class="cf">in</span> <span class="fu">names</span>(z))</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    g[[v]] <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">is.factor</span>(D[[v]])) <span class="fu">factor</span>(z[[v]], <span class="at">levels =</span> <span class="fu">levels</span>(D[[v]])) <span class="cf">else</span> z[[v]]</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  g</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. One-way tables r_j(z): the profile through the base cell. 1.0 at the base value.</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>one_way <span class="ot">&lt;-</span> <span class="cf">function</span>(model, var, z) {</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="fu">do.call</span>(at_base, <span class="fu">setNames</span>(<span class="fu">list</span>(z), var))</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setNames</span>(<span class="fu">exp</span>(<span class="fu">eta</span>(model, g) <span class="sc">-</span> <span class="fu">eta</span>(model, x0)), z)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>r_sex    <span class="ot">&lt;-</span> <span class="fu">one_way</span>(m, <span class="st">"sex"</span>,    <span class="fu">levels</span>(D<span class="sc">$</span>sex))</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>r_age    <span class="ot">&lt;-</span> <span class="fu">one_way</span>(m, <span class="st">"age"</span>,    <span class="dv">0</span><span class="sc">:</span><span class="dv">14</span>)</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>r_weight <span class="ot">&lt;-</span> <span class="fu">one_way</span>(m, <span class="st">"weight"</span>, <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">25</span>, <span class="dv">40</span>, <span class="dv">60</span>))</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>r_breed  <span class="ot">&lt;-</span> <span class="fu">one_way</span>(m, <span class="st">"breed"</span>,  <span class="fu">levels</span>(D<span class="sc">$</span>breed))      <span class="co"># shrunken effects</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Two-way table r_jk(z_j, z_k): the double ratio about the base cell.</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="co">#    1.0 along the base row and base column.</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>two_way <span class="ot">&lt;-</span> <span class="cf">function</span>(model, v1, z1, v2, z2) {</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  g  <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(z1, z2)</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  gg <span class="ot">&lt;-</span> <span class="fu">do.call</span>(at_base, <span class="fu">setNames</span>(<span class="fu">list</span>(g[[<span class="dv">1</span>]], g[[<span class="dv">2</span>]]), <span class="fu">c</span>(v1, v2)))</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  E  <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">eta</span>(model, gg), <span class="fu">length</span>(z1), <span class="fu">length</span>(z2), <span class="at">dimnames =</span> <span class="fu">list</span>(z1, z2))</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>  i0 <span class="ot">&lt;-</span> <span class="fu">match</span>(x0[[v1]], z1); j0 <span class="ot">&lt;-</span> <span class="fu">match</span>(x0[[v2]], z2)</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">exp</span>(E <span class="sc">-</span> E[, j0] <span class="sc">-</span> <span class="fu">rep</span>(E[i0, ], <span class="at">each =</span> <span class="fu">length</span>(z1)) <span class="sc">+</span> E[i0, j0])</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>r_aw <span class="ot">&lt;-</span> <span class="fu">two_way</span>(m, <span class="st">"age"</span>, <span class="dv">0</span><span class="sc">:</span><span class="dv">14</span>, <span class="st">"weight"</span>, <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">25</span>, <span class="dv">40</span>, <span class="dv">60</span>))</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Base rate: the fitted rate at the base cell, per unit exposure.</span></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>base_rate <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">eta</span>(m, x0))</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Check at any cell: base_rate * r_sex * r_age * r_weight * r_aw[age, weight] * r_breed</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a><span class="co"># equals exp(eta(m, cell)).</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Intervals: posterior draws of a whole table through the linear-predictor matrix.</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>g  <span class="ot">&lt;-</span> <span class="fu">at_base</span>(<span class="at">age =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">14</span>)</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>Xp <span class="ot">&lt;-</span> <span class="fu">predict</span>(m, <span class="at">newdata =</span> <span class="fu">rbind</span>(x0, g), <span class="at">type =</span> <span class="st">"lpmatrix"</span>)</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>B  <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(<span class="dv">2000</span>, <span class="fu">coef</span>(m), <span class="fu">vcov</span>(m, <span class="at">unconditional =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>L  <span class="ot">&lt;-</span> Xp <span class="sc">%*%</span> <span class="fu">t</span>(B)                               <span class="co"># row 1 = base cell, then the grid; one column per draw</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>age_draws <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">sweep</span>(L[<span class="sc">-</span><span class="dv">1</span>, ], <span class="dv">2</span>, L[<span class="dv">1</span>, ]))     <span class="co"># each column is one draw's age table</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="fu">t</span>(<span class="fu">apply</span>(age_draws, <span class="dv">1</span>, quantile, <span class="fu">c</span>(<span class="fl">0.05</span>, <span class="fl">0.5</span>, <span class="fl">0.95</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Notes.</p>
+<ul>
+<li>The base cell’s values must appear in every grid they anchor (age 4 in the age grid, weight 25 in the weight grid).</li>
+<li>For a variable that sits in an interaction, its one-way table is the profile at base and the rating needs the interaction table as well: the age rating at a cell is <code>r_age</code> × <code>r_aw[age, weight]</code>. Deliver both, never the one-way alone.</li>
+<li><code>predict(type = "terms")</code> shows the same contributions in mgcv’s own sum-to-zero convention and is useful for inspection; the subtraction against the base cell is the re-expression relative to <span class="math inline">x^0</span>.</li>
+<li><code>vcov(m, unconditional = TRUE)</code> includes smoothing-parameter uncertainty. The same draw-through-<code>lpmatrix</code> pattern gives intervals for the two-way table and the base rate.</li>
+</ul>
+</section>
+<section id="sec-right-tool" class="level2" data-number="10">
+<h2 data-number="10" class="anchored" data-anchor-id="sec-right-tool"><span class="header-section-number">10</span> When marginal relativities are the right tool</h2>
+<p><em>Point 4: when an average over a book is what is wanted.</em></p>
+<p>A marginal relativity is a summary of a model over a book. It answers a question about that book, and it is the right tool when that is the question and the book is named.</p>
+<ul>
+<li><strong>Reading a model that has no terms.</strong> A gradient-boosted model has no <span class="math inline">\beta_t</span> to tabulate. Its one- and two-dimensional partial dependence on a named reference set is how you see what it learned, and the double ratio of a two-dimensional partial dependence exposes an interaction a GLM could then include as a term.</li>
+<li><strong>Reporting an average effect.</strong> “What does age do, on average, across our book?” is a question about a population, and the marginal relativity of age on that book answers it. Label it with the book and the as-of date.</li>
+<li><strong>Stress-testing.</strong> Partial dependence on a synthetic grid probes how <span class="math inline">\hat{\mu}</span> behaves away from the training support. Treat the output as a sensitivity check, not a relativity; the model was never validated there.</li>
+<li><strong>Detecting interactions, with one caveat.</strong> The double ratio of a two-dimensional partial dependence, the H-statistic, and Monograph 16’s permutation score all respond to an <span class="math inline">A \times B</span> interaction, and all three also respond when <span class="math inline">A</span> and <span class="math inline">B</span> each interact with a third variable <span class="math inline">C</span> and not with each other, because averaging over a shared partner manufactures a log-scale <span class="math inline">A \times B</span> effect (<a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a> has a numerical example). Before adding <span class="math inline">A \times B</span> to a GLM on that evidence, hold <span class="math inline">C</span> at base and recompute: a real <span class="math inline">A \times B</span> survives, a manufactured one vanishes.</li>
+</ul>
+<p><strong>Effect sizes.</strong> A partial dependence fixes two different problems only one of which is widely known. Intervening on a variable instead of filtering on it removes confounding; that is the well-known one, and it is why marginal relativities are preferred to conditional (one-way) relativities. It does not remove interaction blending: a one-variable partial dependence on <span class="math inline">A</span> lets <span class="math inline">A</span>’s interaction partners move, and what comes back is a mix-weighted blend of <span class="math inline">A</span>’s conditional effects, not <span class="math inline">A</span>’s coefficient. So the one-variable marginal relativity is the effect size for a variable in no interaction, on any data; for a variable in an interaction, hold its partners at base (the tool has to be told to) or report the two-way table. Letting the partners move is where “the marginal relativities changed when we refit” comes from: the book moved, and the number followed it.</p>
+<p>What it is not is a rating factor for a model you can read term by term. For a well-specified GLM or GAM the term tables are population-free, and a marginal relativity is an average of them: strictly less information, with a population attached that the reader cannot see.</p>
+<p>One rule covers every marginal relativity that leaves the team: the reference population is written on it.</p>
+</section>
+<section id="sec-checklist" class="level2" data-number="11">
+<h2 data-number="11" class="anchored" data-anchor-id="sec-checklist"><span class="header-section-number">11</span> Checklist</h2>
+<p><strong>Deliver</strong></p>
+<ul class="task-list">
+<li><label><input type="checkbox">One table per term, interactions included, re-gauged to a named base cell with heavy exposure</label></li>
+<li><label><input type="checkbox">The base rate: the fitted rate at the base cell, per unit exposure</label></li>
+<li><label><input type="checkbox">Intervals on each table from posterior draws</label></li>
+<li><label><input type="checkbox">The model formula and the base cell, in the same document as the tables</label></li>
+</ul>
+<p><strong>Label</strong></p>
+<ul class="task-list">
+<li><label><input type="checkbox">Any marginal relativity: the reference population and its as-of date</label></li>
+<li><label><input type="checkbox">Any one-way exhibit: “diagnostic, not a rating factor”</label></li>
+<li><label><input type="checkbox">Any main-effect table for a variable that interacts: “profile at base; rate with the interaction table”</label></li>
+</ul>
+<p><strong>Avoid</strong></p>
+<ul class="task-list">
+<li><label><input type="checkbox">A main-effect table alone when the model has an interaction on that variable</label></li>
+<li><label><input type="checkbox">A two-way partial-dependence table over <span class="math inline">(A, B)</span> when some term overlaps <span class="math inline">\{A, B\}</span> partway (a <span class="math inline">B \times C</span> term, say); deliver the term tables instead</label></li>
+<li><label><input type="checkbox">Marginal relativities of a misspecified model offered as a correction for the misspecification; fix the model or reweight the fit</label></li>
+<li><label><input type="checkbox">A base level chosen by habit rather than exposure</label></li>
+</ul>
+</section>
+<section id="sec-literature" class="level2" data-number="12">
+<h2 data-number="12" class="anchored" data-anchor-id="sec-literature"><span class="header-section-number">12</span> Where this sits in the literature</h2>
+<p><em>What is already known, in which field, and what this guide adds.</em></p>
+<p>Every piece of the argument exists somewhere. No source found states it as a unit for term-based pricing models, and the three fields that hold the pieces do not cite each other.</p>
+<p><strong>Two meanings of “partial relativity.”</strong> In pricing shop talk a partial relativity is the factor for one variable with the other factors held constant, as opposed to a one-way relativity read off raw experience; in that sense it is the GLM coefficient relativity, and this guide’s conclusion reads as “report the partial relativities.” The machine-learning literature attached the same adjective to the opposite treatment of the other variables when Friedman named partial dependence, which averages them out, so a normalized partial dependence has also been called a partial relativity, including in earlier drafts of this guide. The two coincide exactly when no term overlaps the fixed set partway, and the guide is about what happens when they do not. This guide follows the statistics usage: conditional for the filtered one-way, marginal for the set-and-average ratio, partial for the held-at-base ratio (<a href="#sec-three-operations" class="quarto-xref">Section&nbsp;2</a>). The phrase “partial relativity” does not appear in the written actuarial literature under either meaning; the CAS material speaks of relativities, GLM relativities and one-way relativities.</p>
+<p><strong>Actuarial literature.</strong> The nearest practical prior work is CAS Monograph 16 <span class="citation" data-cites="chalk2026glms">(<a href="#ref-chalk2026glms" role="doc-biblioref">Chalk et al. 2026</a>)</span> (Chalk, Deacon, Guillen &amp; Martinelli; on the Exam 8 syllabus from October 2026), §9.3, pp.&nbsp;154–158. It sets a rating variable to one value for every policy, predicts, sets it to another, predicts again, and shows the ratio of the summed predictions equals the GLM relativity, because the GLM has no interactions and only one thing changed (Tables 9.7–9.9). It then says in words that had the variable interacted with another, each policy’s ratio would differ and the ratio of totals would give the change on average across the policies used; names the procedure partial dependence; notes that the ratio of means weights each policy by its predicted frequency (Fig. 9.5); and in §9.4 observes that its permutation-based interaction score also fires when two features each interact with a common third. It does not draw the consequence that the average depends on the book, does not say how to recover the relativity when the variable interacts, and computes no two-way partial dependence. The nearest mathematical prior work is <span class="citation" data-cites="lindholm2024blackbox">Lindholm and Palmquist (<a href="#ref-lindholm2024blackbox" role="doc-biblioref">2024</a>)</span>, whose Eq. (8) is the log-link model with pairwise interactions and whose Eq. (9) writes the one-way partial dependence as <span class="math inline">\exp\{f_j(x_j)\}</span> times a factor <span class="math inline">\nu</span> that integrates every other term against the data distribution and depends on <span class="math inline">x_j</span> only through the interactions; Eq. (10) notes proportionality to <span class="math inline">\exp\{f_j\}</span> when all interactions vanish, and Eq. (11) that the two-way partial dependence does not identify <span class="math inline">\exp\{f_{jk}\}</span>. They state the condition as “all interactions zero” rather than “no interaction involving this variable,” never remark that <span class="math inline">\nu</span> changes with the data distribution, and resolve the identification by redefining the main effects so that partial dependence equals them (p.&nbsp;679), which moves the mix-dependence into the coefficients rather than out of them; their two-way ratio divides by one-way partial dependences and yields <span class="math inline">\exp\{f_{jk}\}/(\nu_1 \nu_2)</span>, not <span class="math inline">\exp\{f_{jk}\}</span>. They set the level aside deliberately, since their partial dependences only construct covariate partitions. Their <span class="math inline">\nu</span> lumps together the terms that cancel in a ratio (<span class="math inline">Q'</span>) and the terms that do not (<span class="math inline">Q''</span>); splitting it is the step that yields the per-variable condition, the population dependence, and the recovery by holding partners at base. The maidrr tariff-extraction recipe of <span class="citation" data-cites="henckaerts2022maidrr">Henckaerts, Antonio, and Côté (<a href="#ref-henckaerts2022maidrr" role="doc-biblioref">2022</a>)</span> uses one-way partial dependences for main effects and two-way minus one-way for interactions, on the response scale, without a statement of when this recovers coefficients. <span class="citation" data-cites="henckaerts2021boosting">Henckaerts et al. (<a href="#ref-henckaerts2021boosting" role="doc-biblioref">2021</a>)</span>, <span class="citation" data-cites="lorentzen2020peeking">Lorentzen and Mayer (<a href="#ref-lorentzen2020peeking" role="doc-biblioref">2020</a>)</span> and the SOA interpretability report (2021) <span class="citation" data-cites="baeder2021interpretable">(<a href="#ref-baeder2021interpretable" role="doc-biblioref">Baeder, Brinkmann, and Xu 2021</a>)</span> give the qualitative warning that averaging in a partial dependence can hide interactions. No actuarial source found says that partial-dependence relativities for interacting variables move with the book mix. The CAS GLM monograph <span class="citation" data-cites="goldburd2020glm">(<a href="#ref-goldburd2020glm" role="doc-biblioref">Goldburd et al. 2020</a>)</span> reports coefficient relativities relative to a base level and does not use partial dependence.</p>
+<p><strong>Machine-learning interpretability.</strong> The mechanism is established in functional-ANOVA vocabulary. <span class="citation" data-cites="friedman2001greedy">Friedman (<a href="#ref-friedman2001greedy" role="doc-biblioref">2001</a>)</span>, <span class="citation" data-cites="apley2020ale">Apley and Zhu (<a href="#ref-apley2020ale" role="doc-biblioref">2020</a>)</span> and <span class="citation" data-cites="zhao2021causal">Zhao and Hastie (<a href="#ref-zhao2021causal" role="doc-biblioref">2021</a>)</span> state that a partial dependence recovers a component exactly when the function splits additively across the chosen set, which is the no-partway-overlap condition in another language. <span class="citation" data-cites="herbinger2022repid">Herbinger, Bischl, and Casalicchio (<a href="#ref-herbinger2022repid" role="doc-biblioref">2022</a>)</span> work the model <span class="math inline">\beta_1 x_1 + \beta_2 x_2 + \beta_{12} x_1 x_2</span> and show the one-way partial dependence equals <span class="math inline">\beta_1</span> only because the partner has mean zero. <span class="citation" data-cites="lengerich2020purifying">Lengerich et al. (<a href="#ref-lengerich2020purifying" role="doc-biblioref">2020</a>)</span> show that the split between main effects and interactions in a GAM is not identified without a data distribution and that effects change sign across distributions; <span class="citation" data-cites="hiabu2023unifying">Hiabu, Meyer, and Wright (<a href="#ref-hiabu2023unifying" role="doc-biblioref">2023</a>)</span> make “partial dependence equals the main effect” an explicit choice of identification rather than a fact. <span class="citation" data-cites="hooker2007generalized">Hooker (<a href="#ref-hooker2007generalized" role="doc-biblioref">2007</a>)</span> is the source for the population dependence of averaged decompositions, and <span class="citation" data-cites="friedman2008rule">Friedman and Popescu (<a href="#ref-friedman2008rule" role="doc-biblioref">2008</a>)</span> build the H-statistic from <span class="math inline">\mathrm{PD}_{AB} - \mathrm{PD}_A - \mathrm{PD}_B</span>, the additive form of the double ratio.</p>
+<p><strong>Anchored decompositions and econometrics.</strong> Holding the other variables at a reference point instead of averaging over them is the anchored (cut-HDMR) decomposition of numerical analysis: <span class="citation" data-cites="kuo2010decompositions">Kuo et al. (<a href="#ref-kuo2010decompositions" role="doc-biblioref">2010</a>)</span> give the general Möbius formula and the vanishing property behind the disjoint-terms result, <span class="citation" data-cites="rahman2014approximation">Rahman (<a href="#ref-rahman2014approximation" role="doc-biblioref">2014</a>)</span> states that the anchored components need no probability measure while the averaged ones do, and <span class="citation" data-cites="mase2019shapley">Mase, Owen, and Seiler (<a href="#ref-mase2019shapley" role="doc-biblioref">2019</a>)</span> and <span class="citation" data-cites="gao2024counterfactual">Gao and Zhao (<a href="#ref-gao2024counterfactual" role="doc-biblioref">2024</a>)</span> carry the same construction into Shapley explanations, naming the alternating sum as Möbius inversion. In econometrics the same distinction is the average marginal effect versus the marginal effect at representative values, and <a href="https://doi.org/10.1016/S0165-1765(03)00032-6">Ai &amp; Norton (2003)</a> is the standard reference that the interaction effect in a nonlinear model is not the interaction coefficient. None of these connects the anchored decomposition to treatment-contrast GLM coefficients or to rating tables.</p>
+<p><strong>What this guide adds.</strong> Monograph 16 stops at “the GLM has coefficients, the black box has a portfolio average,” and Lindholm &amp; Palmquist supply the algebra for why. This guide answers what both leave open, stated for models built from named terms: a one-way marginal relativity equals the main-effect coefficient, the partial relativity, if and only if the variable is in no interaction; the per-term recipe is exact if and only if the interaction terms are pairwise disjoint; when terms overlap, holding the partners at base, which is the treatment-contrast definition, returns the coefficient on any book; a marginal relativity that moves between refits is the sign that too few variables were held, not that the model is unstable; and an interaction coefficient survives averaging exactly when the averaged-over variables leave no full-order contrast, with averaging over a shared partner able to manufacture an interaction the model does not have. Each step is a corollary of results above. We are not aware of the combination, or of its consequence for which relativities to put in a rate filing, in the pricing literature.</p>
+</section>
+<section id="sec-notation" class="level2" data-number="13">
+<h2 data-number="13" class="anchored" data-anchor-id="sec-notation"><span class="header-section-number">13</span> Objects and notation</h2>
+<p><em>The symbols used in <a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a>. Not needed for the main body.</em></p>
+<p>One rule runs through every definition below: a row index <span class="math inline">i</span> always refers to a specific data set. A model has no rows; a prediction gets its row index from the data set the model was applied to.</p>
+<p><strong>Variables, sets of variables, and terms.</strong> Let <span class="math inline">V</span> be the set of rating variables; a variable is an atom, not a set. A subset <span class="math inline">t \subseteq V</span> is a set of variables, and <span class="math inline">\mathcal{P}(V)</span> is the collection of all such subsets. The model carries a term for some of them; the collection of subsets that have terms is <span class="math inline">M \subseteq \mathcal{P}(V)</span>. For each <span class="math inline">t \in M</span> the term is <span class="math inline">g_t</span>, a function of the coordinates of <span class="math inline">x</span> in <span class="math inline">t</span> only, and its coefficient table is <span class="math inline">\beta_t = \ln g_t</span>. So <span class="math inline">t</span> is a set and <span class="math inline">g_t</span> is a function; “the term <span class="math inline">t</span>” is shorthand for <span class="math inline">g_t</span>. <span class="math inline">|t| = 1</span> is a main effect, <span class="math inline">|t| = 2</span> a two-way interaction, and the intercept is the term on the empty set, <span class="math inline">t = \emptyset</span>. Capital <span class="math inline">T</span> names the one term whose coefficient is wanted. <span class="math inline">S</span> names a set of variables being fixed, which may be larger than any single term. A collection of terms is a subset of <span class="math inline">M</span>; <a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a> uses <span class="math inline">Q = M \cap \mathcal{P}(T)</span>, the terms the model has on subsets of <span class="math inline">T</span>, together with <span class="math inline">Q'</span> (the terms disjoint from <span class="math inline">T</span>) and <span class="math inline">Q''</span> (the rest). A term <span class="math inline">t</span> can stand in three relations to a set of variables <span class="math inline">S</span>: inside <span class="math inline">S</span> (<span class="math inline">t \subseteq S</span>), disjoint from <span class="math inline">S</span> (<span class="math inline">t \cap S = \emptyset</span>), or overlapping <span class="math inline">S</span> partway (some of <span class="math inline">t</span>’s variables in <span class="math inline">S</span>, some not). With <span class="math inline">V = \{\text{age}, \text{sex}, \text{breed}, \text{weight}, \text{deductible}\}</span> and <span class="math inline">M = \{\{\text{age}\}, \{\text{sex}\}, \{\text{breed}\}, \{\text{weight}\}, \{\text{deductible}\}, \{\text{age}, \text{weight}\}, \{\text{breed}, \text{weight}\}\}</span>: the term <span class="math inline">\{\text{age}, \text{weight}\}</span> overlaps the set <span class="math inline">\{\text{age}\}</span> partway; no term overlaps <span class="math inline">\{\text{age}, \text{weight}, \text{breed}\}</span> partway; no interaction term touches <span class="math inline">\{\text{sex}\}</span> or <span class="math inline">\{\text{deductible}\}</span>.</p>
+<div class="cell" data-fig-width="6" data-layout-align="default">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode dot code-with-copy"><code class="sourceCode dot"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">graph</span> <span class="va">G</span> <span class="ot">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">  </span><span class="at">rankdir</span><span class="ot">=</span><span class="va">LR</span><span class="ot">;</span><span class="co"> </span><span class="kw">node</span><span class="co"> </span><span class="ot">[</span><span class="at">shape</span><span class="ot">=</span><span class="va">box</span><span class="co">, </span><span class="at">style</span><span class="ot">=</span><span class="va">rounded</span><span class="co">, </span><span class="at">fontname</span><span class="ot">=</span><span class="st">"Helvetica"</span><span class="ot">];</span><span class="co"> </span><span class="kw">edge</span><span class="co"> </span><span class="ot">[</span><span class="va">penwidth</span><span class="ot">=</span><span class="dv">1.2</span><span class="ot">];</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">  </span><span class="kw">subgraph</span><span class="co"> </span><span class="va">cluster_1</span><span class="co"> </span><span class="ot">{</span><span class="co"> </span><span class="at">label</span><span class="ot">=</span><span class="st">"age, weight, breed"</span><span class="ot">;</span><span class="co"> </span><span class="at">style</span><span class="ot">=</span><span class="va">filled</span><span class="ot">;</span><span class="co"> </span><span class="at">color</span><span class="ot">=</span><span class="st">"#eeeeee"</span><span class="ot">;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">    </span><span class="va">age</span><span class="co"> -- </span><span class="at">weight</span><span class="co"> </span><span class="ot">[</span><span class="at">label</span><span class="ot">=</span><span class="st">"age × weight"</span><span class="ot">];</span><span class="co"> </span><span class="at">weight</span><span class="co"> -- </span><span class="va">breed</span><span class="co"> </span><span class="ot">[</span><span class="at">label</span><span class="ot">=</span><span class="st">"weight × breed"</span><span class="ot">];</span><span class="co"> </span><span class="ot">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">  </span><span class="kw">subgraph</span><span class="co"> </span><span class="va">cluster_2</span><span class="co"> </span><span class="ot">{</span><span class="co"> </span><span class="at">label</span><span class="ot">=</span><span class="st">"sex"</span><span class="ot">;</span><span class="co"> </span><span class="at">style</span><span class="ot">=</span><span class="va">filled</span><span class="ot">;</span><span class="co"> </span><span class="at">color</span><span class="ot">=</span><span class="st">"#eeeeee"</span><span class="ot">;</span><span class="co"> </span><span class="va">sex</span><span class="ot">;</span><span class="co"> </span><span class="ot">}</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">  </span><span class="kw">subgraph</span><span class="co"> </span><span class="va">cluster_3</span><span class="co"> </span><span class="ot">{</span><span class="co"> </span><span class="at">label</span><span class="ot">=</span><span class="st">"deductible"</span><span class="ot">;</span><span class="co"> </span><span class="at">style</span><span class="ot">=</span><span class="va">filled</span><span class="ot">;</span><span class="co"> </span><span class="at">color</span><span class="ot">=</span><span class="st">"#eeeeee"</span><span class="ot">;</span><span class="co"> </span><span class="va">deductible</span><span class="ot">;</span><span class="co"> </span><span class="ot">}</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="ot">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-interaction-graph" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-interaction-graph-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-interaction-graph-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Interaction terms link variables. A shaded set is one that no term overlaps partway, so a marginal relativity over it is population-free.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Each shaded set is overlapped partway by no term: the lines inside it are the interaction terms, and no line crosses its edge. A marginal relativity over one shaded set, or over several of them together, is population-free (<a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a>). The set <span class="math inline">\{\text{age}, \text{weight}\}</span> is not shaded because the term <span class="math inline">\{\text{breed}, \text{weight}\}</span> overlaps it partway.</p>
+<p><strong>Data-generating process and observed data.</strong> Assume a data-generating process with two separate parts: a loss relationship, <span class="math inline">\mu(x) = E[y \mid x]</span>, the expected loss for a risk with characteristics <span class="math inline">x</span>; and a mix, <span class="math inline">P(x)</span>, the joint distribution of characteristics across the risks that happen to be written, correlations between characteristics included. Together they make the joint distribution <span class="math inline">P(x, y) = P(y \mid x) \cdot P(x)</span>. Exposure is not the mix but the weight it is measured with: the mix in a data set is the exposure-weighted frequency of each cell. The two parts are controlled by different things, which is why they can come apart: loss given characteristics is a property of the risk, while which characteristics show up is a property of who buys and what underwriting accepts. A data set <span class="math inline">D</span> is one draw from it, with rows <span class="math inline">(x_i, y_i, w_i)</span>: the variable values, the observed loss (claims), and the exposure (earned exposure). The model is fit on <span class="math inline">D</span>, and we take it to represent the loss relationship, on average and within confidence intervals. Its estimate of <span class="math inline">\mu(x)</span> is <span class="math inline">\hat{\mu}(x)</span>, a log-link model with one term per subset in <span class="math inline">M</span>:</p>
+<p><span id="eq-notation-1"><span class="math display">
+\ln \hat{\mu}(x) = \beta_0 + \sum_{t \in M} \beta_t(x_t)
+\tag{8}</span></span></p>
+<p>The fitted value for row <span class="math inline">i</span> is <span class="math inline">\hat{y}_i = \hat{\mu}(x_i)</span>. The collection <span class="math inline">\{\beta_T : T \in M\}</span> is a ragged set of tables whose shape is set by <span class="math inline">T</span>: a vector for a factor main effect, a matrix for a factor×factor interaction, a curve for a smooth, a set of curves for a factor×smooth. <span class="math inline">|\beta_T|</span> is the number of levels in the term <span class="math inline">T</span>. For a GAM the usable object is each curve’s value on a grid, not its basis coefficients.</p>
+<p><strong>Cells and partial coordinates.</strong> A cell <span class="math inline">x</span> is a full vector of values, one per variable in <span class="math inline">V</span>; <span class="math inline">x_S</span> is its values on the variables in <span class="math inline">S</span>. The base cell is <span class="math inline">x^0</span>. A partial coordinate <span class="math inline">z_S</span> is a chosen set of values for the variables in <span class="math inline">S</span>, the row of a relativity table you are asking about, such as age 10. It is never taken from the data.</p>
+<p><strong>Counterfactual evaluation.</strong> The vector <span class="math inline">(z_S, x_{i,\bar{S}})</span> reads: “the variables in <span class="math inline">S</span> are fixed to the values in <span class="math inline">z</span>, and the variables in <span class="math inline">\bar{S}</span> keep the values from row <span class="math inline">i</span> of the data set.” <span class="math inline">\hat{\mu}(z_S, x_{i,\bar{S}})</span> is the model evaluated at that vector. The same vector can be written as an operation on row <span class="math inline">i</span>, <span class="math inline">(x_i;\, x_S \leftarrow z_S)</span>, “row <span class="math inline">i</span> with its <span class="math inline">S</span>-coordinates overwritten by <span class="math inline">z</span>”, which is what the code does: copy the data set, overwrite the columns in <span class="math inline">S</span> with <span class="math inline">z</span>, predict. Formulas use the two-block form because it shows which values are fixed and which are moving; the overwrite form is the reminder that only part of <span class="math inline">x</span> changed. It is not <span class="math inline">\hat{y}_i</span>: it is a grid indexed by <span class="math inline">i</span> and by <span class="math inline">z</span>.</p>
+<p><strong>Other draws, and the reference population.</strong> Imagine other data sets <span class="math inline">D'</span>, <span class="math inline">D''</span>, <span class="math inline">D'''</span> from the same loss relationship but with their own mixes, the same <span class="math inline">P(y \mid x)</span> and a different <span class="math inline">P(x)</span>: next year’s book, a different region, the book after an underwriting change. Fitting the same model on each would give the same coefficients, on average and within confidence intervals, because the coefficients describe the loss relationship and the loss relationship has not changed. The question this guide answers is whether marginal relativities computed on <span class="math inline">D'</span>, <span class="math inline">D''</span>, <span class="math inline">D'''</span> would also be the same. They need not be, and <a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a> says exactly when they are. To ask the question we need a name for the mix side of a data set on its own: a reference population <span class="math inline">P</span> is the variable values and exposure weights of some data set, real or imagined, with no response column, because a partial dependence never looks at <span class="math inline">y</span>. The training data <span class="math inline">D</span> is one possible <span class="math inline">P</span>, and the usual default; the in-force book, a forecast book, a synthetic grid, or a single cell are others. The expectation of any function <span class="math inline">g</span> over <span class="math inline">P</span> is its exposure-weighted mean:</p>
+<p><span id="eq-notation-2"><span class="math display">
+E_P[g] = \frac{\sum_{i \in P} w_i\, g(x_i)}{\sum_{i \in P} w_i}
+\tag{9}</span></span></p>
+<p><strong>Operators.</strong> Three operators make every quantity in the guide a one-line expression that reads as code.</p>
+<ul>
+<li><span class="math inline">\mathbb{F}_S(z)\, D</span> keeps the rows of <span class="math inline">D</span> with <span class="math inline">x_S = z</span> (filter). In code: <code>filter()</code>.</li>
+<li><span class="math inline">\mathbb{T}_S(z)\, D</span> overwrites <span class="math inline">x_S</span> with <span class="math inline">z</span> in every row of <span class="math inline">D</span> and leaves exposure and every other column untouched (set). In code: <code>mutate()</code>.</li>
+<li><span class="math inline">\boldsymbol{\Sigma}_w\, f\, D</span> is the exposure-weighted mean of <span class="math inline">f</span> over the rows of <span class="math inline">D</span>, <span class="math inline">\sum_i w_i f(x_i) / \sum_i w_i</span> (average). In code: <code>weighted.mean()</code>. <span class="math inline">E_P[g]</span> in the formulas below is this operator applied to <span class="math inline">P</span>, <span class="math inline">\boldsymbol{\Sigma}_w\, g\, P</span>, written as an expectation when the data set is fixed.</li>
+</ul>
+<p>Expressions are read right to left, like function composition: <span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \mathbb{F}_k(w)\, D</span> keeps the rows with <span class="math inline">x_k = w</span>, sets <span class="math inline">x_S</span> to <span class="math inline">z</span>, scores with <span class="math inline">\hat{\mu}</span>, and averages. A single cell is a one-row data set, so <span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\} = \hat{\mu}(z_S; x^0_{\bar{S}})</span> with nothing left to average. Filter and set on different variables commute; a second set on the same variable overwrites the first; a filter after a set on the same variable keeps everything or nothing. The three operations of <a href="#sec-three-operations" class="quarto-xref">Section&nbsp;2</a> are <span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{F}_S(z)\, P</span> (conditional), <span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, P</span> (marginal), and <span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\}</span> (partial); each relativity is the ratio of its operation at <span class="math inline">z</span> to the same operation at <span class="math inline">z^0</span>.</p>
+<p><strong>Partial dependence: the marginal operation.</strong> Friedman’s partial dependence of the model over <span class="math inline">S</span>, at <span class="math inline">z</span>, against <span class="math inline">P</span>, is the expected model output when the variables in <span class="math inline">S</span> are set to <span class="math inline">z</span> in every row and everything else is drawn from <span class="math inline">P</span>; in operator form, <span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, P</span>:</p>
+<p><span id="eq-notation-3"><span class="math display">
+\mathrm{PD}_S(z; P) = E_P\big[\hat{\mu}(z_S, x_{V\setminus S})\big] = \frac{\sum_{i \in P} w_i\, \hat{\mu}(z_S, x_{i,V\setminus S})}{\sum_{i \in P} w_i}
+\tag{10}</span></span></p>
+<p>The row index is summed out; PD is a function of <span class="math inline">z</span> alone. <span class="math inline">S</span> says which variables, <span class="math inline">z</span> their values, and <span class="math inline">P</span> where the rest come from. In code: overwrite the columns in <span class="math inline">S</span> of a copy of <span class="math inline">P</span> with <span class="math inline">z</span>, predict, take the exposure-weighted mean; once per grid value <span class="math inline">z</span>.</p>
+<p>Setting the variables in <span class="math inline">S</span> to <span class="math inline">z</span> is not the same as selecting the rows that already have those values. The two operations differ by one word, and that difference is the whole distinction between a conditional (one-way) relativity and a marginal one, and holding instead of averaging is the third column:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Filter (conditional)</th>
+<th>Set and average (marginal)</th>
+<th>Set and hold (partial)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Operator form</td>
+<td><span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{F}_S(z)\, P</span></td>
+<td><span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, P</span></td>
+<td><span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\}</span></td>
+</tr>
+<tr class="even">
+<td>Expression</td>
+<td><span class="math inline">E_P[\hat{\mu}(x) \mid x_S = z]</span></td>
+<td><span class="math inline">E_P[\hat{\mu}(z_S; x_{\bar{S}})]</span></td>
+<td><span class="math inline">\hat{\mu}(z_S; x^0_{\bar{S}})</span></td>
+</tr>
+<tr class="odd">
+<td>Reads as</td>
+<td>the model, averaged over the rows that already have <span class="math inline">x_S = z</span></td>
+<td>the model with <span class="math inline">x_S</span> set to <span class="math inline">z</span> in every row, averaged over all rows</td>
+<td>the model at the base cell with <span class="math inline">x_S</span> set to <span class="math inline">z</span></td>
+</tr>
+<tr class="even">
+<td>Rows averaged</td>
+<td>only those with <span class="math inline">x_S = z</span>; a different set at each <span class="math inline">z</span></td>
+<td>all of <span class="math inline">P</span>; the same set at each <span class="math inline">z</span></td>
+<td>one row; nothing averaged</td>
+</tr>
+<tr class="odd">
+<td>What it is</td>
+<td>the numerator of the conditional (one-way) relativity</td>
+<td>the partial dependence <span class="math inline">\mathrm{PD}_S(z; P)</span>, the numerator of the marginal relativity</td>
+<td>the numerator of the partial relativity: the coefficient table</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Marginal relativity.</strong> A marginal relativity is a partial dependence divided by its value at the base cell; the bar marks the averaging:</p>
+<p><span id="eq-notation-4"><span class="math display">
+\bar{r}_S(z; P) = \frac{\mathrm{PD}_S(z; P)}{\mathrm{PD}_S(x^0_S; P)}
+\tag{11}</span></span></p>
+<p>When <span class="math inline">P</span> cancels (<a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a> says when), the marginal relativity no longer depends on any population and equals the partial relativity, written <span class="math inline">r_S(z)</span> without the bar.</p>
+<p><strong>Partial relativity.</strong> A partial relativity is the model’s own table for one term <span class="math inline">t</span>, expressed relative to the base cell. It is the set-and-hold operation, <span class="math inline">\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_t(z)\, \{x^0\}</span> divided by <span class="math inline">\hat{\mu}(x^0)</span>, and on the log scale it is the coefficient difference:</p>
+<p><span id="eq-notation-5"><span class="math display">
+r_t(z) = \exp\big(\beta_t(z_t) - \beta_t(x^0_t)\big)
+\tag{12}</span></span></p>
+<p>The table in <a href="#sec-familiar" class="quarto-xref">Section&nbsp;4</a> shows this is the special case in which <span class="math inline">P</span> is a single cell, the base cell.</p>
+</section>
+<section id="sec-lemma" class="level2" data-number="14">
+<h2 data-number="14" class="anchored" data-anchor-id="sec-lemma"><span class="header-section-number">14</span> The separability lemma, with proof</h2>
+<p><em>The proof of point 2. Not needed for the main body.</em></p>
+<p>Start from a coefficient. Pick a term <span class="math inline">T \in M</span>, the set of variables whose coefficient table <span class="math inline">\beta_T</span> you want, and ask what operation on data returns it.</p>
+<p><strong>The model as a product of terms.</strong> Under a log link,</p>
+<p><span id="eq-lemma-1"><span class="math display">
+\hat{\mu}(x) = \prod_{t \in M} g_t(x_t), \qquad g_t = e^{\beta_t}, \qquad g_\emptyset = e^{\beta_0}
+\tag{13}</span></span></p>
+<p>Each term <span class="math inline">g_t</span> depends only on the coordinates of <span class="math inline">x</span> in its own set <span class="math inline">t</span>. A ratio of a term to its value at base is a difference of coefficients on the log scale, <span class="math inline">\ln[g_t(z_t) / g_t(z^0_t)] = \beta_t(z_t) - \beta_t(z^0_t)</span>, and under treatment contrasts <span class="math inline">\beta_t(z^0_t) = 0</span>, so the ratio is <span class="math inline">e^{\beta_t(z_t)}</span> itself. Every ratio of averages below is to be read that way: as a statement about coefficient differences.</p>
+<p><strong>Fix the variables in <span class="math inline">T</span>.</strong> Write <span class="math inline">(z_T;\, x_{\bar{T}})</span> for the vector in which the variables in <span class="math inline">T</span> are fixed at the values <span class="math inline">z</span> and the rest, <span class="math inline">\bar{T} = V \setminus T</span>, keep their own values from the row.</p>
+<p><strong>Partition the terms relative to <span class="math inline">T</span>.</strong> Let <span class="math inline">Q = M \cap \mathcal{P}(T)</span>: the terms the model has on subsets of <span class="math inline">T</span>, which means <span class="math inline">T</span> itself, the lower-order terms on its variables, and <span class="math inline">\emptyset</span> (the intercept). Every other <span class="math inline">t \in M</span> is either disjoint from <span class="math inline">T</span> or overlaps it partway, so <span class="math inline">M</span> splits into three families:</p>
+<p><span id="eq-lemma-2"><span class="math display">
+\begin{aligned}
+Q &amp;= M \cap \mathcal{P}(T) &amp;&amp;\text{inside } T\\
+Q' &amp;= \{\,t \in M : t \cap T = \emptyset,\; t \neq \emptyset\,\} &amp;&amp;\text{disjoint from } T\\
+Q'' &amp;= M \setminus (Q \cup Q') = \{\,t \in M : t \cap T \neq \emptyset,\; t \not\subseteq T\,\} &amp;&amp;\text{overlapping } T \text{ partway, supersets of } T \text{ included}
+\end{aligned}
+\tag{14}</span></span></p>
+<p>With <span class="math inline">T = \{A, B, C\}</span>, <span class="math inline">Q</span> is whichever of <span class="math inline">\emptyset</span>, <span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">C</span>, <span class="math inline">AB</span>, <span class="math inline">AC</span>, <span class="math inline">BC</span> and <span class="math inline">ABC</span> the model actually has. With <span class="math inline">T = \{\text{age}\}</span> in the <a href="#sec-notation" class="quarto-xref">Section&nbsp;13</a> example: <span class="math inline">\emptyset</span> and <span class="math inline">\{\text{age}\}</span> are in <span class="math inline">Q</span>; <span class="math inline">\{\text{sex}\}</span>, <span class="math inline">\{\text{breed}\}</span>, <span class="math inline">\{\text{weight}\}</span>, <span class="math inline">\{\text{deductible}\}</span> and <span class="math inline">\{\text{breed}, \text{weight}\}</span> are in <span class="math inline">Q'</span>; <span class="math inline">\{\text{age}, \text{weight}\}</span> is in <span class="math inline">Q''</span>.</p>
+<p><strong>Evaluate each family at the fixed vector.</strong> A term in <span class="math inline">Q</span> sees only fixed values. A term in <span class="math inline">Q'</span> sees only the row’s own values, on its own variables <span class="math inline">x_t</span>. A term in <span class="math inline">Q''</span> sees fixed values on <span class="math inline">t \cap T</span> and the row’s values on <span class="math inline">t \setminus T</span>:</p>
+<p><span id="eq-lemma-3"><span class="math display">
+\hat{\mu}(z_T;\, x_{\bar{T}}) = \underbrace{\prod_{t \in Q} g_t(z_t)}_{G_Q(z)}\;\cdot\;\underbrace{\prod_{t \in Q'} g_t(x_t)}_{G_{Q'}(x)}\;\cdot\;\underbrace{\prod_{t \in Q''} g_t(z_{t \cap T};\, x_{t \setminus T})}_{G_{Q''}(z,\, x)}
+\tag{15}</span></span></p>
+<p><strong>Average over data and take a ratio.</strong> For any data set <span class="math inline">P</span> with exposure weights, and base values <span class="math inline">z^0</span> for the variables in <span class="math inline">T</span>,</p>
+<p><span id="eq-lemma-4"><span class="math display">
+\frac{E_P\big[\hat{\mu}(z_T;\, x_{\bar{T}})\big]}{E_P\big[\hat{\mu}(z^0_T;\, x_{\bar{T}})\big]} = \prod_{t \in Q}\frac{g_t(z_t)}{g_t(z^0_t)}\;\cdot\;\frac{E_P\big[G_{Q'}(x)\, G_{Q''}(z, x)\big]}{E_P\big[G_{Q'}(x)\, G_{Q''}(z^0, x)\big]}
+\tag{16}</span></span></p>
+<p><strong>Claim.</strong> The ratio is the same for every data set <span class="math inline">P</span> if and only if <span class="math inline">Q''</span> is empty: no term overlaps <span class="math inline">T</span> partway.</p>
+<p><strong>If.</strong> With <span class="math inline">Q''</span> empty, <span class="math inline">G_{Q''} \equiv 1</span>, and the second factor is <span class="math inline">E_P[G_{Q'}] / E_P[G_{Q'}] = 1</span>. The ratio is the product of the terms in <span class="math inline">Q</span> relative to base: the joint table for the variables in <span class="math inline">T</span>. On the log scale it is <span class="math inline">\sum_{t \in Q} [\beta_t(z_t) - \beta_t(z^0_t)]</span>, the sum of the coefficient differences of every term inside <span class="math inline">T</span>. <span class="math inline">P</span> has cancelled, and every term in <span class="math inline">Q'</span> with it. This holds for every <span class="math inline">P</span>: the training data, a different book, a synthetic grid, or a single row, which is why the recipe in the main body can hold everything at the base cell and use no data at all. The mix never enters. It enters only when <span class="math inline">Q''</span> is not empty, where the second factor is a weighted average over <span class="math inline">P</span>’s rows and the weights are the mix; there the training data has no special status and is simply the mix that happens to be at hand.</p>
+<p><strong>Isolating <span class="math inline">g_T</span> from the joint table.</strong> Write <span class="math inline">R_T(z_T)</span> for the ratio above: the joint table for <span class="math inline">T</span>’s variables relative to base, which is itself a marginal relativity over <span class="math inline">T</span>. It contains <span class="math inline">g_T</span> and the terms on proper subsets of <span class="math inline">T</span>, so getting <span class="math inline">g_T</span> out means dividing those out. For the orders that occur in a rating model:</p>
+<p>Main effect, <span class="math inline">T = \{A\}</span>. There is nothing to divide out; the marginal relativity is the term, and its log is the coefficient difference:</p>
+<p><span id="eq-lemma-5"><span class="math display">
+\begin{aligned}
+\frac{g_A(z_A)}{g_A(z^0_A)} &amp;= R_A(z_A) = \frac{\sum_i w_i\,\hat{\mu}(z_A;\,x_{i,\bar{A}})}{\sum_i w_i\,\hat{\mu}(z^0_A;\,x_{i,\bar{A}})}\\
+\beta_A(z_A) - \beta_A(z^0_A) &amp;= \ln R_A(z_A)
+\end{aligned}
+\tag{17}</span></span></p>
+<p>Two-way, <span class="math inline">T = \{A, B\}</span>. Three marginal relativities over <span class="math inline">\{A, B\}</span>: the one at <span class="math inline">(z_A, z_B)</span>, divided by the ones at <span class="math inline">(z_A, z^0_B)</span> and <span class="math inline">(z^0_A, z_B)</span>:</p>
+<p><span id="eq-lemma-6"><span class="math display">
+\begin{aligned}
+\frac{g_{AB}(z_A, z_B)}{g_{AB}(z^0_A, z^0_B)} &amp;= \frac{R_{AB}(z_A, z_B)}{R_{AB}(z_A, z^0_B)\; R_{AB}(z^0_A, z_B)}\\
+\beta_{AB}(z_A, z_B) - \beta_{AB}(z_A, z^0_B) - \beta_{AB}(z^0_A, z_B) + \beta_{AB}(z^0_A, z^0_B) &amp;= \ln R_{AB}(z_A, z_B) - \ln R_{AB}(z_A, z^0_B) - \ln R_{AB}(z^0_A, z_B)
+\end{aligned}
+\tag{18}</span></span></p>
+<p>Under treatment contrasts the two in the denominator are the <span class="math inline">A</span> and <span class="math inline">B</span> partial relativities, the main effects, so the interaction factor is the two-way table divided by the two one-way tables, which is what an interaction table in a rating plan is.</p>
+<p>In general. For each subset <span class="math inline">u \subseteq T</span> let <span class="math inline">z^{(u)}</span> be the point with the variables in <span class="math inline">u</span> at <span class="math inline">z</span> and the rest of <span class="math inline">T</span> at base. The alternating product over the subsets of <span class="math inline">T</span> returns the term alone:</p>
+<p><span id="eq-lemma-7"><span class="math display">
+\begin{aligned}
+\frac{g_T(z_T)}{g_T(z^0_T)} &amp;= \prod_{u \subseteq T} R_T\big(z^{(u)}\big)^{(-1)^{|T \setminus u|}}\\
+\beta_T(z_T) - \beta_T(z^0_T) &amp;= \sum_{u \subseteq T} (-1)^{|T \setminus u|}\, \ln R_T\big(z^{(u)}\big) \qquad \text{(treatment contrasts)}
+\end{aligned}
+\tag{19}</span></span></p>
+<p>A term <span class="math inline">t \subsetneq T</span> depends on <span class="math inline">z^{(u)}</span> only through <span class="math inline">u \cap t</span>; holding that fixed, the alternating sign summed over the free choice of <span class="math inline">u \cap (T \setminus t)</span> is zero whenever <span class="math inline">T \setminus t</span> is nonempty, so every <span class="math inline">t \subsetneq T</span> cancels identically. This step needs no gauge. What remains is <span class="math inline">g_T</span>’s own alternating ratio: under treatment contrasts <span class="math inline">g_T</span> is 1 whenever any of its coordinates sits at base, so every factor with <span class="math inline">u \neq T</span> is 1 and the product is <span class="math inline">g_T(z_T)</span> outright; in another gauge it is the part of <span class="math inline">g_T</span> that no re-gauging can move.</p>
+<p><strong>The alternating contrast is a mixed finite difference.</strong> On the log scale, <span class="math inline">\sum_{u \subseteq T} (-1)^{|T \setminus u|} \ln R_T(z^{(u)})</span> is the <span class="math inline">|T|</span>-th order mixed difference of <span class="math inline">\ln \hat{\mu}</span> across the corners of <span class="math inline">T</span>: the finite version of the mixed partial derivative <span class="math inline">\partial^{|T|} \ln \hat{\mu} / \partial x_{t_1} \cdots \partial x_{t_{|T|}}</span>. For <span class="math inline">|T| = 2</span> the double ratio is the discrete <span class="math inline">\partial^2 \ln \hat{\mu} / \partial x_A\, \partial x_B</span>. An interaction on the log scale is a nonzero mixed partial, and the interaction table is that derivative integrated over the cell. This is the one place calculus adds something here: it names the alternating product with a derivative every reader knows.</p>
+<p><strong>Only if.</strong> Suppose <span class="math inline">Q''</span> is not empty, and take <span class="math inline">P</span> to be a single row with moving values <span class="math inline">u</span>. The second factor becomes <span class="math inline">G_{Q''}(z, u) / G_{Q''}(z^0, u)</span>. If this were the same for every <span class="math inline">u</span>, then on the log scale the partway terms would satisfy</p>
+<p><span id="eq-lemma-8"><span class="math display">
+\sum_{t \in Q''} \beta_t(z_{t\cap T};\, u_{t\setminus T}) = c(z) + d(u)
+\tag{20}</span></span></p>
+<p>a function of the fixed values alone plus a function of the moving values alone. A term that overlaps <span class="math inline">T</span> partway and splits that way carries no content that actually crosses the boundary of <span class="math inline">T</span>: it could be rewritten as terms on smaller sets, some inside <span class="math inline">T</span> and some disjoint from it. So the only-if rests on one assumption: each interaction term in <span class="math inline">M</span> depends jointly on all of its variables and is not a sum of terms on smaller sets. That is what a fixed gauge (<a href="#sec-gauge" class="quarto-xref">Section&nbsp;6</a>) enforces, and it is an assumption about how the terms are written, not about the model.</p>
+<p><strong>When <span class="math inline">Q''</span> is not empty: pin its outside variables at base.</strong> The <span class="math inline">Q''</span> factor is the only part of the decomposition that mixes <span class="math inline">z</span> and <span class="math inline">x</span>, and the fix is to stop those coordinates from moving. Let</p>
+<p><span id="eq-lemma-9"><span class="math display">
+C = \bigcup_{t \in Q''} (t \setminus T)
+\tag{21}</span></span></p>
+<p>the variables the partway terms reach outside <span class="math inline">T</span>, and hold them at base: replace <span class="math inline">x_C</span> by <span class="math inline">z^0_C</span>. The decomposition becomes</p>
+<p><span id="eq-lemma-10"><span class="math display">
+\hat{\mu}(z_T;\, z^0_C;\, x_{\overline{T\cup C}}) = \underbrace{\prod_{t \in Q} g_t(z_t)\cdot \prod_{t \in Q''} g_t(z_{t\cap T};\, z^0_{t\setminus T})}_{\text{depends on } z \text{ only}}\;\cdot\;\underbrace{\prod_{t \in Q'} g_t(z^0_{t\cap C};\, x_{t\setminus C})}_{\text{depends on } x \text{ only}}
+\tag{22}</span></span></p>
+<p>Every <span class="math inline">Q''</span> term is now a function of <span class="math inline">z</span> alone, because all of its outside-<span class="math inline">T</span> variables are in <span class="math inline">C</span>. Every <span class="math inline">Q'</span> term is disjoint from <span class="math inline">T</span>, so fixing some of its coordinates leaves it <span class="math inline">z</span>-free. The decomposition is separable for arbitrary <span class="math inline">T</span>, in one step. Average over any <span class="math inline">P</span> and take the ratio to base; the <span class="math inline">Q'</span> product cancels:</p>
+<p><span id="eq-lemma-11"><span class="math display">
+\frac{E_P\big[\hat{\mu}(z_T;\, z^0_C;\, x_{\overline{T\cup C}})\big]}{E_P\big[\hat{\mu}(z^0_T;\, z^0_C;\, x_{\overline{T\cup C}})\big]} = \prod_{t \in Q}\frac{g_t(z_t)}{g_t(z^0_t)}\;\cdot\;\prod_{t \in Q''}\frac{g_t(z_{t\cap T};\, z^0_{t\setminus T})}{g_t(z^0_{t\cap T};\, z^0_{t\setminus T})} = R_T(z_T)
+\tag{23}</span></span></p>
+<p><span class="math inline">P</span> is gone, and under treatment contrasts the <span class="math inline">Q''</span> product is 1, because every factor in it has its <span class="math inline">t \setminus T</span> coordinates at base. What remains is <span class="math inline">R_T(z_T)</span>, the joint table for <span class="math inline">T</span>’s variables, the same object as in the <span class="math inline">Q'' = \emptyset</span> case, and the alternating product over the subsets of <span class="math inline">T</span> isolates <span class="math inline">g_T(z_T) / g_T(z^0_T)</span> as above. The <span class="math inline">Q'' = \emptyset</span> case is this with <span class="math inline">C</span> empty.</p>
+<p>Example: terms <span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">AB</span>, <span class="math inline">C</span>, <span class="math inline">BC</span>, <span class="math inline">D</span> and <span class="math inline">\beta_A</span> wanted. <span class="math inline">T = \{A\}</span>, <span class="math inline">Q'' = \{AB\}</span>, <span class="math inline">C = \{B\}</span>, so <span class="math inline">B</span> is held at <span class="math inline">b_0</span>, <span class="math inline">A</span> is varied, and <span class="math inline">C</span> and <span class="math inline">D</span> keep their row values:</p>
+<p><span id="eq-lemma-12"><span class="math display">
+e^{\beta_A(a_1)} = \frac{\sum_i w_i\,\hat{\mu}(a_1, b_0;\, x_{i,\{C,D\}})}{\sum_i w_i\,\hat{\mu}(a_0, b_0;\, x_{i,\{C,D\}})}
+\tag{24}</span></span></p>
+<p>The <span class="math inline">BC</span> and <span class="math inline">D</span> terms are in <span class="math inline">Q'</span> and cancel; <span class="math inline">AB</span> is in <span class="math inline">Q''</span>, sits at <span class="math inline">b_0</span>, and equals 1.</p>
+<p><strong>Which coefficients survive averaging.</strong> The lemma asks when the whole table <span class="math inline">\mathrm{PD}_T(\cdot\,; P)</span> is free of <span class="math inline">P</span>. Recovering a single interaction coefficient needs less. Write</p>
+<p><span id="eq-lemma-13"><span class="math display">
+\ln \mathrm{PD}_T(z; P) = \sum_{t \in Q} \beta_t(z_t) + h_P(z), \qquad h_P(z) = \ln E_P\big[G_{Q'}(x)\, G_{Q''}(z, x)\big]
+\tag{25}</span></span></p>
+<p>and let <span class="math inline">\Delta_T</span> be the alternating contrast over the base-anchored corners of <span class="math inline">T</span>. Under treatment contrasts <span class="math inline">\Delta_T</span> kills every <span class="math inline">\beta_t</span> with <span class="math inline">t \subsetneq T</span> and returns <span class="math inline">\beta_T(z_T)</span>, so</p>
+<p><span id="eq-lemma-14"><span class="math display">
+\Delta_T \ln \mathrm{PD}_T(z; P) = \beta_T(z_T) + \Delta_T h_P(z)
+\tag{26}</span></span></p>
+<p>The coefficient is recovered exactly when <span class="math inline">\Delta_T h_P = 0</span>, which requires only that <span class="math inline">h_P</span> have no full-<span class="math inline">T</span> interaction, not that it be constant. For <span class="math inline">|T| = 1</span> the two conditions coincide, <span class="math inline">\Delta_T h_P = h_P(z) - h_P(z^0)</span>, so a main effect is recovered by averaging only when <span class="math inline">Q''</span> is empty, as the lemma says. For an interaction they differ. A structural sufficient condition, holding for every <span class="math inline">P</span>: the terms in <span class="math inline">Q''</span> do not between them touch every variable of <span class="math inline">T</span>. Then <span class="math inline">h_P</span> depends on <span class="math inline">z</span> only through a proper subset of <span class="math inline">T</span>’s coordinates and <span class="math inline">\Delta_T h_P = 0</span>.</p>
+<p>Example where it holds: terms <span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">AB</span>, <span class="math inline">C</span>, <span class="math inline">BC</span> and <span class="math inline">T = \{A, B\}</span>. <span class="math inline">Q'' = \{BC\}</span> touches only <span class="math inline">B</span>, so <span class="math inline">h_P(a, b) = \ln E_P[e^{\beta_C(c) + \beta_{BC}(b, c)}]</span> is a function of <span class="math inline">b</span> alone, and the double ratio of <span class="math inline">\mathrm{PD}_{AB}</span> returns <span class="math inline">\beta_{AB}</span> on any mix even though the two-way table itself, with its main effects, does not. Example where it fails: binary <span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">C</span> with <span class="math inline">\ln \hat{\mu} = ac + bc</span>, no <span class="math inline">AB</span> term, and <span class="math inline">P(C = 1) = \tfrac{1}{2}</span>. Then <span class="math inline">\mathrm{PD}_{AB}(a, b) = \tfrac{1}{2}(1 + e^{a+b})</span> and the double ratio is <span class="math inline">2(1 + e^2)/(1 + e)^2 \approx 1.21</span>, an apparent <span class="math inline">\beta_{AB} \approx 0.19</span> from a model that has none. Averaging over a partner that <span class="math inline">A</span> and <span class="math inline">B</span> share manufactures a log-scale interaction between them. This is also how a two-way partial-dependence plot, or an H-statistic, can report an <span class="math inline">A \times B</span> interaction that is really <span class="math inline">A \times C</span> and <span class="math inline">B \times C</span>; the pinned two-way table, with <span class="math inline">C</span> held at base, shows none.</p>
+<p>What a different mix does: nothing, once the <span class="math inline">Q''</span> terms’ outside variables are pinned. <span class="math inline">Q''</span> then contributes no <span class="math inline">x</span>-dependence, the mix never enters, and the fitted data, a future book, and a single row return the same tables. The mix enters only when a <span class="math inline">Q''</span> term’s outside variable is left moving: the main-effect tables then depend on <span class="math inline">P</span> on every mix, the fitted data included, while a pure interaction coefficient may or may not survive the alternating contrast according to the condition above. For a model in which everything interacts, such as a gradient-boosted model, <span class="math inline">Q''</span> for any <span class="math inline">T</span> reaches every other variable: the population-free one-way object is the profile through the base cell, and every marginal relativity depends on the mix. It is the same rule.</p>
+<p><strong>When the interaction terms are pairwise disjoint.</strong> Let <span class="math inline">T_1</span> and <span class="math inline">T_2</span> be any two distinct interaction terms in <span class="math inline">M</span> (<span class="math inline">|t| &gt; 1</span>). They are pairwise disjoint, <span class="math inline">T_1 \cap T_2 = \emptyset</span> for every such pair, if and only if <span class="math inline">Q''</span> is empty for every interaction term <span class="math inline">T</span>. Then fixing an interaction term’s own variables and averaging over everything else returns its joint table on any data, and the alternating ratio isolates <span class="math inline">g_T</span>. The step is one line: a term overlaps <span class="math inline">T</span> partway exactly when it shares a variable with <span class="math inline">T</span> without lying inside it; the lower-order terms on <span class="math inline">T</span>’s variables are in <span class="math inline">Q</span>, so only another interaction term can be in <span class="math inline">Q''</span>. For a main effect <span class="math inline">T = \{j\}</span>, <span class="math inline">Q''</span> contains every interaction that contains <span class="math inline">j</span>, so fixing <span class="math inline">j</span> alone returns <span class="math inline">g_j</span> only if <span class="math inline">j</span> is in no interaction. In a model with <span class="math inline">A</span>, <span class="math inline">B</span> and <span class="math inline">AB</span>, fixing <span class="math inline">A</span> alone and averaging does not return <span class="math inline">g_A</span>; fixing <span class="math inline">A</span> and <span class="math inline">B</span> together returns <span class="math inline">g_A</span>, <span class="math inline">g_B</span> and <span class="math inline">g_{AB}</span>. With <span class="math inline">A \times B</span>, <span class="math inline">C \times D</span> and <span class="math inline">E \times F \times G</span> the condition holds. Add <span class="math inline">A \times D</span> and it fails: fixing <span class="math inline">A</span> and <span class="math inline">B</span> alone leaves <span class="math inline">D</span> moving inside <span class="math inline">A \times D</span>; fix <span class="math inline">\{A, B, C, D\}</span> and every coefficient on those variables is recovered. Nested terms (<span class="math inline">E \times F</span> beside <span class="math inline">E \times F \times G</span>) count as overlapping, and fixing <span class="math inline">E</span> and <span class="math inline">F</span> alone leaves <span class="math inline">G</span> moving.</p>
+<p><strong>Five models, classified.</strong> For each model: the smallest sets whose marginal relativity is population-free, and the sets whose marginal relativity depends on the mix, with the term that overlaps them partway.</p>
+<div id="tbl-five-models" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-five-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Five models classified by which fixed sets give population-free marginal relativities
+</figcaption>
+<div aria-describedby="tbl-five-models-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model terms</th>
+<th>Interaction terms</th>
+<th>Smallest sets whose PD is population-free</th>
+<th>Sets whose PD depends on the mix, and the term that overlaps them partway</th>
+<th>Interactions pairwise disjoint?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">AB</span>, <span class="math inline">CDE</span></td>
+<td><span class="math inline">AB</span>, <span class="math inline">CDE</span></td>
+<td><span class="math inline">\{A,B\}</span>; <span class="math inline">\{C,D,E\}</span></td>
+<td><span class="math inline">\{A\}</span>, <span class="math inline">\{B\}</span>: <span class="math inline">AB</span></td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">CDE</span></td>
+<td><span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">CDE</span></td>
+<td><span class="math inline">\{A,B\}</span>; <span class="math inline">\{C,D,E\}</span></td>
+<td><span class="math inline">\{C,D\}</span>: <span class="math inline">CDE</span> (nested); <span class="math inline">\{A\}</span>, <span class="math inline">\{B\}</span>: <span class="math inline">AB</span></td>
+<td>No: <span class="math inline">CD \subset CDE</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">BCE</span></td>
+<td><span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">BCE</span></td>
+<td><span class="math inline">\{A,B,C,D,E\}</span></td>
+<td>every smaller set: <span class="math inline">AB</span> and <span class="math inline">BCE</span> share <span class="math inline">B</span>, <span class="math inline">CD</span> and <span class="math inline">BCE</span> share <span class="math inline">C</span>, so the terms chain together</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">ABC</span></td>
+<td><span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">ABC</span></td>
+<td><span class="math inline">\{A,B,C,D\}</span></td>
+<td><span class="math inline">\{A,B\}</span>: <span class="math inline">ABC</span>; <span class="math inline">\{C,D\}</span>: <span class="math inline">ABC</span>, through <span class="math inline">C</span>; <span class="math inline">\{A,B,C\}</span>: <span class="math inline">CD</span>, through <span class="math inline">C</span></td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">A</span>, <span class="math inline">B</span>, <span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">ABCD</span></td>
+<td><span class="math inline">AB</span>, <span class="math inline">CD</span>, <span class="math inline">ABCD</span></td>
+<td><span class="math inline">\{A,B,C,D\}</span></td>
+<td>every smaller set: <span class="math inline">ABCD</span></td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>In the first two models, fixing <span class="math inline">A</span> and <span class="math inline">B</span> together, or <span class="math inline">C</span>, <span class="math inline">D</span> and <span class="math inline">E</span> together, and averaging over the rest returns the coefficient tables; fixing <span class="math inline">A</span> alone does not, and in the second model fixing <span class="math inline">C</span> and <span class="math inline">D</span> alone does not. In the last three, nothing short of fixing all the variables the interactions touch returns coefficients by averaging; every coefficient is still obtained by pinning, as in “Reading any coefficient off the model.” In all five the rating-table delivery is the same: one table per term. To check a fixed set <span class="math inline">S</span> by hand: list every term as inside <span class="math inline">S</span>, disjoint from <span class="math inline">S</span>, or overlapping <span class="math inline">S</span> partway; averaging over the rest returns coefficients when the third list is empty, and a mix-dependent blend otherwise.</p>
+</section>
+<section id="sec-manuscript-checklist" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="sec-manuscript-checklist">Manuscript checklist</h2>
+<p><em>What the manuscript needs beyond this guide. Ticked items are done in the guide and need only transferring.</em></p>
+<ul class="task-list">
+<li><label><input type="checkbox">Structure: Introduction (the four points and the vocabulary clash) · Objects, operators, catalogue · Term-based models and the decomposition · Interactions · Discussion; proofs and code in an appendix.</label></li>
+<li><label><input type="checkbox">A real-data example with a mix shift and reproducible code. freMTPL2 is the convention (Lorentzen &amp; Mayer, Henckaerts et al., Lindholm &amp; Palmquist all use it), which also allows direct comparison with their partial-dependence plots.</label></li>
+<li><label><input type="checkbox">The additive and general-link section: identity link with sums and differences in place of products and ratios; the decomposition lives on the link scale, so average the linear predictor for coefficient recovery under any link; on the response scale it is exact only for the log and identity links (Ai &amp; Norton for logit).</label></li>
+<li><label><input type="checkbox" checked="">The vocabulary concordance table: conditional / marginal / partial against Friedman, Apley &amp; Zhu, econometrics, and pricing shop talk (<a href="#sec-three-operations" class="quarto-xref">Section&nbsp;2</a>).</label></li>
+<li><label><input type="checkbox">Check the Apley &amp; Zhu “M-plot” usage against their paper before the table goes in the manuscript.</label></li>
+<li><label><input type="checkbox" checked="">The vocabulary pass across this guide: marginal relativity <span class="math inline">\bar{r}_S(z; P)</span> for set-and-average, partial relativity <span class="math inline">r_t(z)</span> for set-and-hold, conditional for one-way.</label></li>
+<li><label><input type="checkbox">The same vocabulary pass across the two companion notes, which use “partial relativity” for the marginal operation and “base-risk relativity” for the partial one.</label></li>
+<li><label><input type="checkbox" checked="">The operator notation <span class="math inline">\mathbb{F}</span>, <span class="math inline">\mathbb{T}</span>, <span class="math inline">\boldsymbol{\Sigma}_w</span> defined (<a href="#sec-notation" class="quarto-xref">Section&nbsp;13</a>) and used in the concordance and comparison tables. Still open: <span class="math inline">E_P[\cdot]</span> remains as shorthand for <span class="math inline">\boldsymbol{\Sigma}_w\, {\cdot}\, P</span> in the <a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a> formulas; decide whether to replace it.</label></li>
+<li><label><input type="checkbox">The full catalogue table from the operator note (ICE, stratified, restricted, ALE step, observed one-ways) with operator form, sum form, and “what question it answers.”</label></li>
+<li><label><input type="checkbox" checked="">A definition of “coefficient” for GAM smooths and penalized terms (<a href="#sec-rating-table" class="quarto-xref">Section&nbsp;3</a>).</label></li>
+<li><label><input type="checkbox" checked="">The misspecification caveat as a short section, separating the lemma, which holds for any fitted <span class="math inline">\hat{\mu}</span>, from refit stability, which needs correct specification.</label></li>
+<li><label><input type="checkbox" checked="">A full read of Lindholm &amp; Palmquist §2.1 with equations cited: Eq. (8)–(11) and p.&nbsp;679.</label></li>
+<li><label><input type="checkbox" checked="">CAS Monograph 16 §9.3–9.4 read and cited as the nearest practical prior work.</label></li>
+<li><label><input type="checkbox" checked="">The “which coefficients survive averaging” result (<span class="math inline">\Delta_T h_P = 0</span>), with the <span class="math inline">AB + BC</span> example and the <span class="math inline">ac + bc</span> counterexample (<a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a>). Optional: characterize the <span class="math inline">P</span>-dependent sufficient conditions.</label></li>
+<li><label><input type="checkbox" checked="">The alternating product as the finite-difference mixed partial derivative of <span class="math inline">\ln \hat{\mu}</span> (<a href="#sec-lemma" class="quarto-xref">Section&nbsp;14</a>). For the manuscript, cut the line integral, elasticity, ALE, and derivative-ICE material from the calculus note.</label></li>
+<li><label><input type="checkbox" checked="">The spurious-interaction caveat for interaction detection (two-way PDP, H-statistic, Monograph 16’s permutation score) when two variables share a partner (<a href="#sec-right-tool" class="quarto-xref">Section&nbsp;10</a>).</label></li>
+<li><label><input type="checkbox" checked="">When the marginal relativity is the right object: average effect over a named book; models without terms (<a href="#sec-right-tool" class="quarto-xref">Section&nbsp;10</a>).</label></li>
+<li><label><input type="checkbox" checked="">The contribution stated plainly, “we are not aware of,” in the Summary and in <a href="#sec-literature" class="quarto-xref">Section&nbsp;12</a>.</label></li>
+<li><label><input type="checkbox">Cut from this paper: credibility and shrinkage (kept in the guide’s Estimation section as a standalone note for colleagues), posterior intervals (one sentence), the dropped-variable projection for pricing, ALE beyond a mention.</label></li>
+<li><label><input type="checkbox">Venue: <em>Variance</em> or <em>Annals of Actuarial Science</em>; both take methodological tutorials with a result in them.</label></li>
+</ul>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-apley2020ale" class="csl-entry" role="listitem">
+Apley, Daniel W., and Jingyu Zhu. 2020. <span>“Visualizing the Effects of Predictor Variables in Black Box Supervised Learning Models.”</span> <em>Journal of the Royal Statistical Society: Series B</em> 82 (4): 1059–86. <a href="https://doi.org/10.1111/rssb.12377">https://doi.org/10.1111/rssb.12377</a>.
+</div>
+<div id="ref-baeder2021interpretable" class="csl-entry" role="listitem">
+Baeder, Larry, Peter Brinkmann, and Eric Xu. 2021. <span>“Interpretable Machine Learning for Insurance.”</span> Society of Actuaries. <a href="https://www.soa.org/globalassets/assets/files/resources/research-report/2021/interpretable-machine-learning.pdf">https://www.soa.org/globalassets/assets/files/resources/research-report/2021/interpretable-machine-learning.pdf</a>.
+</div>
+<div id="ref-chalk2026glms" class="csl-entry" role="listitem">
+Chalk, Alan, David Deacon, Montserrat Guillen, and Max Martinelli. 2026. <em>From <span>GLMs</span> to Comprehensive Insurance Pricing: Techniques and Challenges</em>. CAS Monograph Series 16. Arlington, VA: Casualty Actuarial Society. <a href="https://www.casact.org/publications-research/publications/flagship-publications/cas-monographs/monograph-no-16">https://www.casact.org/publications-research/publications/flagship-publications/cas-monographs/monograph-no-16</a>.
+</div>
+<div id="ref-friedman2001greedy" class="csl-entry" role="listitem">
+Friedman, Jerome H. 2001. <span>“Greedy Function Approximation: A Gradient Boosting Machine.”</span> <em>Annals of Statistics</em> 29 (5): 1189–1232. <a href="https://doi.org/10.1214/aos/1013203451">https://doi.org/10.1214/aos/1013203451</a>.
+</div>
+<div id="ref-friedman2008rule" class="csl-entry" role="listitem">
+Friedman, Jerome H., and Bogdan E. Popescu. 2008. <span>“Predictive Learning via Rule Ensembles.”</span> <em>Annals of Applied Statistics</em> 2 (3): 916–54. <a href="https://doi.org/10.1214/07-AOAS148">https://doi.org/10.1214/07-AOAS148</a>.
+</div>
+<div id="ref-gao2024counterfactual" class="csl-entry" role="listitem">
+Gao, Zhen, and Qingyuan Zhao. 2024. <span>“Counterfactual Explainability and Analysis of Variance.”</span> arXiv:2411.01625. <a href="https://arxiv.org/abs/2411.01625">https://arxiv.org/abs/2411.01625</a>.
+</div>
+<div id="ref-goldburd2020glm" class="csl-entry" role="listitem">
+Goldburd, Mark, Anand Khare, Dan Tevet, and Dmitriy Guller. 2020. <em>Generalized Linear Models for Insurance Rating</em>. 2nd ed. CAS Monograph Series 5. Casualty Actuarial Society. <a href="https://www.casact.org/monograph/cas-monograph-no-5">https://www.casact.org/monograph/cas-monograph-no-5</a>.
+</div>
+<div id="ref-henckaerts2022maidrr" class="csl-entry" role="listitem">
+Henckaerts, Roel, Katrien Antonio, and Marie-Pier Côté. 2022. <span>“When Stakes Are High: Balancing Accuracy and Transparency with Model-Agnostic Interpretable Data-Driven Su<span>RR</span>ogates.”</span> <em>Expert Systems with Applications</em> 202: 117230. <a href="https://doi.org/10.1016/j.eswa.2022.117230">https://doi.org/10.1016/j.eswa.2022.117230</a>.
+</div>
+<div id="ref-henckaerts2021boosting" class="csl-entry" role="listitem">
+Henckaerts, Roel, Marie-Pier Côté, Katrien Antonio, and Roel Verbelen. 2021. <span>“Boosting Insights in Insurance Tariff Plans with Tree-Based Machine Learning Methods.”</span> <em>North American Actuarial Journal</em> 25 (2): 255–85. <a href="https://doi.org/10.1080/10920277.2020.1745656">https://doi.org/10.1080/10920277.2020.1745656</a>.
+</div>
+<div id="ref-herbinger2022repid" class="csl-entry" role="listitem">
+Herbinger, Julia, Bernd Bischl, and Giuseppe Casalicchio. 2022. <span>“<span>REPID</span>: Regional Effect Plots with Implicit Interaction Detection.”</span> In <em>Proceedings of the 25th International Conference on Artificial Intelligence and Statistics (AISTATS)</em>. Vol. 151. PMLR. <a href="https://arxiv.org/abs/2202.07254">https://arxiv.org/abs/2202.07254</a>.
+</div>
+<div id="ref-hiabu2023unifying" class="csl-entry" role="listitem">
+Hiabu, Munir, Joseph T. Meyer, and Marvin N. Wright. 2023. <span>“Unifying Local and Global Model Explanations by Functional Decomposition of Low Dimensional Structures.”</span> In <em>Proceedings of the 26th International Conference on Artificial Intelligence and Statistics (AISTATS)</em>. Vol. 206. PMLR. <a href="https://arxiv.org/abs/2208.06151">https://arxiv.org/abs/2208.06151</a>.
+</div>
+<div id="ref-hooker2007generalized" class="csl-entry" role="listitem">
+Hooker, Giles. 2007. <span>“Generalized Functional <span>ANOVA</span> Diagnostics for High-Dimensional Functions of Dependent Variables.”</span> <em>Journal of Computational and Graphical Statistics</em> 16 (3): 709–32. <a href="https://doi.org/10.1198/106186007X237892">https://doi.org/10.1198/106186007X237892</a>.
+</div>
+<div id="ref-kuo2010decompositions" class="csl-entry" role="listitem">
+Kuo, Frances Y., Ian H. Sloan, Grzegorz W. Wasilkowski, and Henryk Woźniakowski. 2010. <span>“On Decompositions of Multivariate Functions.”</span> <em>Mathematics of Computation</em> 79 (270): 953–66. <a href="https://doi.org/10.1090/S0025-5718-09-02319-9">https://doi.org/10.1090/S0025-5718-09-02319-9</a>.
+</div>
+<div id="ref-lengerich2020purifying" class="csl-entry" role="listitem">
+Lengerich, Benjamin, Sarah Tan, Chun-Hao Chang, Giles Hooker, and Rich Caruana. 2020. <span>“Purifying Interaction Effects with the Functional <span>ANOVA</span>: An Efficient Algorithm for Recovering Identifiable Additive Models.”</span> In <em>Proceedings of the 23rd International Conference on Artificial Intelligence and Statistics (AISTATS)</em>. Vol. 108. PMLR. <a href="https://arxiv.org/abs/1911.04974">https://arxiv.org/abs/1911.04974</a>.
+</div>
+<div id="ref-lindholm2024blackbox" class="csl-entry" role="listitem">
+Lindholm, Mathias, and Johan Palmquist. 2024. <span>“Black-Box Guided Generalised Linear Model Building with Non-Life Pricing Applications.”</span> <em>Annals of Actuarial Science</em> 18 (3): 675–91. <a href="https://doi.org/10.1017/S1748499524000265">https://doi.org/10.1017/S1748499524000265</a>.
+</div>
+<div id="ref-lorentzen2020peeking" class="csl-entry" role="listitem">
+Lorentzen, Christian, and Michael Mayer. 2020. <span>“Peeking into the Black Box: An Actuarial Case Study for Interpretable Machine Learning.”</span> SSRN 3595944. <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3595944">https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3595944</a>.
+</div>
+<div id="ref-mase2019shapley" class="csl-entry" role="listitem">
+Mase, Masayoshi, Art B. Owen, and Benjamin Seiler. 2019. <span>“Explaining Black Box Decisions by <span>Shapley</span> Cohort Refinement.”</span> arXiv:1911.00467. <a href="https://arxiv.org/abs/1911.00467">https://arxiv.org/abs/1911.00467</a>.
+</div>
+<div id="ref-rahman2014approximation" class="csl-entry" role="listitem">
+Rahman, Sharif. 2014. <span>“Approximation Errors in Truncated Dimensional Decompositions.”</span> arXiv:1310.6769. <a href="https://arxiv.org/abs/1310.6769">https://arxiv.org/abs/1310.6769</a>.
+</div>
+<div id="ref-zhao2021causal" class="csl-entry" role="listitem">
+Zhao, Qingyuan, and Trevor Hastie. 2021. <span>“Causal Interpretations of Black-Box Models.”</span> <em>Journal of Business &amp; Economic Statistics</em> 39 (1): 272–81. <a href="https://doi.org/10.1080/07350015.2019.1624293">https://doi.org/10.1080/07350015.2019.1624293</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
