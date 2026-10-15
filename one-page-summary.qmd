@@ -92,3 +92,30 @@ $$
 $$
 
 In the presence of interactions, these quantities are generally different. As a result, interpretation, reporting, and implementation of insurance pricing models should explicitly distinguish coefficient-based rating factors from portfolio-averaged summaries.
+
+
+The paper consists of mathematical proofs and numerical simulations.
+
+The guide clarifies different types of relativities, how to calculate them, and how to use them.
+
+Contribution to practice:
+
+- Many different quantities are referred to as "the relativities" by actuaries.
+- Some are the ones that can equate to model coefficients and some are not.
+- Relativities only equate to coefficients when:
+   - interactions have a specific structure
+   - or you limit analysis to the historical portfolio, and not try to forecast.
+- Explicit guidance for rating-table extraction from GLMs/GAMs.
+
+Contributions to theory:
+
+- Unifying ideas from interpretable ML, functional ANOVA, anchored decompositions, and actuarial relativities into one coherent framework.
+- A necessary-and-sufficient condition for when a PDP-based relativity equals a model coefficient.
+- A formal characterization of how overlapping interaction structures create portfolio dependence.
+
+
+
+
+
+
+
