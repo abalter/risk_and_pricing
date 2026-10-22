@@ -1,0 +1,421 @@
+---
+title: "Set, filter, sum, and mean"
+subtitle: "An operator notation for rating relativities, with its dplyr translation"
+format:
+  html:
+    toc: true
+    number-sections: true
+  pdf:
+    number-sections: true
+execute:
+  echo: true
+  message: false
+  warning: false
+---
+
+## Setup {#sec-setup}
+
+Let $\mathbf{x}$ be a table of $n$ observations (policies) on variables indexed by $\nu \in V = \{1, \dots, p\}$. Write $x_{i\nu}$ for the value of variable $\nu$ on observation $i$ and $x_{i\cdot}$ for the whole row. Each row carries a weight $w_i > 0$ (exposure). For a subset of variables $S \subseteq V$, write $\bar S = V \setminus S$ for the remaining variables, $x_{iS}$ for the part of row $i$ on the variables in $S$, and $z_S$ for a fixed set of values of those same variables.
+
+In code, $\mathbf{x}$ and $w$ together are a tibble `df` with one column per variable and a weight column, and $x_{i\cdot}$ is one row of it. The useful observation about $z_S$ is that it is the same kind of object as $x_{iS}$: one named value per variable in $S$. So $z_S$ is also a one-row tibble, `z`, and that one object carries both halves of the notation: `names(z)` is $S$ and its values are $z_S$.
+
+```r
+library(dplyr)
+df <- tibble(age = ..., zone = ..., limit = ..., exposure = ...)   # x together with w
+z  <- tibble(age = "old", zone = "rural")                           # S = {age, zone}, z_S = ("old", "rural")
+```
+
+The columns of `z` should have the same types as the matching columns of `df` (both character, or both factor, and so on), for the same reason that $z_S$ and $x_{iS}$ live in the same space.
+
+An *operator* is a function that takes a dataset and returns a dataset, and applying one is a single pipe step. One convention differs between the two notations: in mathematics the operator written nearest the data is applied first, so $\mathbb{F}\,\mathbb{M}\,\mathbf{x}$ reads right to left (set, then filter), while the pipe reads left to right, `df |> Mset(z) |> Fil(z)`.
+
+## The operators {#sec-operators}
+
+::: {#def-set}
+## Set
+
+$\mathbb{M}[S](z_S)$ overwrites the variables in $S$ with the values $z_S$ in every row, and leaves the weights alone:
+$$
+\big(\mathbb{M}[S](z_S)\, x_{i\cdot}\big)_\nu =
+\begin{cases}
+z_\nu     & \nu \in S \\
+x_{i\nu}  & \nu \notin S.
+\end{cases}
+$$
+The row count is unchanged. In code it is `mutate`:
+
+```r
+Mset <- function(df, z) mutate(df, !!!z)
+```
+:::
+
+The `!!!z` splices the columns of `z` into `mutate` as named arguments, so with the `z` above, `Mset(df, z)` is exactly `mutate(df, age = "old", zone = "rural")`.
+
+::: {#def-filter}
+## Filter
+
+$\mathbb{F}[S](z_S)$ keeps only the rows whose variables in $S$ equal $z_S$, together with their weights:
+$$
+\mathbb{F}[S](z_S)\, \mathbf{x} = \{\, x_{i\cdot} : x_{iS} = z_S \,\}.
+$$
+The row count shrinks, possibly to zero. In code it is `filter` on every column of `z` at once, which is a semi-join:
+
+```r
+Fil <- function(df, z) semi_join(df, z, by = names(z))
+```
+:::
+
+Equivalently, $\mathbb{F}[S](z_S)$ keeps every row and multiplies its weight by $\mathbf{1}[x_{iS} = z_S]$. Under the sums and means below the two versions give the same numbers, and the weight version is what makes the explicit sums in @sec-relativities fall out directly.
+
+::: {#def-sum}
+## Weighted sum
+
+For a function $g$ of a row, $\Sigma_w$ adds up $g$ over the rows of whatever dataset it is applied to, each row weighted by that dataset's $w$:
+$$
+\Sigma_w\, g(\mathbf{x}) = \sum_i w_i\, g(x_{i\cdot}).
+$$
+In code, `g` takes the tibble and returns one number per row:
+
+```r
+Sigw <- function(df, g, w) sum(g(df) * df[[w]])
+```
+:::
+
+Two special cases carry most of the meaning. $\Sigma_w 1$ is the total weight: the exposure in a dataset, or, after a filter, the exposure in a cell. And if $y$ is the response per unit of exposure, $\Sigma_w\, y$ is the total loss.
+
+::: {#def-mean}
+## Weighted mean
+
+$\mathbb{E}_w$ is the weighted sum divided by the total weight, both taken on the same dataset:
+$$
+\mathbb{E}_w\, g = \frac{\Sigma_w\, g}{\Sigma_w\, 1} = \frac{\sum_i w_i\, g(x_{i\cdot})}{\sum_i w_i}.
+$$
+
+```r
+one <- function(df) rep(1, nrow(df))
+Ew  <- function(df, g, w) Sigw(df, g, w) / Sigw(df, one, w)
+```
+:::
+
+The operators, defined once for the rest of the document:
+
+```{r}
+#| label: operators
+library(dplyr)
+
+Mset <- function(df, z) mutate(df, !!!z)                  # M[S](z_S)
+Fil  <- function(df, z) semi_join(df, z, by = names(z))   # F[S](z_S)   (not `F`: base R uses F for FALSE)
+Sigw <- function(df, g, w) sum(g(df) * df[[w]])           # Sigma_w
+one  <- function(df) rep(1, nrow(df))                     # the constant function 1
+Ew   <- function(df, g, w) Sigw(df, g, w) / Sigw(df, one, w)   # E_w = Sigma_w g / Sigma_w 1
+```
+
+And the dictionary between the two notations:
+
+```r
+# notation                         code                          (math applies the operator nearest x first)
+# M[S](z_S) x                      df |> Mset(z)
+# F[S](z_S) x                      df |> Fil(z)
+# Sigma_w g(x)                     df |> Sigw(g, "exposure")
+# Sigma_w 1(x)                     df |> Sigw(one, "exposure")      total exposure
+# E_w g(x)                         df |> Ew(g, "exposure")
+# F[T](z'_T) M[S](z_S) x           df |> Mset(z) |> Fil(z2)
+# E_w f( M[S](z_S) x )             df |> Mset(z) |> Ew(f, "exposure")
+```
+
+## Algebra {#sec-algebra}
+
+Each identity is given three ways: in notation, with a one-line reason, and as a pipe equality. Throughout, $z_S$ and $z'_T$ are arbitrary and $\varnothing$ is the empty dataset.
+
+::: {#prp-idem}
+## Idempotence
+
+$$
+\mathbb{M}[S](z_S)\, \mathbb{M}[S](z_S) = \mathbb{M}[S](z_S),
+\qquad
+\mathbb{F}[S](z_S)\, \mathbb{F}[S](z_S) = \mathbb{F}[S](z_S).
+$$
+:::
+
+::: {.proof}
+Overwriting with the same values twice is overwriting once. A row that passed the filter passes it again.
+:::
+
+```r
+df |> Mset(z) |> Mset(z)    # == df |> Mset(z)
+df |> Fil(z)  |> Fil(z)     # == df |> Fil(z)
+```
+
+::: {#prp-absorb}
+## Set and filter on the same values
+
+$$
+\mathbb{F}[S](z_S)\, \mathbb{M}[S](z_S) = \mathbb{M}[S](z_S),
+\qquad
+\mathbb{M}[S](z_S)\, \mathbb{F}[S](z_S) = \mathbb{F}[S](z_S).
+$$
+:::
+
+::: {.proof}
+After setting, every row has $x_{iS} = z_S$, so the filter keeps all of them. Rows that pass the filter already have $x_{iS} = z_S$, so setting changes nothing.
+:::
+
+```r
+df |> Mset(z) |> Fil(z)     # == df |> Mset(z)
+df |> Fil(z)  |> Mset(z)    # == df |> Fil(z)
+```
+
+The second identity says the filtered data is exactly the part of the set data that was there to begin with: the rows the filter keeps are the rows the set would not have changed.
+
+::: {#prp-filters}
+## Filters combine
+
+If $z_S$ and $z'_T$ agree on $S \cap T$, then
+$$
+\mathbb{F}[S](z_S)\, \mathbb{F}[T](z'_T) = \mathbb{F}[S \cup T](z_S \cup z'_T),
+$$
+where $z_S \cup z'_T$ is the combined set of values. If they disagree on some shared variable, the product is $\varnothing$. In particular, filters commute.
+:::
+
+::: {.proof}
+A row survives both filters exactly when it matches both sets of values, which is one filter on the union. If the two disagree on a shared variable, no row can match both.
+:::
+
+```r
+df |> Fil(z1) |> Fil(z2)    # == df |> Fil(bind_cols(z1, z2))   when z1, z2 share no columns
+```
+
+::: {#prp-sets}
+## Sets combine
+
+$$
+\mathbb{M}[S](z_S)\, \mathbb{M}[T](z'_T) = \mathbb{M}[S \cup T](u),
+\qquad
+u_\nu = \begin{cases} z_\nu & \nu \in S \\ z'_\nu & \nu \in T \setminus S, \end{cases}
+$$
+so the outer (last applied) set wins on shared variables. Sets commute exactly when $z_S$ and $z'_T$ agree on $S \cap T$.
+:::
+
+::: {.proof}
+Two overwrites in sequence are one overwrite that uses the later value wherever they overlap.
+:::
+
+```r
+df |> Mset(z2) |> Mset(z1)  # == df |> Mset(bind_cols(z1, z2))  when z1, z2 share no columns
+```
+
+::: {#prp-commute}
+## Set and filter on different variables commute
+
+If $S \cap T = \varnothing$, then
+$$
+\mathbb{M}[S](z_S)\, \mathbb{F}[T](z'_T) = \mathbb{F}[T](z'_T)\, \mathbb{M}[S](z_S).
+$$
+:::
+
+::: {.proof}
+The filter reads only the variables in $T$, which the set does not touch.
+:::
+
+```r
+df |> Mset(z1) |> Fil(z2)   # == df |> Fil(z2) |> Mset(z1)    when z1, z2 share no columns
+```
+
+When $S$ and $T$ do overlap and the values differ, order matters and only one order is interesting. Setting to $z'_S$ and then filtering on $z_S$ gives $\varnothing$, since no row equals $z_S$ any more. Filtering on $z_S$ and then setting to $z'_S$ gives the policies that were at level $z_S$, relabelled to $z'_S$: the policies at one level, as the model would see them at another. That is the ingredient of a finite-difference (local) effect, and it is the only place these notes need a set and a filter on the same variables with different values.
+
+The last identity is about the sums rather than the sets and filters, and it is where $\Sigma_w$ and $\mathbb{E}_w$ behave differently.
+
+::: {#prp-cells}
+## Sums add over cells, means average over cells
+
+Let $z_S$ range over the values of $x_{iS}$ that occur in $\mathbf{x}$. Then
+$$
+\Sigma_w\, g(\mathbf{x}) = \sum_{z_S} \Sigma_w\, g\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big),
+\qquad
+\mathbb{E}_w\, g(\mathbf{x}) = \sum_{z_S} \frac{\Sigma_w\, 1\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}{\Sigma_w\, 1(\mathbf{x})}\; \mathbb{E}_w\, g\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big).
+$$
+:::
+
+::: {.proof}
+The filters $\mathbb{F}[S](z_S)$ over the occurring values split the rows into cells with nothing shared and nothing left out, so a sum over all rows is the sum of the cell sums. Dividing by the total weight, and multiplying and dividing each cell sum by that cell's weight, gives the second identity: the overall mean is the mean of the cell means, weighted by cell exposure.
+:::
+
+In code the cells are a group-by, which in this notation is nothing more than $\mathbb{F}[S](z_S)$ followed by $\Sigma_w$ for every occurring $z_S$ at once, stacked into one table with a row per cell:
+
+```r
+cells <- df |>
+  mutate(val = g(pick(everything()))) |>
+  summarize(sum_wg = sum(exposure * val), sum_w = sum(exposure), .by = all_of(S))   # Sigma_w g and Sigma_w 1, per cell
+
+sum(cells$sum_wg)                                                 # == Sigw(df, g, "exposure")
+sum(cells$sum_w / sum(cells$sum_w) * cells$sum_wg / cells$sum_w)  # == Ew(df, g, "exposure")
+```
+
+## Partial and marginal relativities {#sec-relativities}
+
+Let $f$ be a fitted model, a function of a row (in code, a function of the tibble returning one prediction per row), and let $z^0_S$ be a base level for the variables in $S$. There are two natural averages of $f$ at a level $z_S$.
+
+::: {#def-partial}
+## Partial
+
+$$
+\mu^{\mathbb{M}}_S(z_S) = \mathbb{E}_w\, f\big(\mathbb{M}[S](z_S)\, \mathbf{x}\big)
+= \frac{\sum_i w_i\, f(z_S, x_{i\bar S})}{\sum_i w_i},
+$$
+where $f(z_S, x_{i\bar S})$ is $f$ evaluated on row $i$ after the set. Every policy is scored as if it had $x_S = z_S$, and the scores are averaged.
+
+```r
+mu_M <- function(df, z, f, w) df |> Mset(z) |> Ew(f, w)
+```
+:::
+
+::: {#def-marginal}
+## Marginal (conditional)
+
+$$
+\mu^{\mathbb{F}}_S(z_S) = \mathbb{E}_w\, f\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)
+= \frac{\Sigma_w\, f\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}{\Sigma_w\, 1\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}
+= \frac{\sum_i w_i\, \mathbf{1}[x_{iS} = z_S]\, f(x_{i\cdot})}{\sum_i w_i\, \mathbf{1}[x_{iS} = z_S]}.
+$$
+Only the policies that actually have $x_S = z_S$ are scored, and their scores are averaged: the modelled loss in the cell divided by the exposure in the cell.
+
+```r
+mu_F <- function(df, z, f, w) df |> Fil(z) |> Ew(f, w)
+```
+:::
+
+The corresponding relativities are the ratios to the base level,
+$$
+\rho^{\mathbb{M}}_S(z_S) = \frac{\mu^{\mathbb{M}}_S(z_S)}{\mu^{\mathbb{M}}_S(z^0_S)},
+\qquad
+\rho^{\mathbb{F}}_S(z_S) = \frac{\mu^{\mathbb{F}}_S(z_S)}{\mu^{\mathbb{F}}_S(z^0_S)},
+$$
+
+```{r}
+#| label: relativity-functions
+mu_M  <- function(df, z, f, w) df |> Mset(z) |> Ew(f, w)
+mu_F  <- function(df, z, f, w) df |> Fil(z)  |> Ew(f, w)
+rel_M <- function(df, z, z0, f, w) mu_M(df, z, f, w) / mu_M(df, z0, f, w)
+rel_F <- function(df, z, z0, f, w) mu_F(df, z, f, w) / mu_F(df, z0, f, w)
+```
+
+What each one cannot tell you follows from the operator it is built on. The partial scores combinations that never occur in the book, because the set moves every policy to $z_S$ whether or not $z_S$ makes sense alongside that policy's other variables. The marginal scores only real policies, but the cell $x_S = z_S$ can be small or empty.
+
+## The product decomposition {#sec-product}
+
+A log-link model with main effects only predicts a product of one factor per variable,
+$$
+f(x_{i\cdot}) = \prod_{\nu \in V} r_\nu(x_{i\nu}),
+$$
+with the intercept absorbed into any one of the factors. For $S \subseteq V$ write $r_S(z_S) = \prod_{\nu \in S} r_\nu(z_\nu)$ and $r_{\bar S}(x_{i\bar S}) = \prod_{\nu \in \bar S} r_\nu(x_{i\nu})$, so that $f(x_{i\cdot}) = r_S(x_{iS})\, r_{\bar S}(x_{i\bar S})$.
+
+::: {#prp-product}
+## Partial relativities of a product model
+
+If $f(x_{i\cdot}) = \prod_{\nu \in V} r_\nu(x_{i\nu})$, then
+$$
+\mu^{\mathbb{M}}_S(z_S) = r_S(z_S)\; \mathbb{E}_w\, r_{\bar S}(\mathbf{x})
+\qquad\text{and therefore}\qquad
+\rho^{\mathbb{M}}_S(z_S) = \frac{r_S(z_S)}{r_S(z^0_S)}
+$$
+for every weight vector $w$.
+:::
+
+::: {.proof}
+After $\mathbb{M}[S](z_S)$, the factor for the variables in $S$ is the same in every row, namely $r_S(z_S)$, so it comes out of the weighted sum. What remains, $\mathbb{E}_w\, r_{\bar S}(\mathbf{x})$, does not involve $z_S$, so it cancels in the ratio.
+:::
+
+So for a main-effects log-link model the partial relativity returns the model's own relativity exactly, whatever the exposure weights are.
+
+The marginal does not factor the same way. On the filtered rows $f$ is still $r_S(z_S)\, r_{\bar S}(x_{i\bar S})$ with $r_S(z_S)$ constant, so
+$$
+\mu^{\mathbb{F}}_S(z_S) = r_S(z_S)\; \mathbb{E}_w\, r_{\bar S}\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big),
+\qquad
+\rho^{\mathbb{F}}_S(z_S) = \frac{r_S(z_S)}{r_S(z^0_S)} \cdot
+\frac{\mathbb{E}_w\, r_{\bar S}\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}{\mathbb{E}_w\, r_{\bar S}\big(\mathbb{F}[S](z^0_S)\, \mathbf{x}\big)}.
+$$
+The second factor is the average of the other variables' factors *within the cell* $x_S = z_S$, relative to the same average within the base cell. It cancels only when the cells look alike on $\bar S$. Whenever the variables in $S$ and $\bar S$ move together in the book (older policies carry higher limits, say), the marginal relativity is the model relativity multiplied by this mix ratio.
+
+Interactions break the partial in the same way. If $f$ contains a factor $r_{\nu\mu}(x_{i\nu}, x_{i\mu})$ with $\nu \in S$ and $\mu \in \bar S$, then after the set it becomes $r_{\nu\mu}(z_\nu, x_{i\mu})$, which still varies from row to row, so it does not come out of the sum and $\rho^{\mathbb{M}}_S$ depends on $w$. This is where the interaction limitation enters.
+
+## Worked example {#sec-example}
+
+A five-policy book with two categorical rating variables, a numeric one, and exposure weights.
+
+```{r}
+#| label: toy
+toy <- tibble(
+  age      = c("young", "young", "old", "old", "old"),
+  zone     = c("urban", "rural", "urban", "rural", "rural"),
+  limit    = c(100, 100, 250, 250, 100),
+  exposure = c(1, 2, 1, 1, 0.5)
+)
+z1 <- tibble(age = "old")
+z2 <- tibble(zone = "rural")
+```
+
+The identities of @sec-algebra, checked by comparing the two sides of each pipe equality. Every entry should be `TRUE`.
+
+```{r}
+#| label: identities
+same <- function(a, b) isTRUE(all.equal(a, b))
+
+c(
+  idempotent_set   = same(toy |> Mset(z1) |> Mset(z1), toy |> Mset(z1)),
+  idempotent_filter = same(toy |> Fil(z1)  |> Fil(z1),  toy |> Fil(z1)),
+  set_then_filter  = same(toy |> Mset(z1) |> Fil(z1),  toy |> Mset(z1)),
+  filter_then_set  = same(toy |> Fil(z1)  |> Mset(z1), toy |> Fil(z1)),
+  filters_combine  = same(toy |> Fil(z1)  |> Fil(z2),  toy |> Fil(bind_cols(z1, z2))),
+  sets_combine     = same(toy |> Mset(z2) |> Mset(z1), toy |> Mset(bind_cols(z1, z2))),
+  disjoint_commute = same(toy |> Mset(z1) |> Fil(z2),  toy |> Fil(z2) |> Mset(z1))
+)
+```
+
+@prp-cells, with the cells computed two ways: once with the single-level operators in a loop over the levels of `age`, and once all at once with a group-by. Both entries should be `TRUE`.
+
+```{r}
+#| label: cells
+g <- function(df) df$limit / 100                       # any function of a row will do
+
+lv     <- distinct(toy, age)$age
+cell_s <- sapply(lv, \(a) Sigw(Fil(toy, tibble(age = a)), g,   "exposure"))   # Sigma_w g per cell
+cell_w <- sapply(lv, \(a) Sigw(Fil(toy, tibble(age = a)), one, "exposure"))   # Sigma_w 1 per cell
+
+cells <- toy |>
+  mutate(val = g(pick(everything()))) |>
+  summarize(sum_wg = sum(exposure * val), sum_w = sum(exposure), .by = age)
+
+c(
+  sums_add_over_cells = same(sum(cell_s), Sigw(toy, g, "exposure")),
+  mean_of_cell_means  = same(sum(cell_w / sum(cell_w) * cell_s / cell_w), Ew(toy, g, "exposure")),
+  group_by_is_filter_per_level = same(unname(cell_s), cells$sum_wg) && same(unname(cell_w), cells$sum_w)
+)
+```
+
+A main-effects product model, with the age relativity set to $1.5$ for `young` against a base of `old`. The partial recovers $1.5$ exactly (@prp-product). The marginal does not, because in this book the old policies carry the higher limits; the mix ratio accounts for the whole difference.
+
+```{r}
+#| label: relativities
+r_age  <- c(young = 1.5, old = 1.0)
+r_zone <- c(urban = 1.2, rural = 1.0)
+f      <- function(df) unname(r_age[df$age] * r_zone[df$zone] * df$limit / 100)   # product of per-variable factors
+r_rest <- function(df) unname(r_zone[df$zone] * df$limit / 100)                   # the factors for the variables not in S
+
+z_young <- tibble(age = "young")
+z_old   <- tibble(age = "old")
+
+partial  <- rel_M(toy, z_young, z_old, f, "exposure")
+marginal <- rel_F(toy, z_young, z_old, f, "exposure")
+mix      <- Ew(Fil(toy, z_young), r_rest, "exposure") / Ew(Fil(toy, z_old), r_rest, "exposure")
+
+c(partial = partial, marginal = marginal, mix = mix, partial_times_mix = partial * mix)
+#> partial 1.5    marginal 0.667    mix 0.444    partial_times_mix 0.667
+```
+
+## Two extensions {#sec-extensions}
+
+Both operators generalise in the direction their dplyr verb already goes, and both generalisations are the same one line of code.
+
+Filtering on a set of values rather than a single value, $\mathbb{F}[S](B)$ keeping the rows with $x_{iS} \in B$, is `Fil(df, z)` with a `z` of several rows; `semi_join` already matches against every row of `z`. This is what a bin of a continuous rating variable needs, since equality filtering only makes sense for categorical $S$.
+
+Setting to a function of the row rather than a constant, $\mathbb{M}[S](g)$ with $g$ a function of $x_{i\cdot}$, is what `mutate` does in general; the constant case $g \equiv z_S$ is `mutate(df, age = "old")` and the shift $g(x) = x_S + \delta$ is `mutate(df, age = age + delta)`. The shift is the one non-constant case needed for finite differences.
