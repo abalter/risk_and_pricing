@@ -1,0 +1,121 @@
+---
+title: "Key Contribution and Originality Summary"
+format: docx
+---
+
+# Why This Paper Matters
+
+Insurance practitioners frequently use the term *relativity* to describe the effect of a rating variable on premium. This paper demonstrates that several quantities commonly called relativities are mathematically distinct and coincide only under special conditions.
+
+The core theoretical insight is that while a model coefficient is an intrinsic property of a fitted model a marginal or partial-dependence-style relativity depends on both the fitted model and the reference portfolio.
+
+# Main Result
+
+Let
+
+$$
+F(x)
+=
+\sum_{t \in T} f_t(x_t)
+$$
+
+denote the predictor on the link scale, where each term $f_t$ depends on a subset of variables $x_t$.
+
+For a variable set $S$, define a marginal effect by fixing $x_S$ and averaging over the remaining portfolio distribution:
+
+$$
+M_S(x_S)
+=
+\mathbb{E}
+\left[
+F(X)
+\,\middle|\,
+X_S := x_S
+\right].
+$$
+
+The paper shows that $M_S(x_S)$ equals the coefficient-based effect of $S$ only when no model term overlaps $S$ partially.
+
+Equivalently, marginal relativities are invariant to portfolio composition only if every model term is either
+
+$$
+t \subseteq S
+$$
+
+or
+
+$$
+t \cap S = \varnothing .
+$$
+
+When interaction terms satisfy
+
+$$
+t \cap S \neq \varnothing
+\quad\text{and}\quad
+t \not\subseteq S,
+$$
+
+the resulting relativity depends on the distribution of the interacting variables.
+
+# What Is Original
+
+The novelty is not the observation that partial dependence averages over a population. That fact is already established in the machine-learning literature.
+
+Instead, the paper contributes:
+
+1. A unified framework connecting actuarial relativities, partial dependence functions, marginal effects, and model coefficients.
+
+2. A precise term-level condition identifying when a reported relativity is an intrinsic model quantity versus a portfolio-dependent average.
+
+3. A formal explanation of why interaction terms create portfolio-sensitive relativities.
+
+4. A practical methodology for extracting rating tables from modern GLMs and GAMs without conflating coefficients and marginal summaries.
+
+# Practical Implications for Pricing
+
+For insurance pricing models, the paper implies:
+
+- A one-way partial dependence plot is generally **not** "the relativity" for a variable.
+- Changes in portfolio mix can alter reported marginal relativities even when fitted coefficients remain unchanged.
+- Rating manuals should be constructed from coefficient and interaction terms rather than portfolio-averaged effects.
+- Reference portfolios should always be disclosed when reporting marginal relativities.
+
+# Key Takeaway
+
+The paper establishes a rigorous distinction between
+
+$$
+\text{model-defined relativities}
+\quad\text{and}\quad
+\text{portfolio-defined relativities}.
+$$
+
+In the presence of interactions, these quantities are generally different. As a result, interpretation, reporting, and implementation of insurance pricing models should explicitly distinguish coefficient-based rating factors from portfolio-averaged summaries.
+
+
+The paper consists of mathematical proofs and numerical simulations.
+
+The guide clarifies different types of relativities, how to calculate them, and how to use them.
+
+Contribution to practice:
+
+- Many different quantities are referred to as "the relativities" by actuaries.
+- Some are the ones that can equate to model coefficients and some are not.
+- Relativities only equate to coefficients when:
+   - interactions have a specific structure
+   - or you limit analysis to the historical portfolio, and not try to forecast.
+- Explicit guidance for rating-table extraction from GLMs/GAMs.
+
+Contributions to theory:
+
+- Unifying ideas from interpretable ML, functional ANOVA, anchored decompositions, and actuarial relativities into one coherent framework.
+- A necessary-and-sufficient condition for when a PDP-based relativity equals a model coefficient.
+- A formal characterization of how overlapping interaction structures create portfolio dependence.
+
+
+
+
+
+
+

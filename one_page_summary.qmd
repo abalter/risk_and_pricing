@@ -1,0 +1,32 @@
+---
+title: "On the Proper Use of Relativities for Insurance Rating Factors"
+author: "Ariel Balter"
+format:
+   docx:
+      reference-doc: risk_and_pricing_template.dotx
+---
+
+# Proposal
+Complete a technical guide and journal article on relativities and rating factors. The article introduces novel fine points of theory. The guide discusses what these points mean for calculating rating factors.
+
+# Why This Work Matters
+Insurance practitioners frequently use the term *relativity* to describe the effect of a rating variable on premium. Relativity calculations are often used to estimate or approximate model coefficients and create rating factors. This work demonstrates that several quantities commonly called relativities are mathematically distinct and coincide only under special conditions.
+
+While a model coefficient is an intrinsic property of a fitted model, a marginal or partial-dependence-style (PDP) relativity may depend on both the fitted model and the reference portfolio. Therefore, special requirements apply when using them as stand-ins for model coefficients or creating rating tables for future policies.
+
+The journal article will introduce and explore the new theoretical constraints through mathematical proofs and numerical simulations. The guide will clarify different types of relativities, how to calculate them, and how to properly use them.
+
+# Contribution to practice:
+- Actuaries refer to any different quantities as "the relativities".
+- Relativities only equate to coefficients when:
+   - interactions have a specific structure
+   - analysis is limited to the historical portfolio, not projections.
+- Extracting rating-tables from GLMs/GAMs must follow explicit guidelines and constraints.
+
+# Contributions to theory:
+- Unify ideas from interpretable ML, functional ANOVA, anchored decompositions, and actuarial relativities into one coherent framework.
+- Prove a necessary-and-sufficient condition for when PDP-based relativities equal model coefficient.
+- Formally characterize how overlapping interaction structures create portfolio dependence.
+
+# Time Requested
+I propose working on this project for **15hrs/week for three weeks**. Given that I already have a solid draft, I believe this will be sufficient time to complete.
