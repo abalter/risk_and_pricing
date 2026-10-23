@@ -5,3 +5,5 @@ _book/
 
 # Office lock files
 ~$*
+
+*:Zone.Identifier
