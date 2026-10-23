@@ -1,0 +1,297 @@
+---
+title: "Rating factors shouldn't depend on who's in the book"
+subtitle: "Relativities, coefficients, and the interaction decomposition"
+author: "Ariel Balter"
+date: 2026-10-23
+date-format: "MMMM D, YYYY"
+format:
+  revealjs:
+    theme: simple
+    width: 1280
+    height: 720
+    slide-number: true
+    transition: none
+    footer: "Relativities & rating tables — October 2026"
+    html-math-method: mathjax
+    code-overflow: wrap
+    smaller: true
+---
+
+## The problem {#problem .smaller}
+
+**"Relativity" names at least four different numbers.**
+
+| what people call "the relativity" | how it's computed |
+|---|---|
+| one-way | average loss cost at a level $\div$ at the base level |
+| GLM factor | $e^{\beta}$ relative to a base level |
+| partial dependence | hold the variable fixed, average the model over the book |
+| model one-way | average model prediction by level |
+
+**Only one is a property of the model alone.** The others are averages over the book — they move when the book moves, with the model unchanged.
+
+::: {.fragment}
+Why it matters here:
+
+- Our GAM has no table to read off. Something has to be extracted, and the default extraction (partial dependence) is a book average.
+- AvT: a mix shift reads as mispricing.
+- Factors aren't comparable across time, segments or filings unless the reference book travels with them.
+:::
+
+::: {.notes}
+Open with the sentence on the title slide — that's the whole talk. A rating factor is supposed to say what the model thinks about a breed, an age, a ZIP. If the number changes because the mix of other pets in the book changed, it isn't telling you about the breed; it's telling you about the book.
+
+Walk the four rows. The point of the table is not that these are wrong — each is a legitimate quantity — but that we use one word for all of them and only one of them (the GLM factor) is intrinsic to the model.
+
+Why now: we're pricing off a GAM. There is no coefficient table in the sense a GLM has one; mgcv's coefficients are centered on the training data by identifiability constraints, so even "read off the coefficients" is a book-dependent gauge until you re-gauge it. The natural thing to reach for is a partial-dependence curve, and that is what the ML-in-insurance literature does when it turns a GBM into a tariff.
+
+If asked "we already know one-ways are distorted by correlation": yes — that's rung one on the next slide, it's the textbook argument for GLMs. The partial-dependence curve was supposed to fix that, and it fixes half of it.
+
+If asked "we use GLM coefficients, not PDPs": yes, and that's the right answer. The paper proves why, and gives the recipe for getting the same thing out of a GAM or any other model — which is what we need.
+:::
+
+## Three ways to extract a factor {#ladder .smaller}
+
+Each rung fixes the failure of the one below it.
+
+| | correlation with other rating variables | mix of interacting partners | product of tables reproduces the model |
+|---|:---:|:---:|:---:|
+| **one-way** | leaks in | leaks in | no |
+| **partial dependence** (PDP) | removed | leaks in whenever an interaction term straddles the variable | no — the pair table double-counts the main effects |
+| **decomposition anchored at the base cell** | removed | removed | yes, exactly |
+
+::: {.fragment}
+The third row is what GLM treatment coding does automatically. The work is to do it *on purpose*, for any model, and to know *when* the second row is good enough.
+:::
+
+::: {.notes}
+Rung one: one-way. Averages over everything, so if older pets are disproportionately one breed, the breed factor absorbs age. Everyone in the room knows this; it's why we fit GLMs.
+
+Rung two: partial dependence. Set the breed for every row in the book, average the predictions, compare levels. Correlation is gone because every row gets every breed. But if the model has a breed-by-age interaction, the breed curve is averaged over the book's age mix, so the breed factor still depends on how many old pets we have. The precise statement: the partial relativity for a variable set S is intrinsic to the model if and only if no model term partially overlaps S. A term that straddles S leaves a book-dependent piece behind.
+
+Rung three: the decomposition. Build a table for every subset of variables that a model term touches, and make each table hold only the part of the effect that belongs to that subset — subtract what belongs to its sub-tables (inclusion–exclusion). If "subtract" means "compare to the base cell," the tables are exactly treatment-coded coefficients: mix-free, 1.00 at base, and their product reproduces the model to the penny. If "subtract" means "average over the book," the product still reproduces the model but the split between main effect and interaction depends on the mix.
+
+The "double-counts" cell: if you build PDP tables for breed, age and breed-by-age and multiply, the pair table already contains both main effects. GLM people never see this because treatment coding has already done the subtraction.
+
+If asked "isn't this just functional ANOVA?": yes, and the paper says so and cites it. The contribution is the term-level condition for when a table is intrinsic, the base-cell-versus-book-average choice framed as a rating-table decision, and one vocabulary that covers all four rows of the previous slide.
+
+One caveat worth saying out loud: "mix-free" means mix-free given the model. If the model is missing an interaction, the fitted main effect absorbed it in a mix-dependent way, and no extraction fixes that. Modeling and factor reporting have to be done together.
+:::
+
+## Worked example: nothing about the model changes {#example .smaller}
+
+Two breeds $\times$ two ages, log link, base cell = Breed A / young.
+Breed B $\times 1.5$, old $\times 1.2$, B-and-old interaction $\times 1.5$.
+So the four cells are A/young 1.00, A/old 1.20, B/young 1.50, B/old 2.70.
+
+| book (share old) | one-way breed factor | PDP breed factor | coefficient |
+|---|:---:|:---:|:---:|
+| 20 % | 1.67 | 1.63 | **1.50** |
+| 50 % | 1.91 | 1.84 | **1.50** |
+| 80 % | 2.12 | 2.07 | **1.50** |
+| 50 % overall, but B skews old (A 30 %, B 70 %) | 2.21 | 1.84 | **1.50** |
+
+::: {.fragment}
+The PDP column has a closed form — and it *is* the theorem for two variables:
+
+$$
+R^{\text{PDP}}_{B} \;=\; \exp\!\big(\beta_B + p_{\text{old}}\,\beta_{B\times\text{old}}\big) \;=\; 1.5 \times 1.5^{\,p_{\text{old}}}
+$$
+
+**The partial relativity is the coefficient, plus the interaction coefficient times the share of old pets in the book.**
+:::
+
+::: {.notes}
+Everything on this slide uses one fixed model. Only the book changes between rows.
+
+Read down the one-way column: it moves with the age mix (rows 1–3) and it moves with breed–age correlation even at a fixed overall mix (row 4). Read down the PDP column: row 4 equals row 2 — correlation is gone — but rows 1–3 still move, because the breed-by-age term straddles "breed." The coefficient column doesn't move.
+
+The formula is the slide's payoff. Beta-B is the breed coefficient, beta-B-times-old is the interaction, p-old is the share of old pets in whatever book you averaged over. In this toy, 1.5 to the power one plus p-old: from 1.50 if the book is all young to 2.25 if it's all old, for the same model. Say the bold sentence slowly.
+
+Connect to AvT: if the age mix of a segment drifts, its "breed relativity" drifts, and actual-versus-technical reads it as mispricing. Nothing was mispriced.
+
+One-way here is the ratio of mean loss cost by breed; PDP is on the link scale, exponentiated. If someone asks about the scale: that's the convention for a multiplicative plan, and the paper is explicit about it.
+
+The real breed-by-age surface from our GAM is the version that goes in the guide. This toy is just small enough to see.
+:::
+
+## Two deliverables {#deliverables}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### Practical guide (internal)
+
+- One vocabulary: which of the four numbers you mean, and when each is the right one
+- The algebra as three operators (`filter`, `mutate`, weighted mean) — every relativity is a two-line `dplyr` pipe
+- The recommendation, with the proof: rating factors = base-cell term contributions, for GLM or GAM
+- The breed $\times$ age demonstration from our model
+:::
+
+::: {.column width="50%"}
+### Journal article (external)
+
+- Same framework, with the theorem and proofs
+- The term-level condition for when a relativity is intrinsic vs. portfolio-defined
+- Demonstrations on public insurance datasets, comparable to the published GBM-to-tariff work
+- Peer review as quality control on a method we're about to rate on
+:::
+
+::::
+
+::: {.fragment}
+From the paper's one-page summary:
+
+- A one-way partial dependence plot is generally **not** "the relativity" for a variable.
+- Portfolio mix can change reported marginal relativities while the fitted coefficients are unchanged.
+- Rating manuals should be built from coefficient and interaction terms, not portfolio-averaged effects.
+- Reference portfolios should be disclosed whenever marginal relativities are reported.
+:::
+
+::: {.notes}
+The guide is the thing colleagues use next quarter. It answers three questions: what do you mean by relativity, how do you compute the one you mean, and which one goes in the rating table. The operator-to-dplyr mapping is the part people like most — the math is three operations and each one is a verb they already use.
+
+The article is the same material with the proofs and public-data demonstrations. Framing for the room: we're about to rate off a method; having it refereed is cheap insurance, and it's the kind of thing that's good for the company's name in the actuarial literature.
+
+The four bullets are lifted from the one-page summary, which is in the pre-read.
+:::
+
+## The ask {#ask}
+
+**Three weeks, about 15 hours a week — 45 hours.**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### Done
+
+- Unified vocabulary and algebra
+- Operator notation → the two-line code it produces
+- The decomposition proof
+- Paper sections drafted
+- One-page summary (pre-read)
+:::
+
+::: {.column width="50%"}
+### Remaining
+
+- More worked examples, including breed $\times$ age from our model
+- Demonstrations on open-source insurance data (French MTPL, Belgian MTPL, Australian auto)
+- Guide: assemble, review with the team
+- Article: polish, format, submit
+:::
+
+::::
+
+::: {.fragment}
+**Sequence:** guide first (weeks 1–2, immediately usable, review checkpoint) — article last (week 3).
+:::
+
+::: {.notes}
+Be concrete about the hours and about what exists already — most of the thinking is done; what's left is examples, assembly and polish.
+
+The public datasets are the ones the published GBM-to-tariff papers use (freMTPL2 via CASdatasets, the Belgian MTPL data, ausprivauto0405), so our results are directly comparable. There is no public pet-insurance claims dataset I know of; the pet demonstration stays internal, in the guide.
+
+The guide-first sequencing is the risk control: by the end of week two there is a usable internal document regardless of what happens with the article.
+
+Close by restating the title: the value is that our rating factors stop depending on who happens to be in the book.
+:::
+
+# Backup {.unnumbered}
+
+## The result in one line {#theorem .smaller}
+
+Link-scale predictor as a sum of terms, each on a subset $t$ of the variables:
+
+$$
+F(x) \;=\; \sum_{t \in T} f_t(x_t)
+$$
+
+Partial relativity for a variable set $S$ — set $x_S$ to $z_S$ on every row, take the weighted mean over the book $w$:
+
+$$
+M_S(z_S) \;=\; \mathbb{E}_w\big[\,F(z_S, X_{-S})\,\big]
+$$
+
+**$M_S$ is intrinsic to the model iff every term satisfies $t \subseteq S$ or $t \cap S = \varnothing$.**
+A straddling term contributes $\mathbb{E}_w\, f_t(z_{t \cap S},\, X_{t \setminus S})$ — a function of the book.
+
+::: {.fragment}
+Inclusion–exclusion gives the $S$-specific part — the same formula for any "remove" rule:
+
+$$
+g_S(z_S) \;=\; \sum_{T \subseteq S} (-1)^{|S \setminus T|}\, M_T(z_T)
+$$
+
+- Remove = *average over the book*: product reproduces the model; the main-effect / interaction split depends on the mix.
+- Remove = *set to the base cell*, $M_T(z_T) = F(z_T, x^0_{-T})$: product reproduces the model, mix-free, and the $g_S$ are exactly the treatment-coded coefficients.
+- $g_S = 0$ unless $S$ lies inside some model term — only subsets of actual terms need tables.
+:::
+
+::: {.notes}
+Only if someone wants the mathematics. The two-variable case of the inclusion–exclusion formula is the familiar one: g for the pair equals the pair table minus the two single tables plus the constant.
+
+The last bullet is the practical safeguard: the number of tables does not explode; you need tables for the subsets of terms that are actually in the model.
+:::
+
+## The code behind the example {#code .smaller}
+
+```r
+library(dplyr)
+
+cells <- tibble(breed = c("A", "A", "B", "B"),
+                age   = c("young", "old", "young", "old"),
+                mu    = c(1.00, 1.20, 1.50, 2.70))
+
+book <- function(p_old_A, p_old_B)
+  tibble(breed = c("A", "A", "B", "B"),
+         age   = c("young", "old", "young", "old"),
+         w     = c(1 - p_old_A, p_old_A, 1 - p_old_B, p_old_B) / 2)
+
+# one-way: weighted mean loss cost by breed, B over A
+one_way <- function(bk) bk |>
+  inner_join(cells, by = c("breed", "age")) |>
+  group_by(breed) |> summarise(m = sum(w * mu) / sum(w)) |>
+  with(m[breed == "B"] / m[breed == "A"])
+
+# partial: set breed on every row (mutate), weighted mean of log mu
+partial <- function(bk, z) bk |>
+  mutate(breed = z) |>
+  inner_join(cells, by = c("breed", "age")) |>
+  summarise(m = sum(w * log(mu)) / sum(w)) |> pull(m)
+
+pdp_rel <- function(bk) exp(partial(bk, "B") - partial(bk, "A"))
+
+# coefficient: everything at the base cell, then breed to B
+coef_rel <- with(cells, mu[breed == "B" & age == "young"] /
+                        mu[breed == "A" & age == "young"])
+
+books <- list(book(.2, .2), book(.5, .5), book(.8, .8), book(.3, .7))
+sapply(books, one_way)   # 1.673 1.909 2.121 2.208
+sapply(books, pdp_rel)   # 1.627 1.837 2.075 1.837
+coef_rel                 # 1.5
+```
+
+::: {.notes}
+This is the "every relativity is a two-line pipe" claim made good: one-way is a group-by, partial is a mutate followed by a weighted mean, the coefficient is a mutate of everything to the base row.
+:::
+
+## Sources and prior art {#sources .smaller}
+
+**Current practice**
+
+- Werner & Modlin, *Basic Ratemaking* (CAS) — one-way vs. multivariate classification
+- Anderson et al. 2007, *A Practitioner's Guide to GLMs* (CAS); Goldburd, Khare, Tevet & Guller, *GLMs for Insurance Rating* (CAS Monograph 5) — coefficients to rating factors, interactions, offsets
+- Henckaerts, Côté, Antonio & Verbelen 2021 (NAAJ); Henckaerts, Antonio & Côté 2022 (maidrr) — tariffs from GBMs via partial dependence
+- Lorentzen & Mayer 2020; Wüthrich & Merz 2023 — PDP/ALE as the interpretation tools in actuarial ML
+
+**The mathematics**
+
+- Friedman 2001 — partial dependence defined as an average over the book
+- Hooker 2007; Apley & Zhu 2020 — PDP equals the functional-ANOVA main effect only under independence
+- Kuo, Sloan, Wasilkowski & Woźniakowski 2010; Rabitz & Alış 1999 — anchored vs. ANOVA decompositions (base cell vs. book average)
+- Lengerich et al. 2020; Herren & Hahn 2022; Hiabu, Meyer & Wright 2023; Bordt & von Luxburg 2023 — purified interactions, Möbius inversion, Shapley connections
+
+::: {.notes}
+Verify years and venues against your copies before this goes anywhere. The "current practice" block is what backs slide 1; the "mathematics" block is what a referee will expect the article to position against.
+:::

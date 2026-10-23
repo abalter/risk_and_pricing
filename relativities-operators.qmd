@@ -19,7 +19,7 @@ Let $\mathbf{x}$ be a table of $n$ observations (policies) on variables indexed 
 
 In code, $\mathbf{x}$ and $w$ together are a tibble `df` with one column per variable and a weight column, and $x_{i\cdot}$ is one row of it. The useful observation about $z_S$ is that it is the same kind of object as $x_{iS}$: one named value per variable in $S$. So $z_S$ is also a one-row tibble, `z`, and that one object carries both halves of the notation: `names(z)` is $S$ and its values are $z_S$.
 
-```r
+``` r
 library(dplyr)
 df <- tibble(age = ..., zone = ..., limit = ..., exposure = ...)   # x together with w
 z  <- tibble(age = "old", zone = "rural")                           # S = {age, zone}, z_S = ("old", "rural")
@@ -34,17 +34,15 @@ An *operator* is a function that takes a dataset and returns a dataset, and appl
 ::: {#def-set}
 ## Set
 
-$\mathbb{M}[S](z_S)$ overwrites the variables in $S$ with the values $z_S$ in every row, and leaves the weights alone:
-$$
+$\mathbb{M}[S](z_S)$ overwrites the variables in $S$ with the values $z_S$ in every row, and leaves the weights alone: $$
 \big(\mathbb{M}[S](z_S)\, x_{i\cdot}\big)_\nu =
 \begin{cases}
 z_\nu     & \nu \in S \\
 x_{i\nu}  & \nu \notin S.
 \end{cases}
-$$
-The row count is unchanged. In code it is `mutate`:
+$$ The row count is unchanged. In code it is `mutate`:
 
-```r
+``` r
 Mset <- function(df, z) mutate(df, !!!z)
 ```
 :::
@@ -54,13 +52,11 @@ The `!!!z` splices the columns of `z` into `mutate` as named arguments, so with 
 ::: {#def-filter}
 ## Filter
 
-$\mathbb{F}[S](z_S)$ keeps only the rows whose variables in $S$ equal $z_S$, together with their weights:
-$$
+$\mathbb{F}[S](z_S)$ keeps only the rows whose variables in $S$ equal $z_S$, together with their weights: $$
 \mathbb{F}[S](z_S)\, \mathbf{x} = \{\, x_{i\cdot} : x_{iS} = z_S \,\}.
-$$
-The row count shrinks, possibly to zero. In code it is `filter` on every column of `z` at once, which is a semi-join:
+$$ The row count shrinks, possibly to zero. In code it is `filter` on every column of `z` at once, which is a semi-join:
 
-```r
+``` r
 Fil <- function(df, z) semi_join(df, z, by = names(z))
 ```
 :::
@@ -70,13 +66,11 @@ Equivalently, $\mathbb{F}[S](z_S)$ keeps every row and multiplies its weight by 
 ::: {#def-sum}
 ## Weighted sum
 
-For a function $g$ of a row, $\Sigma_w$ adds up $g$ over the rows of whatever dataset it is applied to, each row weighted by that dataset's $w$:
-$$
+For a function $g$ of a row, $\Sigma_w$ adds up $g$ over the rows of whatever dataset it is applied to, each row weighted by that dataset's $w$: $$
 \Sigma_w\, g(\mathbf{x}) = \sum_i w_i\, g(x_{i\cdot}).
-$$
-In code, `g` takes the tibble and returns one number per row:
+$$ In code, `g` takes the tibble and returns one number per row:
 
-```r
+``` r
 Sigw <- function(df, g, w) sum(g(df) * df[[w]])
 ```
 :::
@@ -86,12 +80,11 @@ Two special cases carry most of the meaning. $\Sigma_w 1$ is the total weight: t
 ::: {#def-mean}
 ## Weighted mean
 
-$\mathbb{E}_w$ is the weighted sum divided by the total weight, both taken on the same dataset:
-$$
+$\mathbb{E}_w$ is the weighted sum divided by the total weight, both taken on the same dataset: $$
 \mathbb{E}_w\, g = \frac{\Sigma_w\, g}{\Sigma_w\, 1} = \frac{\sum_i w_i\, g(x_{i\cdot})}{\sum_i w_i}.
 $$
 
-```r
+``` r
 one <- function(df) rep(1, nrow(df))
 Ew  <- function(df, g, w) Sigw(df, g, w) / Sigw(df, one, w)
 ```
@@ -112,7 +105,7 @@ Ew   <- function(df, g, w) Sigw(df, g, w) / Sigw(df, one, w)   # E_w = Sigma_w g
 
 And the dictionary between the two notations:
 
-```r
+``` r
 # notation                         code                          (math applies the operator nearest x first)
 # M[S](z_S) x                      df |> Mset(z)
 # F[S](z_S) x                      df |> Fil(z)
@@ -137,11 +130,11 @@ $$
 $$
 :::
 
-::: {.proof}
+::: proof
 Overwriting with the same values twice is overwriting once. A row that passed the filter passes it again.
 :::
 
-```r
+``` r
 df |> Mset(z) |> Mset(z)    # == df |> Mset(z)
 df |> Fil(z)  |> Fil(z)     # == df |> Fil(z)
 ```
@@ -156,11 +149,11 @@ $$
 $$
 :::
 
-::: {.proof}
+::: proof
 After setting, every row has $x_{iS} = z_S$, so the filter keeps all of them. Rows that pass the filter already have $x_{iS} = z_S$, so setting changes nothing.
 :::
 
-```r
+``` r
 df |> Mset(z) |> Fil(z)     # == df |> Mset(z)
 df |> Fil(z)  |> Mset(z)    # == df |> Fil(z)
 ```
@@ -170,18 +163,16 @@ The second identity says the filtered data is exactly the part of the set data t
 ::: {#prp-filters}
 ## Filters combine
 
-If $z_S$ and $z'_T$ agree on $S \cap T$, then
-$$
+If $z_S$ and $z'_T$ agree on $S \cap T$, then $$
 \mathbb{F}[S](z_S)\, \mathbb{F}[T](z'_T) = \mathbb{F}[S \cup T](z_S \cup z'_T),
-$$
-where $z_S \cup z'_T$ is the combined set of values. If they disagree on some shared variable, the product is $\varnothing$. In particular, filters commute.
+$$ where $z_S \cup z'_T$ is the combined set of values. If they disagree on some shared variable, the product is $\varnothing$. In particular, filters commute.
 :::
 
-::: {.proof}
+::: proof
 A row survives both filters exactly when it matches both sets of values, which is one filter on the union. If the two disagree on a shared variable, no row can match both.
 :::
 
-```r
+``` r
 df |> Fil(z1) |> Fil(z2)    # == df |> Fil(bind_cols(z1, z2))   when z1, z2 share no columns
 ```
 
@@ -192,32 +183,30 @@ $$
 \mathbb{M}[S](z_S)\, \mathbb{M}[T](z'_T) = \mathbb{M}[S \cup T](u),
 \qquad
 u_\nu = \begin{cases} z_\nu & \nu \in S \\ z'_\nu & \nu \in T \setminus S, \end{cases}
-$$
-so the outer (last applied) set wins on shared variables. Sets commute exactly when $z_S$ and $z'_T$ agree on $S \cap T$.
+$$ so the outer (last applied) set wins on shared variables. Sets commute exactly when $z_S$ and $z'_T$ agree on $S \cap T$.
 :::
 
-::: {.proof}
+::: proof
 Two overwrites in sequence are one overwrite that uses the later value wherever they overlap.
 :::
 
-```r
+``` r
 df |> Mset(z2) |> Mset(z1)  # == df |> Mset(bind_cols(z1, z2))  when z1, z2 share no columns
 ```
 
 ::: {#prp-commute}
 ## Set and filter on different variables commute
 
-If $S \cap T = \varnothing$, then
-$$
+If $S \cap T = \varnothing$, then $$
 \mathbb{M}[S](z_S)\, \mathbb{F}[T](z'_T) = \mathbb{F}[T](z'_T)\, \mathbb{M}[S](z_S).
 $$
 :::
 
-::: {.proof}
+::: proof
 The filter reads only the variables in $T$, which the set does not touch.
 :::
 
-```r
+``` r
 df |> Mset(z1) |> Fil(z2)   # == df |> Fil(z2) |> Mset(z1)    when z1, z2 share no columns
 ```
 
@@ -228,27 +217,35 @@ The last identity is about the sums rather than the sets and filters, and it is 
 ::: {#prp-cells}
 ## Sums add over cells, means average over cells
 
-Let $z_S$ range over the values of $x_{iS}$ that occur in $\mathbf{x}$. Then
-$$
+Let $z_S$ range over the values of $x_{iS}$ that occur in $\mathbf{x}$. Then $$
 \Sigma_w\, g(\mathbf{x}) = \sum_{z_S} \Sigma_w\, g\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big),
 \qquad
 \mathbb{E}_w\, g(\mathbf{x}) = \sum_{z_S} \frac{\Sigma_w\, 1\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}{\Sigma_w\, 1(\mathbf{x})}\; \mathbb{E}_w\, g\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big).
 $$
 :::
 
-::: {.proof}
+::: proof
 The filters $\mathbb{F}[S](z_S)$ over the occurring values split the rows into cells with nothing shared and nothing left out, so a sum over all rows is the sum of the cell sums. Dividing by the total weight, and multiplying and dividing each cell sum by that cell's weight, gives the second identity: the overall mean is the mean of the cell means, weighted by cell exposure.
 :::
 
-In code the cells are a group-by, which in this notation is nothing more than $\mathbb{F}[S](z_S)$ followed by $\Sigma_w$ for every occurring $z_S$ at once, stacked into one table with a row per cell:
+In code the cells are a group-by, which in this notation is nothing more than $\mathbb{F}[S](z_S)$ followed by $\Sigma_w$ for every occurring $z_S$ at once, stacked into one table with a row per cell. As with `Sigw` and `Ew`, the row function `g` and the weight column `w` are arguments; so is `S`, a character vector of column names (`names(z)` for the `z` of any one cell):
 
-```r
-cells <- df |>
-  mutate(val = g(pick(everything()))) |>
-  summarize(sum_wg = sum(exposure * val), sum_w = sum(exposure), .by = all_of(S))   # Sigma_w g and Sigma_w 1, per cell
+```{r}
+#| label: cells-fn
+cells <- function(df, S, g, w) {
+  df |>
+    mutate(val = g(pick(everything()))) |>
+    summarize(sum_wg = sum(.data[[w]] * val),    # Sigma_w g, per cell
+              sum_w  = sum(.data[[w]]),          # Sigma_w 1, per cell
+              .by    = all_of(S))
+}
+```
 
-sum(cells$sum_wg)                                                 # == Sigw(df, g, "exposure")
-sum(cells$sum_w / sum(cells$sum_w) * cells$sum_wg / cells$sum_w)  # == Ew(df, g, "exposure")
+With `cs <- cells(df, S, g, w)`, the two identities read
+
+``` r
+sum(cs$sum_wg)                                        # == Sigw(df, g, w)
+sum(cs$sum_w / sum(cs$sum_w) * cs$sum_wg / cs$sum_w)  # == Ew(df, g, w)
 ```
 
 ## Partial and marginal relativities {#sec-relativities}
@@ -261,10 +258,9 @@ Let $f$ be a fitted model, a function of a row (in code, a function of the tibbl
 $$
 \mu^{\mathbb{M}}_S(z_S) = \mathbb{E}_w\, f\big(\mathbb{M}[S](z_S)\, \mathbf{x}\big)
 = \frac{\sum_i w_i\, f(z_S, x_{i\bar S})}{\sum_i w_i},
-$$
-where $f(z_S, x_{i\bar S})$ is $f$ evaluated on row $i$ after the set. Every policy is scored as if it had $x_S = z_S$, and the scores are averaged.
+$$ where $f(z_S, x_{i\bar S})$ is $f$ evaluated on row $i$ after the set. Every policy is scored as if it had $x_S = z_S$, and the scores are averaged.
 
-```r
+``` r
 mu_M <- function(df, z, f, w) df |> Mset(z) |> Ew(f, w)
 ```
 :::
@@ -276,16 +272,14 @@ $$
 \mu^{\mathbb{F}}_S(z_S) = \mathbb{E}_w\, f\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)
 = \frac{\Sigma_w\, f\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}{\Sigma_w\, 1\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}
 = \frac{\sum_i w_i\, \mathbf{1}[x_{iS} = z_S]\, f(x_{i\cdot})}{\sum_i w_i\, \mathbf{1}[x_{iS} = z_S]}.
-$$
-Only the policies that actually have $x_S = z_S$ are scored, and their scores are averaged: the modelled loss in the cell divided by the exposure in the cell.
+$$ Only the policies that actually have $x_S = z_S$ are scored, and their scores are averaged: the modelled loss in the cell divided by the exposure in the cell.
 
-```r
+``` r
 mu_F <- function(df, z, f, w) df |> Fil(z) |> Ew(f, w)
 ```
 :::
 
-The corresponding relativities are the ratios to the base level,
-$$
+The corresponding relativities are the ratios to the base level, $$
 \rho^{\mathbb{M}}_S(z_S) = \frac{\mu^{\mathbb{M}}_S(z_S)}{\mu^{\mathbb{M}}_S(z^0_S)},
 \qquad
 \rho^{\mathbb{F}}_S(z_S) = \frac{\mu^{\mathbb{F}}_S(z_S)}{\mu^{\mathbb{F}}_S(z^0_S)},
@@ -303,38 +297,32 @@ What each one cannot tell you follows from the operator it is built on. The part
 
 ## The product decomposition {#sec-product}
 
-A log-link model with main effects only predicts a product of one factor per variable,
-$$
+A log-link model with main effects only predicts a product of one factor per variable, $$
 f(x_{i\cdot}) = \prod_{\nu \in V} r_\nu(x_{i\nu}),
-$$
-with the intercept absorbed into any one of the factors. For $S \subseteq V$ write $r_S(z_S) = \prod_{\nu \in S} r_\nu(z_\nu)$ and $r_{\bar S}(x_{i\bar S}) = \prod_{\nu \in \bar S} r_\nu(x_{i\nu})$, so that $f(x_{i\cdot}) = r_S(x_{iS})\, r_{\bar S}(x_{i\bar S})$.
+$$ with the intercept absorbed into any one of the factors. For $S \subseteq V$ write $r_S(z_S) = \prod_{\nu \in S} r_\nu(z_\nu)$ and $r_{\bar S}(x_{i\bar S}) = \prod_{\nu \in \bar S} r_\nu(x_{i\nu})$, so that $f(x_{i\cdot}) = r_S(x_{iS})\, r_{\bar S}(x_{i\bar S})$.
 
 ::: {#prp-product}
 ## Partial relativities of a product model
 
-If $f(x_{i\cdot}) = \prod_{\nu \in V} r_\nu(x_{i\nu})$, then
-$$
+If $f(x_{i\cdot}) = \prod_{\nu \in V} r_\nu(x_{i\nu})$, then $$
 \mu^{\mathbb{M}}_S(z_S) = r_S(z_S)\; \mathbb{E}_w\, r_{\bar S}(\mathbf{x})
 \qquad\text{and therefore}\qquad
 \rho^{\mathbb{M}}_S(z_S) = \frac{r_S(z_S)}{r_S(z^0_S)}
-$$
-for every weight vector $w$.
+$$ for every weight vector $w$.
 :::
 
-::: {.proof}
+::: proof
 After $\mathbb{M}[S](z_S)$, the factor for the variables in $S$ is the same in every row, namely $r_S(z_S)$, so it comes out of the weighted sum. What remains, $\mathbb{E}_w\, r_{\bar S}(\mathbf{x})$, does not involve $z_S$, so it cancels in the ratio.
 :::
 
 So for a main-effects log-link model the partial relativity returns the model's own relativity exactly, whatever the exposure weights are.
 
-The marginal does not factor the same way. On the filtered rows $f$ is still $r_S(z_S)\, r_{\bar S}(x_{i\bar S})$ with $r_S(z_S)$ constant, so
-$$
+The marginal does not factor the same way. On the filtered rows $f$ is still $r_S(z_S)\, r_{\bar S}(x_{i\bar S})$ with $r_S(z_S)$ constant, so $$
 \mu^{\mathbb{F}}_S(z_S) = r_S(z_S)\; \mathbb{E}_w\, r_{\bar S}\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big),
 \qquad
 \rho^{\mathbb{F}}_S(z_S) = \frac{r_S(z_S)}{r_S(z^0_S)} \cdot
 \frac{\mathbb{E}_w\, r_{\bar S}\big(\mathbb{F}[S](z_S)\, \mathbf{x}\big)}{\mathbb{E}_w\, r_{\bar S}\big(\mathbb{F}[S](z^0_S)\, \mathbf{x}\big)}.
-$$
-The second factor is the average of the other variables' factors *within the cell* $x_S = z_S$, relative to the same average within the base cell. It cancels only when the cells look alike on $\bar S$. Whenever the variables in $S$ and $\bar S$ move together in the book (older policies carry higher limits, say), the marginal relativity is the model relativity multiplied by this mix ratio.
+$$ The second factor is the average of the other variables' factors *within the cell* $x_S = z_S$, relative to the same average within the base cell. It cancels only when the cells look alike on $\bar S$. Whenever the variables in $S$ and $\bar S$ move together in the book (older policies carry higher limits, say), the marginal relativity is the model relativity multiplied by this mix ratio.
 
 Interactions break the partial in the same way. If $f$ contains a factor $r_{\nu\mu}(x_{i\nu}, x_{i\mu})$ with $\nu \in S$ and $\mu \in \bar S$, then after the set it becomes $r_{\nu\mu}(z_\nu, x_{i\mu})$, which still varies from row to row, so it does not come out of the sum and $\rho^{\mathbb{M}}_S$ depends on $w$. This is where the interaction limitation enters.
 
@@ -381,14 +369,12 @@ lv     <- distinct(toy, age)$age
 cell_s <- sapply(lv, \(a) Sigw(Fil(toy, tibble(age = a)), g,   "exposure"))   # Sigma_w g per cell
 cell_w <- sapply(lv, \(a) Sigw(Fil(toy, tibble(age = a)), one, "exposure"))   # Sigma_w 1 per cell
 
-cells <- toy |>
-  mutate(val = g(pick(everything()))) |>
-  summarize(sum_wg = sum(exposure * val), sum_w = sum(exposure), .by = age)
+cs <- cells(toy, "age", g, "exposure")
 
 c(
   sums_add_over_cells = same(sum(cell_s), Sigw(toy, g, "exposure")),
   mean_of_cell_means  = same(sum(cell_w / sum(cell_w) * cell_s / cell_w), Ew(toy, g, "exposure")),
-  group_by_is_filter_per_level = same(unname(cell_s), cells$sum_wg) && same(unname(cell_w), cells$sum_w)
+  group_by_is_filter_per_level = same(unname(cell_s), cs$sum_wg) && same(unname(cell_w), cs$sum_w)
 )
 ```
 

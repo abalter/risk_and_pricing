@@ -86,4 +86,4 @@ We could filter $\mathbf{L}$ to only certain values.\
 \
 We could sum or average by different columns and groupings.
 
-We could alter values to create counterfactual data.
+We could alter or values to create counterfactual data.

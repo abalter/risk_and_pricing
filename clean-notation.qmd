@@ -1,0 +1,31 @@
+That is a perfect conceptual framing. A standard relativity filters the universe down to the subset that already possesses the trait, while the partial relativity forces the entire universe to adopt the trait.
+
+You are also spot-on that calculating the "filtered" one-way on the model's predictions rather than the raw data is extremely common—actuaries use this to compare the "Modeled One-Way" to the "Empirical One-Way" to ensure the model aligns with reality.
+
+And by defining $S$ as a set of variables, this notation elegantly scales to two-way (or $N$-way) relativities without changing the underlying math.
+
+Here is how all four major relativity calculations look using your "Set" vs. "Filter" notation, where $v$ is the target value and $v^b$ is the baseline value:
+
+### 1. Empirical Regular Relativity (Filter on Actuals)
+
+This filters the historical data $y_j$ down to the natural subset. This is what you calculate in a standard pivot table of your raw data.
+
+$$\frac{E_j[y_j \vert{} x_{S,j} = v, x_{\setminus S,j}]}{E_j[y_j \vert{} x_{S,j} = v^b, x_{\setminus S,j}]}$$
+
+### 2. Modeled Regular Relativity (Filter on Predictions)
+
+This filters the model's predictions down to the natural subset. It asks, "What did the model predict for the people who actually have this trait?"
+
+$$\frac{E_j[\mu(x_{S,j} \vert{} x_{S,j} = v, x_{\setminus S, j})]}{E_j[\mu(x_{S,j} \vert{} x_{S,j} = v^b, x_{\setminus S, j})]}$$
+
+### 3. Partial Dependence Relativity (Set & Ratio of Averages)
+
+This overrides the natural data, forcing every observation in the portfolio to adopt the target trait, and then forces them all to adopt the baseline trait. It asks, "How would the whole portfolio behave if everyone had this trait?"
+
+$$\frac{E_j[\mu(x_{S,j}: x_{S,j} = v, x_{\setminus S, j})]}{E_j[\mu(x_{S,j}: x_{S,j} = v^b, x_{\setminus S, j})]}$$
+
+### 4. GLM-Like Conditional Relativity (Set & Average of Ratios)
+
+This also overrides the natural data, but changes the order of operations to isolate the pure, independent effect for every individual row before averaging them.
+
+$$E_j \left[ \frac{\mu(x_{S,j}: x_{S,j} = v, x_{\setminus S, j})}{\mu(x_{S,j}: x_{S,j} = v^b, x_{\setminus S, j})} \right]$$
