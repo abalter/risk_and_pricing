@@ -1,0 +1,708 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Rating factors shouldn't depend on who's in the book},
+  pdfauthor={Ariel Balter},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Rating factors shouldn't depend on who's in the book}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Relativities, coefficients, and the interaction decomposition}
+\author{Ariel Balter}
+\date{October 23, 2026}
+\begin{document}
+\maketitle
+
+
+\subsection{The problem}\label{problem}
+
+\textbf{``Relativity'' names at least four different numbers.}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+what people call ``the relativity''
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+how it's computed
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+one-way & average loss cost at a level \(\div\) at the base level \\
+GLM factor & \(e^{\beta}\) relative to a base level \\
+partial dependence & hold the variable fixed, average the model over the
+book \\
+model one-way & average model prediction by level \\
+\end{longtable}
+}
+
+\textbf{Only one is a property of the model alone.} The others are
+averages over the book --- they move when the book moves, with the model
+unchanged.
+
+Why it matters here:
+
+\begin{itemize}
+\tightlist
+\item
+  Our GAM has no table to read off. Something has to be extracted, and
+  the default extraction (partial dependence) is a book average.
+\item
+  AvT: a mix shift reads as mispricing.
+\item
+  Factors aren't comparable across time, segments or filings unless the
+  reference book travels with them.
+\end{itemize}
+
+Open with the sentence on the title slide --- that's the whole talk. A
+rating factor is supposed to say what the model thinks about a breed, an
+age, a ZIP. If the number changes because the mix of other pets in the
+book changed, it isn't telling you about the breed; it's telling you
+about the book.
+
+Walk the four rows. The point of the table is not that these are wrong
+--- each is a legitimate quantity --- but that we use one word for all
+of them and only one of them (the GLM factor) is intrinsic to the model.
+
+Why now: we're pricing off a GAM. There is no coefficient table in the
+sense a GLM has one; mgcv's coefficients are centered on the training
+data by identifiability constraints, so even ``read off the
+coefficients'' is a book-dependent gauge until you re-gauge it. The
+natural thing to reach for is a partial-dependence curve, and that is
+what the ML-in-insurance literature does when it turns a GBM into a
+tariff.
+
+If asked ``we already know one-ways are distorted by correlation'': yes
+--- that's rung one on the next slide, it's the textbook argument for
+GLMs. The partial-dependence curve was supposed to fix that, and it
+fixes half of it.
+
+If asked ``we use GLM coefficients, not PDPs'': yes, and that's the
+right answer. The paper proves why, and gives the recipe for getting the
+same thing out of a GAM or any other model --- which is what we need.
+
+\subsection{Three ways to extract a factor}\label{ladder}
+
+Each rung fixes the failure of the one below it.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1667}}
+  >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2778}}
+  >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2778}}
+  >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2778}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+correlation with other rating variables
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+mix of interacting partners
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+product of tables reproduces the model
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{one-way} & leaks in & leaks in & no \\
+\textbf{partial dependence} (PDP) & removed & leaks in whenever an
+interaction term straddles the variable & no --- the pair table
+double-counts the main effects \\
+\textbf{decomposition anchored at the base cell} & removed & removed &
+yes, exactly \\
+\end{longtable}
+}
+
+The third row is what GLM treatment coding does automatically. The work
+is to do it \emph{on purpose}, for any model, and to know \emph{when}
+the second row is good enough.
+
+Rung one: one-way. Averages over everything, so if older pets are
+disproportionately one breed, the breed factor absorbs age. Everyone in
+the room knows this; it's why we fit GLMs.
+
+Rung two: partial dependence. Set the breed for every row in the book,
+average the predictions, compare levels. Correlation is gone because
+every row gets every breed. But if the model has a breed-by-age
+interaction, the breed curve is averaged over the book's age mix, so the
+breed factor still depends on how many old pets we have. The precise
+statement: the partial relativity for a variable set S is intrinsic to
+the model if and only if no model term partially overlaps S. A term that
+straddles S leaves a book-dependent piece behind.
+
+Rung three: the decomposition. Build a table for every subset of
+variables that a model term touches, and make each table hold only the
+part of the effect that belongs to that subset --- subtract what belongs
+to its sub-tables (inclusion--exclusion). If ``subtract'' means
+``compare to the base cell,'' the tables are exactly treatment-coded
+coefficients: mix-free, 1.00 at base, and their product reproduces the
+model to the penny. If ``subtract'' means ``average over the book,'' the
+product still reproduces the model but the split between main effect and
+interaction depends on the mix.
+
+The ``double-counts'' cell: if you build PDP tables for breed, age and
+breed-by-age and multiply, the pair table already contains both main
+effects. GLM people never see this because treatment coding has already
+done the subtraction.
+
+If asked ``isn't this just functional ANOVA?'': yes, and the paper says
+so and cites it. The contribution is the term-level condition for when a
+table is intrinsic, the base-cell-versus-book-average choice framed as a
+rating-table decision, and one vocabulary that covers all four rows of
+the previous slide.
+
+One caveat worth saying out loud: ``mix-free'' means mix-free given the
+model. If the model is missing an interaction, the fitted main effect
+absorbed it in a mix-dependent way, and no extraction fixes that.
+Modeling and factor reporting have to be done together.
+
+\subsection{Worked example: nothing about the model
+changes}\label{example}
+
+Two breeds \(\times\) two ages, log link, base cell = Breed A / young.
+Breed B \(\times 1.5\), old \(\times 1.2\), B-and-old interaction
+\(\times 1.5\). So the four cells are A/young 1.00, A/old 1.20, B/young
+1.50, B/old 2.70.
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1667}}
+  >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2778}}
+  >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2778}}
+  >{\centering\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2778}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+book (share old)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+one-way breed factor
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+PDP breed factor
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+coefficient
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+20 \% & 1.67 & 1.63 & \textbf{1.50} \\
+50 \% & 1.91 & 1.84 & \textbf{1.50} \\
+80 \% & 2.12 & 2.07 & \textbf{1.50} \\
+50 \% overall, but B skews old (A 30 \%, B 70 \%) & 2.21 & 1.84 &
+\textbf{1.50} \\
+\end{longtable}
+}
+
+The PDP column has a closed form --- and it \emph{is} the theorem for
+two variables:
+
+\[
+R^{\text{PDP}}_{B} \;=\; \exp\!\big(\beta_B + p_{\text{old}}\,\beta_{B\times\text{old}}\big) \;=\; 1.5 \times 1.5^{\,p_{\text{old}}}
+\]
+
+\textbf{The partial relativity is the coefficient, plus the interaction
+coefficient times the share of old pets in the book.}
+
+Everything on this slide uses one fixed model. Only the book changes
+between rows.
+
+Read down the one-way column: it moves with the age mix (rows 1--3) and
+it moves with breed--age correlation even at a fixed overall mix (row
+4). Read down the PDP column: row 4 equals row 2 --- correlation is gone
+--- but rows 1--3 still move, because the breed-by-age term straddles
+``breed.'' The coefficient column doesn't move.
+
+The formula is the slide's payoff. Beta-B is the breed coefficient,
+beta-B-times-old is the interaction, p-old is the share of old pets in
+whatever book you averaged over. In this toy, 1.5 to the power one plus
+p-old: from 1.50 if the book is all young to 2.25 if it's all old, for
+the same model. Say the bold sentence slowly.
+
+Connect to AvT: if the age mix of a segment drifts, its ``breed
+relativity'' drifts, and actual-versus-technical reads it as mispricing.
+Nothing was mispriced.
+
+One-way here is the ratio of mean loss cost by breed; PDP is on the link
+scale, exponentiated. If someone asks about the scale: that's the
+convention for a multiplicative plan, and the paper is explicit about
+it.
+
+The real breed-by-age surface from our GAM is the version that goes in
+the guide. This toy is just small enough to see.
+
+\subsection{Two deliverables}\label{deliverables}
+
+\subsubsection{Practical guide
+(internal)}\label{practical-guide-internal}
+
+\begin{itemize}
+\tightlist
+\item
+  One vocabulary: which of the four numbers you mean, and when each is
+  the right one
+\item
+  The algebra as three operators (\texttt{filter}, \texttt{mutate},
+  weighted mean) --- every relativity is a two-line \texttt{dplyr} pipe
+\item
+  The recommendation, with the proof: rating factors = base-cell term
+  contributions, for GLM or GAM
+\item
+  The breed \(\times\) age demonstration from our model
+\end{itemize}
+
+\subsubsection{Journal article
+(external)}\label{journal-article-external}
+
+\begin{itemize}
+\tightlist
+\item
+  Same framework, with the theorem and proofs
+\item
+  The term-level condition for when a relativity is intrinsic
+  vs.~portfolio-defined
+\item
+  Demonstrations on public insurance datasets, comparable to the
+  published GBM-to-tariff work
+\item
+  Peer review as quality control on a method we're about to rate on
+\end{itemize}
+
+From the paper's one-page summary:
+
+\begin{itemize}
+\tightlist
+\item
+  A one-way partial dependence plot is generally \textbf{not} ``the
+  relativity'' for a variable.
+\item
+  Portfolio mix can change reported marginal relativities while the
+  fitted coefficients are unchanged.
+\item
+  Rating manuals should be built from coefficient and interaction terms,
+  not portfolio-averaged effects.
+\item
+  Reference portfolios should be disclosed whenever marginal
+  relativities are reported.
+\end{itemize}
+
+The guide is the thing colleagues use next quarter. It answers three
+questions: what do you mean by relativity, how do you compute the one
+you mean, and which one goes in the rating table. The operator-to-dplyr
+mapping is the part people like most --- the math is three operations
+and each one is a verb they already use.
+
+The article is the same material with the proofs and public-data
+demonstrations. Framing for the room: we're about to rate off a method;
+having it refereed is cheap insurance, and it's the kind of thing that's
+good for the company's name in the actuarial literature.
+
+The four bullets are lifted from the one-page summary, which is in the
+pre-read.
+
+\subsection{The ask}\label{ask}
+
+\textbf{Three weeks, about 15 hours a week --- 45 hours.}
+
+\subsubsection{Done}\label{done}
+
+\begin{itemize}
+\tightlist
+\item
+  Unified vocabulary and algebra
+\item
+  Operator notation → the two-line code it produces
+\item
+  The decomposition proof
+\item
+  Paper sections drafted
+\item
+  One-page summary (pre-read)
+\end{itemize}
+
+\subsubsection{Remaining}\label{remaining}
+
+\begin{itemize}
+\tightlist
+\item
+  More worked examples, including breed \(\times\) age from our model
+\item
+  Demonstrations on open-source insurance data (French MTPL, Belgian
+  MTPL, Australian auto)
+\item
+  Guide: assemble, review with the team
+\item
+  Article: polish, format, submit
+\end{itemize}
+
+\textbf{Sequence:} guide first (weeks 1--2, immediately usable, review
+checkpoint) --- article last (week 3).
+
+Be concrete about the hours and about what exists already --- most of
+the thinking is done; what's left is examples, assembly and polish.
+
+The public datasets are the ones the published GBM-to-tariff papers use
+(freMTPL2 via CASdatasets, the Belgian MTPL data, ausprivauto0405), so
+our results are directly comparable. There is no public pet-insurance
+claims dataset I know of; the pet demonstration stays internal, in the
+guide.
+
+The guide-first sequencing is the risk control: by the end of week two
+there is a usable internal document regardless of what happens with the
+article.
+
+Close by restating the title: the value is that our rating factors stop
+depending on who happens to be in the book.
+
+\section*{Backup}\label{backup}
+\addcontentsline{toc}{section}{Backup}
+
+\subsection{The result in one line}\label{theorem}
+
+Link-scale predictor as a sum of terms, each on a subset \(t\) of the
+variables:
+
+\[
+F(x) \;=\; \sum_{t \in T} f_t(x_t)
+\]
+
+Partial relativity for a variable set \(S\) --- set \(x_S\) to \(z_S\)
+on every row, take the weighted mean over the book \(w\):
+
+\[
+M_S(z_S) \;=\; \mathbb{E}_w\big[\,F(z_S, X_{-S})\,\big]
+\]
+
+\textbf{\(M_S\) is intrinsic to the model iff every term satisfies
+\(t \subseteq S\) or \(t \cap S = \varnothing\).} A straddling term
+contributes \(\mathbb{E}_w\, f_t(z_{t \cap S},\, X_{t \setminus S})\)
+--- a function of the book.
+
+Inclusion--exclusion gives the \(S\)-specific part --- the same formula
+for any ``remove'' rule:
+
+\[
+g_S(z_S) \;=\; \sum_{T \subseteq S} (-1)^{|S \setminus T|}\, M_T(z_T)
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Remove = \emph{average over the book}: product reproduces the model;
+  the main-effect / interaction split depends on the mix.
+\item
+  Remove = \emph{set to the base cell}, \(M_T(z_T) = F(z_T, x^0_{-T})\):
+  product reproduces the model, mix-free, and the \(g_S\) are exactly
+  the treatment-coded coefficients.
+\item
+  \(g_S = 0\) unless \(S\) lies inside some model term --- only subsets
+  of actual terms need tables.
+\end{itemize}
+
+Only if someone wants the mathematics. The two-variable case of the
+inclusion--exclusion formula is the familiar one: g for the pair equals
+the pair table minus the two single tables plus the constant.
+
+The last bullet is the practical safeguard: the number of tables does
+not explode; you need tables for the subsets of terms that are actually
+in the model.
+
+\subsection{The code behind the example}\label{code}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+
+\NormalTok{cells }\OtherTok{\textless{}{-}} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{breed =} \FunctionTok{c}\NormalTok{(}\StringTok{"A"}\NormalTok{, }\StringTok{"A"}\NormalTok{, }\StringTok{"B"}\NormalTok{, }\StringTok{"B"}\NormalTok{),}
+                \AttributeTok{age   =} \FunctionTok{c}\NormalTok{(}\StringTok{"young"}\NormalTok{, }\StringTok{"old"}\NormalTok{, }\StringTok{"young"}\NormalTok{, }\StringTok{"old"}\NormalTok{),}
+                \AttributeTok{mu    =} \FunctionTok{c}\NormalTok{(}\FloatTok{1.00}\NormalTok{, }\FloatTok{1.20}\NormalTok{, }\FloatTok{1.50}\NormalTok{, }\FloatTok{2.70}\NormalTok{))}
+
+\NormalTok{book }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(p\_old\_A, p\_old\_B)}
+  \FunctionTok{tibble}\NormalTok{(}\AttributeTok{breed =} \FunctionTok{c}\NormalTok{(}\StringTok{"A"}\NormalTok{, }\StringTok{"A"}\NormalTok{, }\StringTok{"B"}\NormalTok{, }\StringTok{"B"}\NormalTok{),}
+         \AttributeTok{age   =} \FunctionTok{c}\NormalTok{(}\StringTok{"young"}\NormalTok{, }\StringTok{"old"}\NormalTok{, }\StringTok{"young"}\NormalTok{, }\StringTok{"old"}\NormalTok{),}
+         \AttributeTok{w     =} \FunctionTok{c}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p\_old\_A, p\_old\_A, }\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p\_old\_B, p\_old\_B) }\SpecialCharTok{/} \DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# one{-}way: weighted mean loss cost by breed, B over A}
+\NormalTok{one\_way }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(bk) bk }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{inner\_join}\NormalTok{(cells, }\AttributeTok{by =} \FunctionTok{c}\NormalTok{(}\StringTok{"breed"}\NormalTok{, }\StringTok{"age"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{group\_by}\NormalTok{(breed) }\SpecialCharTok{|\textgreater{}} \FunctionTok{summarise}\NormalTok{(}\AttributeTok{m =} \FunctionTok{sum}\NormalTok{(w }\SpecialCharTok{*}\NormalTok{ mu) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(w)) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{with}\NormalTok{(m[breed }\SpecialCharTok{==} \StringTok{"B"}\NormalTok{] }\SpecialCharTok{/}\NormalTok{ m[breed }\SpecialCharTok{==} \StringTok{"A"}\NormalTok{])}
+
+\CommentTok{\# partial: set breed on every row (mutate), weighted mean of log mu}
+\NormalTok{partial }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(bk, z) bk }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{breed =}\NormalTok{ z) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{inner\_join}\NormalTok{(cells, }\AttributeTok{by =} \FunctionTok{c}\NormalTok{(}\StringTok{"breed"}\NormalTok{, }\StringTok{"age"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{m =} \FunctionTok{sum}\NormalTok{(w }\SpecialCharTok{*} \FunctionTok{log}\NormalTok{(mu)) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(w)) }\SpecialCharTok{|\textgreater{}} \FunctionTok{pull}\NormalTok{(m)}
+
+\NormalTok{pdp\_rel }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(bk) }\FunctionTok{exp}\NormalTok{(}\FunctionTok{partial}\NormalTok{(bk, }\StringTok{"B"}\NormalTok{) }\SpecialCharTok{{-}} \FunctionTok{partial}\NormalTok{(bk, }\StringTok{"A"}\NormalTok{))}
+
+\CommentTok{\# coefficient: everything at the base cell, then breed to B}
+\NormalTok{coef\_rel }\OtherTok{\textless{}{-}} \FunctionTok{with}\NormalTok{(cells, mu[breed }\SpecialCharTok{==} \StringTok{"B"} \SpecialCharTok{\&}\NormalTok{ age }\SpecialCharTok{==} \StringTok{"young"}\NormalTok{] }\SpecialCharTok{/}
+\NormalTok{                        mu[breed }\SpecialCharTok{==} \StringTok{"A"} \SpecialCharTok{\&}\NormalTok{ age }\SpecialCharTok{==} \StringTok{"young"}\NormalTok{])}
+
+\NormalTok{books }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(}\FunctionTok{book}\NormalTok{(.}\DecValTok{2}\NormalTok{, .}\DecValTok{2}\NormalTok{), }\FunctionTok{book}\NormalTok{(.}\DecValTok{5}\NormalTok{, .}\DecValTok{5}\NormalTok{), }\FunctionTok{book}\NormalTok{(.}\DecValTok{8}\NormalTok{, .}\DecValTok{8}\NormalTok{), }\FunctionTok{book}\NormalTok{(.}\DecValTok{3}\NormalTok{, .}\DecValTok{7}\NormalTok{))}
+\FunctionTok{sapply}\NormalTok{(books, one\_way)   }\CommentTok{\# 1.673 1.909 2.121 2.208}
+\FunctionTok{sapply}\NormalTok{(books, pdp\_rel)   }\CommentTok{\# 1.627 1.837 2.075 1.837}
+\NormalTok{coef\_rel                 }\CommentTok{\# 1.5}
+\end{Highlighting}
+\end{Shaded}
+
+This is the ``every relativity is a two-line pipe'' claim made good:
+one-way is a group-by, partial is a mutate followed by a weighted mean,
+the coefficient is a mutate of everything to the base row.
+
+\subsection{Sources and prior art}\label{sources}
+
+\textbf{Current practice}
+
+\begin{itemize}
+\tightlist
+\item
+  Werner \& Modlin, \emph{Basic Ratemaking} (CAS) --- one-way
+  vs.~multivariate classification
+\item
+  Anderson et al.~2007, \emph{A Practitioner's Guide to GLMs} (CAS);
+  Goldburd, Khare, Tevet \& Guller, \emph{GLMs for Insurance Rating}
+  (CAS Monograph 5) --- coefficients to rating factors, interactions,
+  offsets
+\item
+  Henckaerts, Côté, Antonio \& Verbelen 2021 (NAAJ); Henckaerts, Antonio
+  \& Côté 2022 (maidrr) --- tariffs from GBMs via partial dependence
+\item
+  Lorentzen \& Mayer 2020; Wüthrich \& Merz 2023 --- PDP/ALE as the
+  interpretation tools in actuarial ML
+\end{itemize}
+
+\textbf{The mathematics}
+
+\begin{itemize}
+\tightlist
+\item
+  Friedman 2001 --- partial dependence defined as an average over the
+  book
+\item
+  Hooker 2007; Apley \& Zhu 2020 --- PDP equals the functional-ANOVA
+  main effect only under independence
+\item
+  Kuo, Sloan, Wasilkowski \& Woźniakowski 2010; Rabitz \& Alış 1999 ---
+  anchored vs.~ANOVA decompositions (base cell vs.~book average)
+\item
+  Lengerich et al.~2020; Herren \& Hahn 2022; Hiabu, Meyer \& Wright
+  2023; Bordt \& von Luxburg 2023 --- purified interactions, Möbius
+  inversion, Shapley connections
+\end{itemize}
+
+Verify years and venues against your copies before this goes anywhere.
+The ``current practice'' block is what backs slide 1; the
+``mathematics'' block is what a referee will expect the article to
+position against.
+
+
+
+
+\end{document}

@@ -1,0 +1,485 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={The separability lemma},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{The separability lemma}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+
+
+\subsection{Notation}\label{notation}
+
+\begin{itemize}
+\tightlist
+\item
+  \(V\) --- the rating variables; \(t \subseteq V\) is a set of
+  variables
+\item
+  \(M \subseteq \mathcal{P}(V)\) --- the sets that carry a term in the
+  model
+\item
+  \(g_t(x_t)\) --- the term on \(t\); \(\beta_t = \ln g_t\) is its
+  coefficient table
+\item
+  \(T \in M\) --- the term whose table we want;
+  \(\bar{T} = V \setminus T\)
+\item
+  \(x\) --- a row; \(z_T\) --- chosen values for the variables in \(T\);
+  \(z^0\) --- base values
+\item
+  \((z_T;\, x_{\bar{T}})\) --- the row with \(T\) fixed at \(z\) and
+  everything else left as it is
+\item
+  \(E_P[\,\cdot\,]\) --- exposure-weighted mean over the rows of a data
+  set \(P\)
+\end{itemize}
+
+\subsection{\texorpdfstring{Three relations to
+\(T\)}{Three relations to T}}\label{three-relations-to-t}
+
+Every set of variables \(t \subseteq V\) stands in exactly one relation
+to \(T\):
+
+\[
+\begin{aligned}
+t \subseteq T &&&\text{inside } T\\
+t \cap T = \emptyset,\quad t \neq \emptyset &&&\text{disjoint from } T\\
+t \cap T \neq \emptyset,\quad t \not\subseteq T &&&\text{overlapping } T \text{ partway}
+\end{aligned}
+\]
+
+This partitions \(\mathcal{P}(V)\). The model's terms inherit it:
+
+\[
+Q = M \cap \mathcal{P}(T), \qquad
+Q' = \{\,t \in M : t \cap T = \emptyset,\ t \neq \emptyset\,\}, \qquad
+Q'' = M \setminus (Q \cup Q')
+\]
+
+Example. Terms age, sex, breed, weight, deductible, age×weight,
+breed×weight; \(T = \{\text{age}\}\). \(Q = \{\emptyset, \text{age}\}\),
+\(\;Q' = \{\text{sex}, \text{breed}, \text{weight}, \text{deductible}, \text{breed×weight}\}\),
+\(\;Q'' = \{\text{age×weight}\}\).
+
+\subsection{The model, term by term}\label{the-model-term-by-term}
+
+\[
+\ln \hat{\mu}(x)
+= \underbrace{\beta_0}_{\text{intercept}}
++ \underbrace{\sum_{|t| = 1} \beta_t(x_t)}_{\text{main effects}}
++ \underbrace{\sum_{|t| \geq 2} \beta_t(x_t)}_{\text{interactions}}
+\]
+
+As a product:
+
+\[
+\hat{\mu}(x) = \prod_{t \in M} g_t(x_t), \qquad g_t = e^{\beta_t}, \qquad g_\emptyset = e^{\beta_0}
+\]
+
+Each factor sees only its own variables.
+
+\subsection{\texorpdfstring{Fix \(T\), sort the terms by
+overlap}{Fix T, sort the terms by overlap}}\label{fix-t-sort-the-terms-by-overlap}
+
+Evaluate at \((z_T;\, x_{\bar{T}})\). A term in \(Q\) sees only fixed
+values; a term in \(Q'\) sees only the row's values; a term in \(Q''\)
+sees both:
+
+\[
+\hat{\mu}(z_T;\, x_{\bar{T}})
+= \underbrace{\prod_{t \in Q} g_t(z_t)}_{G_Q(z)}
+\;\cdot\;
+\underbrace{\prod_{t \in Q'} g_t(x_t)}_{G_{Q'}(x)}
+\;\cdot\;
+\underbrace{\prod_{t \in Q''} g_t(z_{t \cap T};\, x_{t \setminus T})}_{G_{Q''}(z,\, x)}
+\]
+
+Only \(G_{Q''}\) mixes \(z\) and \(x\).
+
+If \(Q'' = \emptyset\): average over any \(P\), take the ratio to base,
+and \(G_{Q'}\) cancels --- \(P\) with it.
+
+\subsection{\texorpdfstring{What \(Q''\) depends on, and how to pin
+it}{What Q\textquotesingle\textquotesingle{} depends on, and how to pin it}}\label{what-q-depends-on-and-how-to-pin-it}
+
+\[
+C = \bigcup_{t \in Q''} (t \setminus T)
+\qquad \text{the variables } Q'' \text{ reaches outside } T
+\]
+
+Hold them at base, \(x_C = z^0_C\):
+
+\[
+\hat{\mu}(z_T;\, z^0_C;\, x_{\overline{T \cup C}})
+= \underbrace{\prod_{t \in Q} g_t(z_t) \cdot \prod_{t \in Q''} g_t(z_{t \cap T};\, z^0_{t \setminus T})}_{z \text{ only}}
+\;\cdot\;
+\underbrace{\prod_{t \in Q'} g_t(z^0_{t \cap C};\, x_{t \setminus C})}_{x \text{ only}}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Every \(Q''\) term is now a function of \(z\) alone; under treatment
+  contrasts each equals 1
+\item
+  \(Q'\) terms were never functions of \(z\), and still aren't
+\item
+  Average over any \(P\), take the ratio to base: the \(x\)-only product
+  cancels, and \(P\) is gone
+\end{itemize}
+
+\subsection{\texorpdfstring{Example: \(A\), \(B\), \(C\), \(AB\),
+\(BC\)}{Example: A, B, C, AB, BC}}\label{example-a-b-c-ab-bc}
+
+\[
+\ln \hat{\mu}(a, b, c) = \beta_0 + \beta_A(a) + \beta_B(b) + \beta_C(c) + \beta_{AB}(a, b) + \beta_{BC}(b, c)
+\]
+
+\[
+\hat{\mu}(a, b, c) = g_\emptyset\, g_A(a)\, g_B(b)\, g_C(c)\, g_{AB}(a, b)\, g_{BC}(b, c)
+\]
+
+Fix \(T\); the variables not in \(T\) keep their row values
+\(x_A, x_B, x_C\):
+
+\[
+\begin{aligned}
+T = \{A\}:\quad \hat{\mu}(a, x_B, x_C) &= \underbrace{g_\emptyset\, g_A(a)}_{Q} \cdot \underbrace{g_B(x_B)\, g_C(x_C)\, g_{BC}(x_B, x_C)}_{Q'} \cdot \underbrace{g_{AB}(a, x_B)}_{Q''}\\[4pt]
+T = \{B\}:\quad \hat{\mu}(x_A, b, x_C) &= \underbrace{g_\emptyset\, g_B(b)}_{Q} \cdot \underbrace{g_A(x_A)\, g_C(x_C)}_{Q'} \cdot \underbrace{g_{AB}(x_A, b)\, g_{BC}(b, x_C)}_{Q''}\\[4pt]
+T = \{C\}:\quad \hat{\mu}(x_A, x_B, c) &= \underbrace{g_\emptyset\, g_C(c)}_{Q} \cdot \underbrace{g_A(x_A)\, g_B(x_B)\, g_{AB}(x_A, x_B)}_{Q'} \cdot \underbrace{g_{BC}(x_B, c)}_{Q''}\\[4pt]
+T = \{A, B\}:\quad \hat{\mu}(a, b, x_C) &= \underbrace{g_\emptyset\, g_A(a)\, g_B(b)\, g_{AB}(a, b)}_{Q} \cdot \underbrace{g_C(x_C)}_{Q'} \cdot \underbrace{g_{BC}(b, x_C)}_{Q''}\\[4pt]
+T = \{B, C\}:\quad \hat{\mu}(x_A, b, c) &= \underbrace{g_\emptyset\, g_B(b)\, g_C(c)\, g_{BC}(b, c)}_{Q} \cdot \underbrace{g_A(x_A)}_{Q'} \cdot \underbrace{g_{AB}(x_A, b)}_{Q''}
+\end{aligned}
+\]
+
+\subsection{Recovering the
+coefficients}\label{recovering-the-coefficients}
+
+Pin the variables that \(Q''\) reaches outside \(T\) at base, average
+over the rest, take the ratio to base. Treatment contrasts throughout.
+
+Main effects:
+
+\[
+\begin{aligned}
+e^{\beta_A(a)} &= \frac{E_P\big[\hat{\mu}(a, b_0, x_C)\big]}{E_P\big[\hat{\mu}(a_0, b_0, x_C)\big]} &&\text{pin } b\\[6pt]
+e^{\beta_B(b)} &= \frac{\hat{\mu}(a_0, b, c_0)}{\hat{\mu}(a_0, b_0, c_0)} &&\text{pin } a \text{ and } c \text{ — nothing left to average}\\[6pt]
+e^{\beta_C(c)} &= \frac{E_P\big[\hat{\mu}(x_A, b_0, c)\big]}{E_P\big[\hat{\mu}(x_A, b_0, c_0)\big]} &&\text{pin } b
+\end{aligned}
+\]
+
+Interactions: the pinned joint table, then the alternating product over
+its corners:
+
+\[
+\begin{aligned}
+R_{AB}(a, b) &= \frac{\hat{\mu}(a, b, c_0)}{\hat{\mu}(a_0, b_0, c_0)}, &
+e^{\beta_{AB}(a, b)} &= \frac{R_{AB}(a, b)\; R_{AB}(a_0, b_0)}{R_{AB}(a, b_0)\; R_{AB}(a_0, b)} &&\text{pin } c\\[6pt]
+R_{BC}(b, c) &= \frac{\hat{\mu}(a_0, b, c)}{\hat{\mu}(a_0, b_0, c_0)}, &
+e^{\beta_{BC}(b, c)} &= \frac{R_{BC}(b, c)\; R_{BC}(b_0, c_0)}{R_{BC}(b, c_0)\; R_{BC}(b_0, c)} &&\text{pin } a
+\end{aligned}
+\]
+
+\subsection{The same, on the log scale}\label{the-same-on-the-log-scale}
+
+Main effects: one plus, one minus.
+
+\[
+\begin{aligned}
+\beta_A(a) &= \ln E_P\big[\hat{\mu}(a, b_0, x_C)\big] - \ln E_P\big[\hat{\mu}(a_0, b_0, x_C)\big]\\[4pt]
+\beta_B(b) &= \ln \hat{\mu}(a_0, b, c_0) - \ln \hat{\mu}(a_0, b_0, c_0)\\[4pt]
+\beta_C(c) &= \ln E_P\big[\hat{\mu}(x_A, b_0, c)\big] - \ln E_P\big[\hat{\mu}(x_A, b_0, c_0)\big]
+\end{aligned}
+\]
+
+Interactions: sign \((-1)^{\text{number of coordinates at base}}\).
+
+\[
+\begin{aligned}
+\beta_{AB}(a, b) &= \ln R_{AB}(a, b) - \ln R_{AB}(a, b_0) - \ln R_{AB}(a_0, b) + \ln R_{AB}(a_0, b_0)\\
+&= \ln \hat{\mu}(a, b, c_0) - \ln \hat{\mu}(a, b_0, c_0) - \ln \hat{\mu}(a_0, b, c_0) + \ln \hat{\mu}(a_0, b_0, c_0)\\[8pt]
+\beta_{BC}(b, c) &= \ln R_{BC}(b, c) - \ln R_{BC}(b, c_0) - \ln R_{BC}(b_0, c) + \ln R_{BC}(b_0, c_0)\\
+&= \ln \hat{\mu}(a_0, b, c) - \ln \hat{\mu}(a_0, b, c_0) - \ln \hat{\mu}(a_0, b_0, c) + \ln \hat{\mu}(a_0, b_0, c_0)
+\end{aligned}
+\]
+
+\subsection{From a GLM with treatment
+contrasts}\label{from-a-glm-with-treatment-contrasts}
+
+\textbf{The fit has done all of it.}
+
+Treatment coding makes \(g_t = 1\) whenever any coordinate of \(t\) is
+at base. So at the base cell every \(Q''\) term is already 1, for every
+\(T\), and
+
+\[
+\text{table}_t(z_t) = e^{\beta_t(z_t)} \qquad \text{for every } t \in M
+\]
+
+Read the tables off the coefficients. No data, no averaging, no choice
+of \(P\).
+
+What the lemma adds:
+
+\begin{itemize}
+\tightlist
+\item
+  The same tables come back from the recipe on the next slide applied to
+  \texttt{predict()}. The coefficients \emph{are} that recipe, done in
+  advance by the parameterization.
+\item
+  A partial-dependence table for a variable agrees with \(e^{\beta}\)
+  only when the variable sits in no interaction (\(Q'' = \emptyset\)).
+  Otherwise the two differ, on the training data too, and the
+  coefficient is the rating table.
+\item
+  Other contrasts (sum-to-zero, Helmert) give the same \(\hat{\mu}\) in
+  other coordinates. Refit with treatment contrasts, or use the recipe.
+\end{itemize}
+
+\subsection{From a GAM, a penalized fit, random
+effects}\label{from-a-gam-a-penalized-fit-random-effects}
+
+\textbf{Same term list, but the fit chose the gauge.}
+
+\texttt{s(age)\ +\ s(weight)\ +\ ti(age,\ weight)\ +\ s(breed,\ bs\ =\ "re")}
+has a term list \(M\). But the smooths are centered on the training
+data, \texttt{ti()} is centered on the training data, random effects are
+centered at zero. Nothing is 1 at a base level, and
+\texttt{predict(type\ =\ "terms")} returns these centered pieces: for a
+\(T\) with \(Q'' \neq \emptyset\) (age, because of
+\texttt{ti(age,\ weight)}) the centered main effect carries a
+training-book average of the interaction.
+
+Recipe --- only \texttt{predict()}, never the coefficients:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Choose a base cell \(z^0\): a well-populated level of each variable.
+  Random effects have no reference level, so this choice is yours.
+\item
+  For each \(t \in M\), hold everything outside \(t\) at base, vary
+  \(t\)'s variables, and take the alternating product over the corners
+  of \(t\):
+\end{enumerate}
+
+\[
+\text{table}_t(z_t) = \prod_{u \subseteq t} \hat{\mu}\big(z^{(u)}\big)^{(-1)^{|t \setminus u|}},
+\qquad z^{(u)} = \text{the base cell with the variables in } u \text{ moved to } z
+\]
+
+\(|t| = 1\): a ratio. \(|t| = 2\): the double ratio of slide 7. A smooth
+gives a curve: evaluate on a grid of \(z\).
+
+Upstream of the table: a penalty is not invariant to reparameterization,
+so the fit's gauge also shapes \(\hat{\mu}\) itself. That is a modeling
+choice; the recipe takes \(\hat{\mu}\) as given.
+
+\subsection{From a black box}\label{from-a-black-box}
+
+\textbf{No term list. Assume every \(Q''\) reaches every variable
+outside \(T\).}
+
+Then the lemma says: no averaged table is mix-free. Partial dependence,
+ALE, model one-ways all move with the book, for every variable. The only
+mix-free object is the profile through the base cell.
+
+Recipe --- the same formula, with nothing optional about the pinning:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Choose the base cell \(z^0\) deliberately. Every table depends on
+  where every other variable sits, so use a well-populated cell and
+  report it with the tables.
+\item
+  Choose which tables the rating plan carries: main effects and the
+  pairs you want.
+\item
+  For each:
+\end{enumerate}
+
+\[
+\text{table}_t(z_t) = \prod_{u \subseteq t} \hat{\mu}\big(z^{(u)}\big)^{(-1)^{|t \setminus u|}}
+\]
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Check the truncation. With all \(2^{|V|}\) tables the product
+  reproduces \(\hat{\mu}\) exactly; the tables you leave out are the
+  residual. Compare \(\prod_{t\ \text{kept}} \text{table}_t(x_t)\) with
+  \(\hat{\mu}(x)\) on the book.
+\end{enumerate}
+
+
+
+
+\end{document}

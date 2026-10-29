@@ -8,6 +8,7 @@ format:
     slide-number: true
     transition: none
     html-math-method: mathjax
+   pdf: default
 ---
 
 ## Notation
@@ -24,41 +25,32 @@ format:
 
 Every set of variables $t \subseteq V$ stands in exactly one relation to $T$:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 t \subseteq T &&&\text{inside } T\\
 t \cap T = \emptyset,\quad t \neq \emptyset &&&\text{disjoint from } T\\
 t \cap T \neq \emptyset,\quad t \not\subseteq T &&&\text{overlapping } T \text{ partway}
-\end{aligned}
-$$
+\end{aligned}$$
 
 This partitions $\mathcal{P}(V)$. The model's terms inherit it:
 
-$$
-Q = M \cap \mathcal{P}(T), \qquad
+$$Q = M \cap \mathcal{P}(T), \qquad
 Q' = \{\,t \in M : t \cap T = \emptyset,\ t \neq \emptyset\,\}, \qquad
-Q'' = M \setminus (Q \cup Q')
-$$
+Q'' = M \setminus (Q \cup Q')$$
 
-::: {.smaller}
-Example. Terms age, sex, breed, weight, deductible, age×weight, breed×weight; $T = \{\text{age}\}$.
-$Q = \{\emptyset, \text{age}\}$, $\;Q' = \{\text{sex}, \text{breed}, \text{weight}, \text{deductible}, \text{breed×weight}\}$, $\;Q'' = \{\text{age×weight}\}$.
+::: smaller
+Example. Terms age, sex, breed, weight, deductible, age×weight, breed×weight; $T = \{\text{age}\}$. $Q = \{\emptyset, \text{age}\}$, $\;Q' = \{\text{sex}, \text{breed}, \text{weight}, \text{deductible}, \text{breed×weight}\}$, $\;Q'' = \{\text{age×weight}\}$.
 :::
 
 ## The model, term by term
 
-$$
-\ln \hat{\mu}(x)
+$$\ln \hat{\mu}(x)
 = \underbrace{\beta_0}_{\text{intercept}}
 + \underbrace{\sum_{|t| = 1} \beta_t(x_t)}_{\text{main effects}}
-+ \underbrace{\sum_{|t| \geq 2} \beta_t(x_t)}_{\text{interactions}}
-$$
++ \underbrace{\sum_{|t| \geq 2} \beta_t(x_t)}_{\text{interactions}}$$
 
 As a product:
 
-$$
-\hat{\mu}(x) = \prod_{t \in M} g_t(x_t), \qquad g_t = e^{\beta_t}, \qquad g_\emptyset = e^{\beta_0}
-$$
+$$\hat{\mu}(x) = \prod_{t \in M} g_t(x_t), \qquad g_t = e^{\beta_t}, \qquad g_\emptyset = e^{\beta_0}$$
 
 Each factor sees only its own variables.
 
@@ -66,14 +58,12 @@ Each factor sees only its own variables.
 
 Evaluate at $(z_T;\, x_{\bar{T}})$. A term in $Q$ sees only fixed values; a term in $Q'$ sees only the row's values; a term in $Q''$ sees both:
 
-$$
-\hat{\mu}(z_T;\, x_{\bar{T}})
+$$\hat{\mu}(z_T;\, x_{\bar{T}})
 = \underbrace{\prod_{t \in Q} g_t(z_t)}_{G_Q(z)}
 \;\cdot\;
 \underbrace{\prod_{t \in Q'} g_t(x_t)}_{G_{Q'}(x)}
 \;\cdot\;
-\underbrace{\prod_{t \in Q''} g_t(z_{t \cap T};\, x_{t \setminus T})}_{G_{Q''}(z,\, x)}
-$$
+\underbrace{\prod_{t \in Q''} g_t(z_{t \cap T};\, x_{t \setminus T})}_{G_{Q''}(z,\, x)}$$
 
 Only $G_{Q''}$ mixes $z$ and $x$.
 
@@ -81,19 +71,15 @@ If $Q'' = \emptyset$: average over any $P$, take the ratio to base, and $G_{Q'}$
 
 ## What $Q''$ depends on, and how to pin it
 
-$$
-C = \bigcup_{t \in Q''} (t \setminus T)
-\qquad \text{the variables } Q'' \text{ reaches outside } T
-$$
+$$C = \bigcup_{t \in Q''} (t \setminus T)
+\qquad \text{the variables } Q'' \text{ reaches outside } T$$
 
 Hold them at base, $x_C = z^0_C$:
 
-$$
-\hat{\mu}(z_T;\, z^0_C;\, x_{\overline{T \cup C}})
+$$\hat{\mu}(z_T;\, z^0_C;\, x_{\overline{T \cup C}})
 = \underbrace{\prod_{t \in Q} g_t(z_t) \cdot \prod_{t \in Q''} g_t(z_{t \cap T};\, z^0_{t \setminus T})}_{z \text{ only}}
 \;\cdot\;
-\underbrace{\prod_{t \in Q'} g_t(z^0_{t \cap C};\, x_{t \setminus C})}_{x \text{ only}}
-$$
+\underbrace{\prod_{t \in Q'} g_t(z^0_{t \cap C};\, x_{t \setminus C})}_{x \text{ only}}$$
 
 - Every $Q''$ term is now a function of $z$ alone; under treatment contrasts each equals 1
 - $Q'$ terms were never functions of $z$, and still aren't
@@ -101,25 +87,19 @@ $$
 
 ## Example: $A$, $B$, $C$, $AB$, $BC$ {.smaller}
 
-$$
-\ln \hat{\mu}(a, b, c) = \beta_0 + \beta_A(a) + \beta_B(b) + \beta_C(c) + \beta_{AB}(a, b) + \beta_{BC}(b, c)
-$$
+$$\ln \hat{\mu}(a, b, c) = \beta_0 + \beta_A(a) + \beta_B(b) + \beta_C(c) + \beta_{AB}(a, b) + \beta_{BC}(b, c)$$
 
-$$
-\hat{\mu}(a, b, c) = g_\emptyset\, g_A(a)\, g_B(b)\, g_C(c)\, g_{AB}(a, b)\, g_{BC}(b, c)
-$$
+$$\hat{\mu}(a, b, c) = g_\emptyset\, g_A(a)\, g_B(b)\, g_C(c)\, g_{AB}(a, b)\, g_{BC}(b, c)$$
 
 Fix $T$; the variables not in $T$ keep their row values $x_A, x_B, x_C$:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 T = \{A\}:\quad \hat{\mu}(a, x_B, x_C) &= \underbrace{g_\emptyset\, g_A(a)}_{Q} \cdot \underbrace{g_B(x_B)\, g_C(x_C)\, g_{BC}(x_B, x_C)}_{Q'} \cdot \underbrace{g_{AB}(a, x_B)}_{Q''}\\[4pt]
 T = \{B\}:\quad \hat{\mu}(x_A, b, x_C) &= \underbrace{g_\emptyset\, g_B(b)}_{Q} \cdot \underbrace{g_A(x_A)\, g_C(x_C)}_{Q'} \cdot \underbrace{g_{AB}(x_A, b)\, g_{BC}(b, x_C)}_{Q''}\\[4pt]
 T = \{C\}:\quad \hat{\mu}(x_A, x_B, c) &= \underbrace{g_\emptyset\, g_C(c)}_{Q} \cdot \underbrace{g_A(x_A)\, g_B(x_B)\, g_{AB}(x_A, x_B)}_{Q'} \cdot \underbrace{g_{BC}(x_B, c)}_{Q''}\\[4pt]
 T = \{A, B\}:\quad \hat{\mu}(a, b, x_C) &= \underbrace{g_\emptyset\, g_A(a)\, g_B(b)\, g_{AB}(a, b)}_{Q} \cdot \underbrace{g_C(x_C)}_{Q'} \cdot \underbrace{g_{BC}(b, x_C)}_{Q''}\\[4pt]
 T = \{B, C\}:\quad \hat{\mu}(x_A, b, c) &= \underbrace{g_\emptyset\, g_B(b)\, g_C(c)\, g_{BC}(b, c)}_{Q} \cdot \underbrace{g_A(x_A)}_{Q'} \cdot \underbrace{g_{AB}(x_A, b)}_{Q''}
-\end{aligned}
-$$
+\end{aligned}$$
 
 ## Recovering the coefficients {.smaller}
 
@@ -127,47 +107,39 @@ Pin the variables that $Q''$ reaches outside $T$ at base, average over the rest,
 
 Main effects:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 e^{\beta_A(a)} &= \frac{E_P\big[\hat{\mu}(a, b_0, x_C)\big]}{E_P\big[\hat{\mu}(a_0, b_0, x_C)\big]} &&\text{pin } b\\[6pt]
 e^{\beta_B(b)} &= \frac{\hat{\mu}(a_0, b, c_0)}{\hat{\mu}(a_0, b_0, c_0)} &&\text{pin } a \text{ and } c \text{ — nothing left to average}\\[6pt]
 e^{\beta_C(c)} &= \frac{E_P\big[\hat{\mu}(x_A, b_0, c)\big]}{E_P\big[\hat{\mu}(x_A, b_0, c_0)\big]} &&\text{pin } b
-\end{aligned}
-$$
+\end{aligned}$$
 
 Interactions: the pinned joint table, then the alternating product over its corners:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 R_{AB}(a, b) &= \frac{\hat{\mu}(a, b, c_0)}{\hat{\mu}(a_0, b_0, c_0)}, &
 e^{\beta_{AB}(a, b)} &= \frac{R_{AB}(a, b)\; R_{AB}(a_0, b_0)}{R_{AB}(a, b_0)\; R_{AB}(a_0, b)} &&\text{pin } c\\[6pt]
 R_{BC}(b, c) &= \frac{\hat{\mu}(a_0, b, c)}{\hat{\mu}(a_0, b_0, c_0)}, &
 e^{\beta_{BC}(b, c)} &= \frac{R_{BC}(b, c)\; R_{BC}(b_0, c_0)}{R_{BC}(b, c_0)\; R_{BC}(b_0, c)} &&\text{pin } a
-\end{aligned}
-$$
+\end{aligned}$$
 
 ## The same, on the log scale {.smaller}
 
 Main effects: one plus, one minus.
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 \beta_A(a) &= \ln E_P\big[\hat{\mu}(a, b_0, x_C)\big] - \ln E_P\big[\hat{\mu}(a_0, b_0, x_C)\big]\\[4pt]
 \beta_B(b) &= \ln \hat{\mu}(a_0, b, c_0) - \ln \hat{\mu}(a_0, b_0, c_0)\\[4pt]
 \beta_C(c) &= \ln E_P\big[\hat{\mu}(x_A, b_0, c)\big] - \ln E_P\big[\hat{\mu}(x_A, b_0, c_0)\big]
-\end{aligned}
-$$
+\end{aligned}$$
 
 Interactions: sign $(-1)^{\text{number of coordinates at base}}$.
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 \beta_{AB}(a, b) &= \ln R_{AB}(a, b) - \ln R_{AB}(a, b_0) - \ln R_{AB}(a_0, b) + \ln R_{AB}(a_0, b_0)\\
 &= \ln \hat{\mu}(a, b, c_0) - \ln \hat{\mu}(a, b_0, c_0) - \ln \hat{\mu}(a_0, b, c_0) + \ln \hat{\mu}(a_0, b_0, c_0)\\[8pt]
 \beta_{BC}(b, c) &= \ln R_{BC}(b, c) - \ln R_{BC}(b, c_0) - \ln R_{BC}(b_0, c) + \ln R_{BC}(b_0, c_0)\\
 &= \ln \hat{\mu}(a_0, b, c) - \ln \hat{\mu}(a_0, b, c_0) - \ln \hat{\mu}(a_0, b_0, c) + \ln \hat{\mu}(a_0, b_0, c_0)
-\end{aligned}
-$$
+\end{aligned}$$
 
 ## From a GLM with treatment contrasts {.smaller}
 
@@ -175,9 +147,7 @@ $$
 
 Treatment coding makes $g_t = 1$ whenever any coordinate of $t$ is at base. So at the base cell every $Q''$ term is already 1, for every $T$, and
 
-$$
-\text{table}_t(z_t) = e^{\beta_t(z_t)} \qquad \text{for every } t \in M
-$$
+$$\text{table}_t(z_t) = e^{\beta_t(z_t)} \qquad \text{for every } t \in M$$
 
 Read the tables off the coefficients. No data, no averaging, no choice of $P$.
 
@@ -195,13 +165,11 @@ What the lemma adds:
 
 Recipe — only `predict()`, never the coefficients:
 
-1. Choose a base cell $z^0$: a well-populated level of each variable. Random effects have no reference level, so this choice is yours.
-2. For each $t \in M$, hold everything outside $t$ at base, vary $t$'s variables, and take the alternating product over the corners of $t$:
+1.  Choose a base cell $z^0$: a well-populated level of each variable. Random effects have no reference level, so this choice is yours.
+2.  For each $t \in M$, hold everything outside $t$ at base, vary $t$'s variables, and take the alternating product over the corners of $t$:
 
-$$
-\text{table}_t(z_t) = \prod_{u \subseteq t} \hat{\mu}\big(z^{(u)}\big)^{(-1)^{|t \setminus u|}},
-\qquad z^{(u)} = \text{the base cell with the variables in } u \text{ moved to } z
-$$
+$$\text{table}_t(z_t) = \prod_{u \subseteq t} \hat{\mu}\big(z^{(u)}\big)^{(-1)^{|t \setminus u|}},
+\qquad z^{(u)} = \text{the base cell with the variables in } u \text{ moved to } z$$
 
 $|t| = 1$: a ratio. $|t| = 2$: the double ratio of slide 7. A smooth gives a curve: evaluate on a grid of $z$.
 
@@ -209,18 +177,16 @@ Upstream of the table: a penalty is not invariant to reparameterization, so the 
 
 ## From a black box {.smaller}
 
-**No term list. Assume every $Q''$ reaches every variable outside $T$.**
+**No term list. Assume every** $Q''$ reaches every variable outside $T$.
 
 Then the lemma says: no averaged table is mix-free. Partial dependence, ALE, model one-ways all move with the book, for every variable. The only mix-free object is the profile through the base cell.
 
 Recipe — the same formula, with nothing optional about the pinning:
 
-1. Choose the base cell $z^0$ deliberately. Every table depends on where every other variable sits, so use a well-populated cell and report it with the tables.
-2. Choose which tables the rating plan carries: main effects and the pairs you want.
-3. For each:
+1.  Choose the base cell $z^0$ deliberately. Every table depends on where every other variable sits, so use a well-populated cell and report it with the tables.
+2.  Choose which tables the rating plan carries: main effects and the pairs you want.
+3.  For each:
 
-$$
-\text{table}_t(z_t) = \prod_{u \subseteq t} \hat{\mu}\big(z^{(u)}\big)^{(-1)^{|t \setminus u|}}
-$$
+$$\text{table}_t(z_t) = \prod_{u \subseteq t} \hat{\mu}\big(z^{(u)}\big)^{(-1)^{|t \setminus u|}}$$
 
-4. Check the truncation. With all $2^{|V|}$ tables the product reproduces $\hat{\mu}$ exactly; the tables you leave out are the residual. Compare $\prod_{t\ \text{kept}} \text{table}_t(x_t)$ with $\hat{\mu}(x)$ on the book.
+4.  Check the truncation. With all $2^{|V|}$ tables the product reproduces $\hat{\mu}$ exactly; the tables you leave out are the residual. Compare $\prod_{t\ \text{kept}} \text{table}_t(x_t)$ with $\hat{\mu}(x)$ on the book.
