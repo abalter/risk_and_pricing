@@ -1,0 +1,245 @@
+---
+title: "Explainability and Decomposition"
+---
+# Rating Factors in Insurance
+Insurance is a gamble. Intuitively, this means calculating the risk or cost of a policy relative to base level. This has led to the concept of rating tables filled with "risk relativities" which are so fundamental to the industry that they are regulated and need to be filed with the state.
+
+The traditional way of calculating relativities was directly from data on past losses.
+
+Example: One-way relativity for variable $i$ at value $v$ in a book of records $k = 1, \dots, n$ with observed loss cost $y_k$ and exposure $ee_k$:
+
+$$
+R_i(v) \;=\; \frac{\bar{y}_i(v)}{\bar{y}}
+\;=\; \frac{\displaystyle\sum_{k:\, x_{ik} = v} ee_k\, y_k \Big/ \sum_{k:\, x_{ik} = v} ee_k}{\displaystyle\sum_{k} ee_k\, y_k \Big/ \sum_{k} ee_k}
+$$
+
+the exposure-weighted average loss cost among records with $x_i = v$, divided by the same average over the whole book. Relative to a base level $b$ instead of the book average, use $\bar{y}_i(v) / \bar{y}_i(b)$.
+
+It was always understood that one-way relativities are confounded by relationships between variables.
+
+Along the way, smoothed, "minimum bias" methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model naturally controls for the other variables, the model coefficients represent the relative effect of each variable taken _ceteris paribus_, i.e. all other things being equal.
+
+It turns out there are some silent rules:
+
+1. If there are no interactions in the model, then the model coefficients can be used directly as rating factors
+2. However, only _directly_ if the base levels are set to 0 (treatment coding, dummy coding)
+3. In the presence of interactions, the requirement becomes stronger.
+4. It is always possible to extract rating tables from a GLM, but some algebra is required that depends on how variables are coded.
+
+If these rules are not followed, then accurate, transparent rating tables _cannot_ be derived from the model coefficients.
+
+# Why do we care?
+If all we cared about was the model output, knowing how to create rating tables from model coefficients would not matter. We would just plug a policy into the model and calculate the relative risk. However, this "black box" approach does not satisfy the _explainability_ requirements our insurance regulations impose. Regulating insurance pricing means being able to see inside rating models and observe how they work.
+
+The technical requirement for rating tables is that our model is decomposable into parts. This is what allows explainability. You can examine each part individually. It turns out that there is an important (and deep) relationship between choosing base levels and decomposition, and therefore having explainable models of any type.
+
+# Contrasts and Base Levels
+There is a way to ensure that rating tables are accurate and transparent. And it extends also to GAM models and even machine learning models under certain conditions. In other words, these models can also generate _filable rating tables_.
+
+For each variable define a difference operator acting on any function $g$ of the covariates:
+
+$$
+\Delta_i g \;=\; g\big|_{x_i=v_i} - g\big|_{x_i=b_i}
+$$
+
+everything else held fixed. The main-effect contrast is just $\Delta_i f_i = f_i(v_i) - f_i(b_i)$. The operators are linear, they return zero on anything that does not depend on $x_i$, and they commute:
+
+$$
+\Delta_i(g + h) = \Delta_i g + \Delta_i h, \qquad \Delta_i g = 0 \text{ if } g \text{ is constant in } x_i, \qquad \Delta_i\Delta_j g = \Delta_j\Delta_i g
+$$
+
+The contrast in $i$ is, in general, a function of the other variables:
+
+$$
+\Delta_i g \;=\; g(x_1,\dots,v_i,\dots,x_p) - g(x_1,\dots,b_i,\dots,x_p)
+$$
+
+In order to find the interaction contrast, we need to define what an interaction contrast is. The general concept is that for a 2nd order interaction, a contrast is the _difference in the first order contrast in variable i relative to changes in variable j_. Using our operator notation, the 2nd order difference is:
+    
+$$
+\Delta_i\Delta_j f_{ij} \;=\; \big[f_{ij}(v_i,v_j) - f_{ij}(b_i,v_j)\big] - \big[f_{ij}(v_i,b_j) - f_{ij}(b_i,b_j)\big] \;=\; f_{ij}(v_i,v_j) - f_{ij}(b_i,v_j) - f_{ij}(v_i,b_j) + f_{ij}(b_i,b_j).
+$$
+
+
+Let's apply it to a four-term model, a general base $b = (b_1, b_2)$, and a general target $v = (v_1, v_2)$.
+
+$$
+g(x_1, x_2) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_{12}\,x_1 x_2
+$$
+
+And $x_1$ and $x_2$ are binary factor variables, and we use dummy (treatment) coding, so each $x$ is $0$ at the reference level and $1$ otherwise, with $b = (0,0)$ and $v = (1,1)$, then
+
+$$
+\begin{aligned}
+\Delta_1 g &= g(1, x_2) - g(0, x_2) = \beta_1 + \beta_{12}\, x_2 \\
+\Delta_2 g &= g(x_1, 1) - g(x_1, 0) = \beta_2 + \beta_{12}\, x_1
+\end{aligned}
+$$
+
+At the baseline of the other variable these reduce to the coefficients, $\Delta_1 g\big|_{x_2 = 0} = \beta_1$ and $\Delta_2 g\big|_{x_1 = 0} = \beta_2$. That is why GLM coefficients are rating factors.
+
+However, in effect (sum) coding, each $x$ is $-1$ at one level and $+1$ at the other, and the intercept is the grand mean. The natural base is the grand mean, $b = (0, 0)$, which is not an observable cell. For $v_i = \pm 1$,
+
+$$
+\begin{aligned}
+\Delta_1 g &= g(v_1, x_2) - g(0, x_2) = v_1\,(\beta_1 + \beta_{12}\, x_2) \\
+\Delta_2 g &= g(x_1, v_2) - g(x_1, 0) = v_2\,(\beta_2 + \beta_{12}\, x_1)
+\end{aligned}
+$$
+
+so each level sits $\pm\beta_i$ from the grand mean (at $x_j = 0$), and the contrast between the two levels is $2\beta_i + 2\beta_{12} x_j$. To get a rating factor relative to a reference *level* you must take $b_i = -1$, and then $\Delta_1 g = 2(\beta_1 + \beta_{12} x_2)$: the coefficient is no longer the factor.
+
+Alternatively, if $x_1$ and $x_2$ are continuous linear predictors, we take the intercept as the base value, $b = (0, 0)$, and
+
+$$
+\begin{aligned}
+\Delta_1 g &= g(v_1, x_2) - g(0, x_2) = (\beta_1 + \beta_{12}\, x_2)\, v_1 \\
+\Delta_2 g &= g(x_1, v_2) - g(x_1, 0) = (\beta_2 + \beta_{12}\, x_1)\, v_2
+\end{aligned}
+$$
+
+which is $\beta_1 v_1$ at $x_2 = 0$: slope times distance from base. For a general base $b$, replace $v_i$ by $(v_i - b_i)$.
+
+
+The first-order contrasts, each still a function of the other variable:
+
+$$
+\Delta_1 g = g(v_1, x_2) - g(b_1, x_2) = (\beta_1 + \beta_{12}\,x_2)(v_1 - b_1), \qquad
+\Delta_2 g = (\beta_2 + \beta_{12}\,x_1)(v_2 - b_2)
+$$
+
+The second-order contrast, by the definition (the change in $\Delta_1 g$ when $x_2$ moves from $b_2$ to $v_2$):
+
+$$
+\Delta_2\Delta_1 g = \Delta_1 g\big|_{x_2 = v_2} - \Delta_1 g\big|_{x_2 = b_2} = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)
+$$
+
+# Decomposition
+
+Now the decomposition. Start from the total change and split it along a path that moves one variable at a time:
+
+$$
+g(v_1, v_2) - g(b_1, b_2) = \big[g(v_1, v_2) - g(b_1, v_2)\big] + \big[g(b_1, v_2) - g(b_1, b_2)\big] = \Delta_1 g\big|_{x_2 = v_2} + \Delta_2 g\big|_{x_1 = b_1}
+$$
+
+The first term is the $x_1$ contrast evaluated at the *new* value of $x_2$. Rewrite it using the definition of the second-order contrast, $\Delta_1 g\big|_{x_2 = v_2} = \Delta_1 g\big|_{x_2 = b_2} + \Delta_2\Delta_1 g$, and you get
+
+$$
+g(v) - g(b) = \underbrace{\Delta_1 g\big|_{x_2 = b_2}}_{\text{main effect of } x_1} + \underbrace{\Delta_2 g\big|_{x_1 = b_1}}_{\text{main effect of } x_2} + \underbrace{\Delta_1\Delta_2 g}_{\text{interaction}}
+$$
+
+Nothing about the model was used; only the definitions of $\Delta$. Each main-effect entry is the first-order contrast with the other variable set to its base. Nothing is averaged anywhere: every entry is a difference of two values of $g$ at specific points.
+
+Plug in the model:
+
+$$
+\Delta_1 g\big|_{x_2 = b_2} = (\beta_1 + \beta_{12}\,b_2)(v_1 - b_1), \qquad
+\Delta_2 g\big|_{x_1 = b_1} = (\beta_2 + \beta_{12}\,b_1)(v_2 - b_2), \qquad
+\Delta_1\Delta_2 g = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)
+$$
+
+Check that they add up. The $\beta_{12}$ pieces are 
+
+$$
+b_2(v_1 - b_1) + b_1(v_2 - b_2) + (v_1 - b_1)(v_2 - b_2) = v_1 v_2 - b_1 b_2,
+$$
+
+so the sum is 
+$$
+\beta_1(v_1 - b_1) + \beta_2(v_2 - b_2) + \beta_{12}(v_1 v_2 - b_1 b_2) = g(v) - g(b).
+$$
+
+The three entries reconstruct the model exactly, for any base.
+
+Now the codings, which just means choosing $b$ and $v$.
+
+Treatment coding, $b = (0,0)$, $v = (1,1)$: the entries are $\beta_1$, $\beta_2$, $\beta_{12}$, summing to $g(1,1) - g(0,0) = \beta_1 + \beta_2 + \beta_{12}$.
+
+Sum coding with base at the grand mean, $b = (0,0)$, $v_i = \pm 1$: the entries are $\beta_1 v_1$, $\beta_2 v_2$, $\beta_{12} v_1 v_2$. The coefficients appear, but the base is not a cell.
+
+Sum coding with base at a level, $b = (-1,-1)$, $v = (1,1)$: the entries are $2(\beta_1 - \beta_{12})$, $2(\beta_2 - \beta_{12})$, $4\beta_{12}$. Their sum is $2\beta_1 + 2\beta_2$, and directly $g(1,1) - g(-1,-1) = (\beta_0 + \beta_1 + \beta_2 + \beta_{12}) - (\beta_0 - \beta_1 - \beta_2 + \beta_{12}) = 2\beta_1 + 2\beta_2$. The table is correct. The entry $2(\beta_1 - \beta_{12})$ is the right number for the $(+1)$ level against the $(-1)$ level with $x_2$ at $-1$; it is not $\beta_1$ because $\beta_1$ is the number at $x_2 = 0$, a different place.
+
+Continuous, any base: the general entries above. The main-effect entry for $x_1$ is slope $\beta_1 + \beta_{12} b_2$ times distance $v_1 - b_1$.
+
+So, reading off the general formula: the main-effect entry for $x_1$ has slope $\beta_1$ exactly when $b_2 = 0$, that is, when the base of $x_2$ is whatever value is coded as zero. Under treatment coding the value coded as zero is the reference level, so a base at the reference level is a base at zero and the entry is $\beta_1$. Under sum coding the value coded as zero lies between the levels, so a base at a level has $b_2 = \pm 1$ and the slope is $\beta_1 \mp \beta_{12}$. For a continuous $x_2$ the value coded as zero is $x_2 = 0$, and a base anywhere else has slope $\beta_1 + \beta_{12} b_2$.
+
+Why the main-effect entry carries a $\beta_{12} b_2$ and the interaction entry carries nothing: $\Delta_1 g$ still depended on $x_2$, through $\beta_{12}$, and setting $x_2 = b_2$ froze that dependence at $b_2$. $\Delta_1\Delta_2 g$ has no $x$ left in it to freeze. And with $\beta_{12} = 0$ the main-effect entry is $\beta_1(v_1 - b_1)$ with no $b_2$ in it at all, at any base, so the whole dependence on where you put $x_2$ is caused by the interaction term and nothing else.
+
+One last thing in coding language, since it says where $\beta_1$ went. Recode $x_2$ as $x_2' = x_2 - b_2$ so that your base is the new zero, multiply out, and the model's coefficient on $x_1$ becomes $\beta_1 + \beta_{12} b_2$ while the coefficient on $x_1 x_2'$ stays $\beta_{12}$. The entry the operator produced is the main-effect coefficient of the same model under the coding whose zero is your base. The GLM printed the one for the coding it was given.
+
+**Setup.** Write the linear predictor as a sum of terms,
+
+$$\eta(x) \;=\; \alpha + \sum_i f_i(x_i) + \sum_{i<j} f_{ij}(x_i,x_j) + \cdots,$$
+
+with $\hat\mu = e^{\eta}$ under the log link. Fix a baseline cell $b=(b_1,\dots,b_p)$ and a target cell $v=(v_1,\dots,v_p)$. The relativity of $v$ against $b$ is
+
+$$\frac{\hat\mu(v)}{\hat\mu(b)} \;=\; e^{\eta(v)-\eta(b)},$$
+
+so the whole question is how to split $\eta(v)-\eta(b)$ into pieces that are each a table.
+
+**Difference operator.** For each variable define a difference operator acting on any function $g$ of the covariates:
+
+$$\Delta_i g \;=\; g\big|_{x_i=v_i} - g\big|_{x_i=b_i},$$
+
+everything else held fixed. Three facts about it do all the work: it is linear, $\Delta_i(g+h)=\Delta_i g+\Delta_i h$; it kills anything that does not depend on $x_i$, so $\Delta_i g = 0$ if $g$ is constant in $x_i$; and the operators commute, $\Delta_i\Delta_j=\Delta_j\Delta_i$. The main-effect contrast is $\Delta_i f_i = f_i(v_i)-f_i(b_i)$, the exponent in $e^{f_i(v_i)-f_i(b_i)}$ above. Applying two operators to an interaction smooth gives
+
+$$\Delta_i\Delta_j f_{ij} \;=\; f_{ij}(v_i,v_j) - f_{ij}(b_i,v_j) - f_{ij}(v_i,b_j) + f_{ij}(b_i,b_j) \;=\; \big[f_{ij}(v_i,v_j) - f_{ij}(b_i,v_j)\big] - \big[f_{ij}(v_i,b_j) - f_{ij}(b_i,b_j)\big].$$
+
+Read with that bracketing it says: the contrast in $i$ when $j$ sits at $v_j$, minus the contrast in $i$ when $j$ sits at $b_j$. That *is* the definition of an interaction — the effect of $i$ depends on where $j$ is. It's the finite-difference analogue of $\partial^2 f/\partial x_i\partial x_j$, exactly as the main-effect contrast is the finite-difference analogue of $\partial f/\partial x_i$: for small steps, $\Delta_i f \approx (v_i-b_i)\,\partial f/\partial x_i$ and $\Delta_i\Delta_j f \approx (v_i-b_i)(v_j-b_j)\,\partial^2 f/\partial x_i\partial x_j$. (And it's literally the same algebra as the 2×2 treated/control × before/after table that gives difference-in-differences its name.)
+
+**Why four terms rather than two.** The two-term version $f_{ij}(v_i,v_j) - f_{ij}(b_i,b_j)$ is the total contrast of the two-variable function, and it still carries main-effect content, because the slices $f_{ij}(\cdot,b_j)$ and $f_{ij}(b_i,\cdot)$ are perfectly good one-variable functions. Telescoping gives an identity:
+
+$$f_{ij}(v_i,v_j) - f_{ij}(b_i,b_j) \;=\; \underbrace{\big[f_{ij}(v_i,b_j)-f_{ij}(b_i,b_j)\big]}_{\text{move } i \text{ alone}} \;+\; \underbrace{\big[f_{ij}(b_i,v_j)-f_{ij}(b_i,b_j)\big]}_{\text{move } j \text{ alone}} \;+\; \underbrace{\Delta_i\Delta_j f_{ij}}_{\text{excess}}$$
+
+(expand the right side: the $f_{ij}(v_i,b_j)$ and $f_{ij}(b_i,v_j)$ terms cancel against the DiD, and three copies of $f_{ij}(b_i,b_j)$ net to one). In operator notation the two slice terms are $\Delta_i f_{ij}\big|_{x_j=b_j}$ and $\Delta_j f_{ij}\big|_{x_i=b_i}$.
+
+So the DiD is what remains after each variable is credited with what it does on its own: the departure from additivity. The property that pins it down is that $\Delta_i\Delta_j$ annihilates every additive function $h_i(x_i)+h_j(x_j)$: $\Delta_j h_i = 0$ because $h_i$ is constant in $x_j$, and $\Delta_i\Delta_j h_j = \Delta_i\big[h_j(v_j)-h_j(b_j)\big] = 0$ because the bracket is constant in $x_i$. In fact this property determines the operator. Any linear combination of $f_{ij}$ at the four corners of the box $\{b_i,v_i\}\times\{b_j,v_j\}$ has the form
+
+$$L f_{ij} \;=\; c_{00}\,f_{ij}(b_i,b_j) + c_{10}\,f_{ij}(v_i,b_j) + c_{01}\,f_{ij}(b_i,v_j) + c_{11}\,f_{ij}(v_i,v_j).$$
+
+Requiring $L h_i = 0$ for every function $h_i(x_i)$ gives $c_{00}+c_{01}=0$ and $c_{10}+c_{11}=0$; requiring $L h_j = 0$ for every $h_j(x_j)$ gives $c_{00}+c_{10}=0$ and $c_{01}+c_{11}=0$. The only solutions are $(c_{00},c_{10},c_{01},c_{11}) = c\,(1,-1,-1,1)$, and requiring $L(x_ix_j) = (v_i-b_i)(v_j-b_j)$ fixes $c=1$. It isn't one choice among several; it's the only four-point functional that measures pure interaction relative to a baseline.
+
+The sanity checks then fall out the same way they do for main effects:
+
+- bilinear $f_{ij}=\beta x_ix_j$: $\Delta_i\Delta_j f_{ij} = \beta\big(v_iv_j - b_iv_j - v_ib_j + b_ib_j\big) = \beta(v_i-b_i)(v_j-b_j)$, the product-of-deviations term of a linear model centered at $b$;
+- two factors with treatment coding and $b$ the reference levels: $f_{ij}(x_i,x_j) = \sum_{a\neq b_i}\sum_{c\neq b_j}\beta_{ac}\,\mathbf{1}[x_i=a]\,\mathbf{1}[x_j=c]$, so the slices $f_{ij}(\cdot,b_j)$ and $f_{ij}(b_i,\cdot)$ are identically zero and the DiD collapses to $f_{ij}(v_i,v_j) = \beta_{v_iv_j}$, i.e. the interaction coefficient;
+- any additive $f_{ij}$: zero.
+
+**An accounting consequence worth noticing.** For a smooth, the slice terms don't vanish, so if you report $\Delta_i f_i$ as the main-effect contrast and $\Delta_i\Delta_j f_{ij}$ as the interaction contrast, the pieces won't sum to $\eta(v)-\eta(b)$. The telescoping identity says where the missing pieces belong: the baseline-anchored main effect of $i$ is
+
+$$M_i \;=\; \Delta_i f_i \;+\; \sum_{j\neq i} \big[f_{ij}(v_i,b_j)-f_{ij}(b_i,b_j)\big] \;=\; \eta(v_i,\,b_{-i}) - \eta(b),$$
+
+the term's own contrast plus the baseline slice of every interaction smooth involving $i$ (for $j<i$ read $f_{ij}(x_i,x_j)$ as $f_{ji}(x_j,x_i)$; $b_{-i}$ holds every variable other than $i$ at its baseline value). The right-hand form says the same thing without term labels: move $x_i$ alone off the baseline and take the change in the whole linear predictor. With that definition, main effects and DiD interactions add exactly to the total contrast,
+
+$$\eta(v)-\eta(b) \;=\; \sum_i M_i \;+\; \sum_{i<j}\Delta_i\Delta_j f_{ij},$$
+
+for a model with main effects and pairwise interactions: expand $\eta(v)-\eta(b) = \sum_i\Delta_i f_i + \sum_{i<j}\big[f_{ij}(v_i,v_j)-f_{ij}(b_i,b_j)\big]$, telescope each pair, and collect the "move $i$ alone" slices under $i$. On the rate scale,
+
+$$\frac{\hat\mu(v)}{\hat\mu(b)} \;=\; \prod_i e^{M_i}\;\prod_{i<j} e^{\Delta_i\Delta_j f_{ij}},$$
+
+one one-way table per variable, one two-way table per interaction smooth, base rate $\hat\mu(b)$, and the product reproduces the model at every cell. The linear model makes the slice content visible: with $\eta = \beta_i x_i + \beta_j x_j + \beta_{ij}x_ix_j$ you get $M_i = (\beta_i + \beta_{ij}b_j)(v_i-b_i)$ and $\Delta_i\Delta_j f_{ij} = \beta_{ij}(v_i-b_i)(v_j-b_j)$; the main effect of $i$ is its slope at $x_j=b_j$, not $\beta_i$.
+
+This is unavoidable because mgcv's identifiability constraints, for `te()` and even for the "pure interaction" `ti()`, center the smooth over the observed covariates rather than at your point $b$. A `te()` smooth satisfies the single sum-to-zero constraint $\sum_{k=1}^n f_{ij}(x_{ik},x_{jk}) = 0$ over the data rows; a `ti()` smooth is built from marginal bases that are each centered over the observed values of their own variable, so its sample-average slices vanish, $\sum_k f_{ij}(x_{ik},x_j) = 0$ for every $x_j$ and $\sum_k f_{ij}(x_i,x_{jk}) = 0$ for every $x_i$. Neither makes the point slices $f_{ij}(b_i,\cdot)$ or $f_{ij}(\cdot,b_j)$ vanish — a `ti()` term is pure interaction in the averaged-over-the-sample sense, not in the slice-at-$b$ sense. The real design decision is whether you anchor the decomposition at a point or at a distribution; anchored at a point you get the cut-HDMR / anchored ANOVA, anchored at a product measure you get Hoeffding–Sobol. The DiD is simply what "pure interaction" means once you've anchored at a point. (Practically, `predict(type = "terms")` returns the pieces in mgcv's convention, and subtracting each term's value at $b$ re-anchors it. Or skip the term labels altogether and evaluate the whole predictor on the corner grid, as below.)
+
+**It generalizes by inclusion–exclusion.** For $S\subseteq\{1,\dots,p\}$ let $\nu(S)$ be the linear predictor with the variables in $S$ set to $v$ and the rest to $b$,
+
+$$\nu(S) \;=\; \eta(x^S), \qquad x^S_i = \begin{cases} v_i & i\in S\\ b_i & i\notin S,\end{cases}$$
+
+so $\nu(\emptyset)=\eta(b)$ and $\nu(\{1,\dots,p\})=\eta(v)$. The baseline-anchored contrasts are the Möbius inverse of $\nu$:
+
+$$m(S) \;=\; \sum_{T\subseteq S} (-1)^{|S|-|T|}\,\nu(T), \qquad\text{equivalently}\qquad \nu(S) \;=\; \sum_{T\subseteq S} m(T).$$
+
+In operator language $m(S) = \big(\prod_{i\in S}\Delta_i\big)\eta$ evaluated with every variable outside $S$ held at $b$. Spelled out:
+
+$$\begin{aligned}
+m(\{i\}) &= \nu(\{i\})-\nu(\emptyset) \;=\; M_i,\\
+m(\{i,j\}) &= \nu(\{i,j\}) - \nu(\{i\}) - \nu(\{j\}) + \nu(\emptyset),\\
+m(\{i,j,k\}) &= \nu(\{i,j,k\}) - \nu(\{i,j\}) - \nu(\{i,k\}) - \nu(\{j,k\}) + \nu(\{i\}) + \nu(\{j\}) + \nu(\{k\}) - \nu(\emptyset).
+\end{aligned}$$
+
+The singleton is exactly the slice-inclusive main effect above; the pair is the DiD, equal to $\Delta_i\Delta_j f_{ij}$ when no three-way term is present (with a three-way smooth $f_{ijk}$ it also absorbs that smooth's slice at $b_k$); the triple is the eight-term alternating sum for a three-way smooth. Two consequences come free. First, $m(S)=0$ whenever $v_i=b_i$ for some $i\in S$, so every table reads $1$ at the baseline; and $m(S)=0$ whenever no term of the model contains all of $S$, because $\prod_{i\in S}\Delta_i$ kills any function that misses one of the $x_i$ — in a main-effects-plus-pairwise model, $m(S)=0$ for $|S|\ge 3$, so there is at most one nonzero table per model term. Second, setting $S=\{1,\dots,p\}$ in the inverse formula gives
+
+$$\sum_{S\neq\emptyset} m(S) \;=\; \nu(\{1,\dots,p\}) - \nu(\emptyset) \;=\; \eta(v)-\eta(b), \qquad\text{so}\qquad \hat\mu(v) \;=\; \hat\mu(b)\prod_{S\neq\emptyset} e^{m(S)},$$
+
+and the whole scheme is consistent by construction. Every $\nu(S)$ is a single `predict()` call at a corner of the box $\prod_i\{b_i,v_i\}$, so the tables need only the fitted model and the baseline cell, and nothing about how the software labels or centers its terms.
+

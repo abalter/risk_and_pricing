@@ -8,7 +8,9 @@ format:
     slide-number: true
     transition: none
     html-math-method: mathjax
-   pdf: default
+    smaller: true
+  pdf: default
+  pptx: default
 ---
 
 ## Notation

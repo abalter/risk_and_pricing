@@ -26,19 +26,19 @@ execute:
   eval: false
 ---
 
+```{=html}
 <!-- Converted from the collaborative guide. Display equations, section/table/figure labels, citations and the
      diagram were converted mechanically. Inline math was converted by a heuristic: tokens with Greek letters,
      hats, bars, subscripts or set symbols were wrapped in $...$. Expect some over- and under-wrapping, and
      check every inline expression once. Code blocks are shown, not executed (eval: false). -->
-
-
+```
 
 ## Summary {#sec-summary}
 
-1. A coefficient is a property of the model. A marginal relativity, the normalized partial dependence, is an average of the model over some data.
-2. Fix every variable that interacts with the ones being measured, and the average equals the coefficient on any data; the data cancels. Fix fewer, and the average depends on which data was used.
-3. So, for rating factors, report the model's own tables, relative to a base cell, one per term with interactions included. They need no data and do not move when the book moves.
-4. If someone wants one number per level for a variable that interacts, that number is an average over some book and must say which book.
+1.  A coefficient is a property of the model. A marginal relativity, the normalized partial dependence, is an average of the model over some data.
+2.  Fix every variable that interacts with the ones being measured, and the average equals the coefficient on any data; the data cancels. Fix fewer, and the average depends on which data was used.
+3.  So, for rating factors, report the model's own tables, relative to a base cell, one per term with interactions included. They need no data and do not move when the book moves.
+4.  If someone wants one number per level for a variable that interacts, that number is an average over some book and must say which book.
 
 Everything that follows elaborates one of these four points and changes none of them. @sec-three-operations fixes the vocabulary. @sec-rating-table and the sections on gauge, estimation, and the mgcv recipe are point 3. @sec-familiar, the worked example, and @sec-right-tool are points 2 and 4. @sec-misspecified is the one caveat, on points 1 and 3. The notation, the operators, and the proof of point 2 are in the appendices.
 
@@ -51,7 +51,7 @@ Everything that follows elaborates one of these four points and changes none of 
 Every relativity in this guide is built from one of three operations on a model $\hat{\mu}$ and a data set, followed by the same ratio to a base value. The operations differ only in what happens to the variables other than the ones being measured.
 
 | Operation | The other variables | Operator form | Sum form | Word used here | Also called |
-| --- | --- | --- | --- | --- | --- |
+|------------|------------|------------|------------|------------|------------|
 | Filter | whatever the selected rows have | $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{F}_S(z)\, D$ | $\sum_{i:\, x_{i,S} = z} w_i\, \hat{\mu}(x_i) \big/ \sum_{i:\, x_{i,S} = z} w_i$ | **conditional** (one-way) | one-way relativity; Apley & Zhu's "M-plot" (M for marginal, the reverse of the statistics usage) |
 | Set and average | keep each row's own values and are averaged over | $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, D$ | $\sum_i w_i\, \hat{\mu}(z_S; x_{i,\bar{S}}) \big/ \sum_i w_i$ | **marginal** | Friedman's "partial dependence" (PDP); the econometric average marginal effect |
 | Set and hold | held at the base cell | $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\} = \hat{\mu}(z_S; x^0_{\bar{S}})$ | no sum: one evaluation | **partial** | the GLM coefficient relativity; pricing shop talk's "partial relativity"; the econometric partial effect at a representative point; the anchored decomposition |
@@ -98,7 +98,7 @@ Two things follow for practice. "Report the coefficients" means report every tab
 Each familiar relativity is one of the three operations over some set, against some population. The table says which operation, which population, and whether the population cancels.
 
 | Relativity | Operation | Set | Reference population $P$ | $P$-free? |
-| --- | --- | --- | --- | --- |
+|---------------|---------------|---------------|---------------|---------------|
 | Conditional (one-way) actual: exposure-weighted mean of $y$ over the rows with $x_j = z$ | filter | $\{j\}$ | the rows that have $x_j = z$: a different population at each level | No, and the per-level populations differ, which is confounding |
 | Conditional (one-way) fitted: the same with $\hat{y}$ | filter | $\{j\}$ | same | No, same reason |
 | Marginal relativity on the training data | set and average | $\{j\}$ | the training data | Only if $j$ is in no interaction |
@@ -140,7 +140,7 @@ $$ {#eq-worked-example-2}
 The two conditional relativities are blended with weights $(1 - p)$ and $p \cdot \exp(\beta_B)$: frequency times base prediction, because the relativity is a ratio of averages. With $\beta_A = 0.5$, $\beta_B = 0.3$, $\gamma = 0.4$:
 
 | $B$ mix, $p$ | $r_A(a_1; p)$ | What it is |
-| --- | --- | --- |
+|------------------------|------------------------|------------------------|
 | 0 | 1.65 | $\exp(\beta_A)$: the partial relativity, the treatment-contrast main effect |
 | 0.5 | 2.11 | the marginal relativity on a book that is half $b_1$ |
 | 0.9 | 2.40 | the marginal relativity on a book that is 90% $b_1$ |
@@ -152,7 +152,7 @@ Set $\gamma = 0$ and every row reads 1.65. That is the lemma in one table: the n
 
 The same in R. The three operators are three one-line functions, and the three relativities are then the same pipeline with one verb or one data set changed; the "fix fewer" and "fix the closure" versions differ by one `T_j` call:
 
-```r
+``` r
 library(dplyr)
 
 # The three operators. T_j keeps factor levels so predict() still recognizes the column;
@@ -208,8 +208,8 @@ The coefficients depend on the data-generating process; the marginal relativity 
 
 "Gauge" here means the convention that decides which cell every table reads 1.0 at. The split of $\hat{\mu}$ into tables is unique only up to that convention: any function of $a$ alone can be moved between $\beta_{AB}$ and $\beta_A$, any function of $b$ alone between $\beta_{AB}$ and $\beta_B$, and constants into $\beta_0$, without changing $\hat{\mu}$. Software fixes the freedom by a default, and each default is a hidden choice of population.
 
-- Treatment contrasts (R's default for factors) force the interaction table to be 1 along the base row and base column. The main-effect table is then the effect at the base levels of the other variables.
-- mgcv constrains each smooth to sum to zero over the observed covariate values in the training data, so the intercept and the level of every smooth are set by the training population. `ti()` splits a tensor product into mains and a pure interaction under the same training-data constraints; `te()` keeps the whole joint surface in one term.
+-   Treatment contrasts (R's default for factors) force the interaction table to be 1 along the base row and base column. The main-effect table is then the effect at the base levels of the other variables.
+-   mgcv constrains each smooth to sum to zero over the observed covariate values in the training data, so the intercept and the level of every smooth are set by the training population. `ti()` splits a tensor product into mains and a pure interaction under the same training-data constraints; `te()` keeps the whole joint surface in one term.
 
 The consequence is that coefficients and intercepts move on every refit, even when the model is correctly specified and $\hat{\mu}$ has not changed. The convention moved, not the model.
 
@@ -239,7 +239,7 @@ $$ {#eq-misspecified-1}
 
 with $q_b$ the sample frequencies of $B$ and $\mu_{ab}$ the true cell means. That is the true model's marginal relativity on the training mix. The misspecified main effect is a marginal relativity wearing coefficient clothing.
 
-```r
+``` r
 exp(coef(glm(y ~ A + B, data = D,  family = poisson)))["Aa1"]   # 2.11
 exp(coef(glm(y ~ A + B, data = Dp, family = poisson)))["Aa1"]   # 2.40
 ```
@@ -248,9 +248,9 @@ Compare the table in @sec-worked-example: same numbers, now produced by refittin
 
 **Implications.**
 
-- A rating model that omits interactions on purpose has coefficients standardized to the training mix. They drift on refit as the book drifts. That is the mechanism, not noise.
-- Marginal relativities of a misspecified model do not help. A partial dependence is computed from $\hat{\mu}$ and cannot restore a term $\hat{\mu}$ lacks. If the fitted model is additive on the log scale, its marginal relativities equal its partial relativities for every $P$.
-- The levers are the model or the fitting weights. Add the missing term, which a flexible model's partial-dependence plots are a good way to find, or fit under weights that match the expected future mix. The summary is never the lever.
+-   A rating model that omits interactions on purpose has coefficients standardized to the training mix. They drift on refit as the book drifts. That is the mechanism, not noise.
+-   Marginal relativities of a misspecified model do not help. A partial dependence is computed from $\hat{\mu}$ and cannot restore a term $\hat{\mu}$ lacks. If the fitted model is additive on the log scale, its marginal relativities equal its partial relativities for every $P$.
+-   The levers are the model or the fitting weights. Add the missing term, which a flexible model's partial-dependence plots are a good way to find, or fit under weights that match the expected future mix. The summary is never the lever.
 
 ## Estimation: credibility and intervals {#sec-estimation}
 
@@ -270,7 +270,7 @@ Two consequences for the table. The base level must carry heavy exposure, becaus
 
 Every table below is a ratio of $\hat{\mu}$ on a grid anchored at the base cell, so the recipe is exact for any term structure and never touches the software's internal term labels. It works unchanged for a `glm`.
 
-```r
+``` r
 library(mgcv); library(dplyr)
 # F_j, T_j, avg and rel as defined in the worked example. One more operator builds a grid:
 T_grid <- function(x0, var, zs) x0[rep(1, length(zs)), , drop = FALSE] |> T_j(var, zs)   # T over a grid: one row per z
@@ -331,10 +331,10 @@ marginal_age / marginal_age[match(4, 0:14)]     # moves with P; r_age does not
 
 Notes.
 
-- The base cell's values must appear in every grid they anchor (age 4 in the age grid, weight 25 in the weight grid).
-- For a variable that sits in an interaction, its one-way table is the profile at base and the rating needs the interaction table as well: the age rating at a cell is `r_age` × `r_aw[age, weight]`. Deliver both, never the one-way alone.
-- `predict(type = "terms")` shows the same contributions in mgcv's own sum-to-zero convention and is useful for inspection; the subtraction against the base cell is the re-expression relative to $x^0$.
-- `vcov(m, unconditional = TRUE)` includes smoothing-parameter uncertainty. The same draw-through-`lpmatrix` pattern gives intervals for the two-way table and the base rate.
+-   The base cell's values must appear in every grid they anchor (age 4 in the age grid, weight 25 in the weight grid).
+-   For a variable that sits in an interaction, its one-way table is the profile at base and the rating needs the interaction table as well: the age rating at a cell is `r_age` × `r_aw[age, weight]`. Deliver both, never the one-way alone.
+-   `predict(type = "terms")` shows the same contributions in mgcv's own sum-to-zero convention and is useful for inspection; the subtraction against the base cell is the re-expression relative to $x^0$.
+-   `vcov(m, unconditional = TRUE)` includes smoothing-parameter uncertainty. The same draw-through-`lpmatrix` pattern gives intervals for the two-way table and the base rate.
 
 ## When marginal relativities are the right tool {#sec-right-tool}
 
@@ -342,10 +342,10 @@ Notes.
 
 A marginal relativity is a summary of a model over a book. It answers a question about that book, and it is the right tool when that is the question and the book is named.
 
-- **Reading a model that has no terms.** A gradient-boosted model has no $\beta_t$ to tabulate. Its one- and two-dimensional partial dependence on a named reference set is how you see what it learned, and the double ratio of a two-dimensional partial dependence exposes an interaction a GLM could then include as a term.
-- **Reporting an average effect.** "What does age do, on average, across our book?" is a question about a population, and the marginal relativity of age on that book answers it. Label it with the book and the as-of date.
-- **Stress-testing.** Partial dependence on a synthetic grid probes how $\hat{\mu}$ behaves away from the training support. Treat the output as a sensitivity check, not a relativity; the model was never validated there.
-- **Detecting interactions, with one caveat.** The double ratio of a two-dimensional partial dependence, the H-statistic, and Monograph 16's permutation score all respond to an $A \times B$ interaction, and all three also respond when $A$ and $B$ each interact with a third variable $C$ and not with each other, because averaging over a shared partner manufactures a log-scale $A \times B$ effect (@sec-lemma has a numerical example). Before adding $A \times B$ to a GLM on that evidence, hold $C$ at base and recompute: a real $A \times B$ survives, a manufactured one vanishes.
+-   **Reading a model that has no terms.** A gradient-boosted model has no $\beta_t$ to tabulate. Its one- and two-dimensional partial dependence on a named reference set is how you see what it learned, and the double ratio of a two-dimensional partial dependence exposes an interaction a GLM could then include as a term.
+-   **Reporting an average effect.** "What does age do, on average, across our book?" is a question about a population, and the marginal relativity of age on that book answers it. Label it with the book and the as-of date.
+-   **Stress-testing.** Partial dependence on a synthetic grid probes how $\hat{\mu}$ behaves away from the training support. Treat the output as a sensitivity check, not a relativity; the model was never validated there.
+-   **Detecting interactions, with one caveat.** The double ratio of a two-dimensional partial dependence, the H-statistic, and Monograph 16's permutation score all respond to an $A \times B$ interaction, and all three also respond when $A$ and $B$ each interact with a third variable $C$ and not with each other, because averaging over a shared partner manufactures a log-scale $A \times B$ effect (@sec-lemma has a numerical example). Before adding $A \times B$ to a GLM on that evidence, hold $C$ at base and recompute: a real $A \times B$ survives, a manufactured one vanishes.
 
 **Effect sizes.** A partial dependence fixes two different problems only one of which is widely known. Intervening on a variable instead of filtering on it removes confounding; that is the well-known one, and it is why marginal relativities are preferred to conditional (one-way) relativities. It does not remove interaction blending: a one-variable partial dependence on $A$ lets $A$'s interaction partners move, and what comes back is a mix-weighted blend of $A$'s conditional effects, not $A$'s coefficient. So the one-variable marginal relativity is the effect size for a variable in no interaction, on any data; for a variable in an interaction, hold its partners at base (the tool has to be told to) or report the two-way table. Letting the partners move is where "the marginal relativities changed when we refit" comes from: the book moved, and the number followed it.
 
@@ -357,23 +357,23 @@ One rule covers every marginal relativity that leaves the team: the reference po
 
 **Deliver**
 
-- [ ] One table per term, interactions included, re-gauged to a named base cell with heavy exposure
-- [ ] The base rate: the fitted rate at the base cell, per unit exposure
-- [ ] Intervals on each table from posterior draws
-- [ ] The model formula and the base cell, in the same document as the tables
+-   [ ] One table per term, interactions included, re-gauged to a named base cell with heavy exposure
+-   [ ] The base rate: the fitted rate at the base cell, per unit exposure
+-   [ ] Intervals on each table from posterior draws
+-   [ ] The model formula and the base cell, in the same document as the tables
 
 **Label**
 
-- [ ] Any marginal relativity: the reference population and its as-of date
-- [ ] Any one-way exhibit: "diagnostic, not a rating factor"
-- [ ] Any main-effect table for a variable that interacts: "profile at base; rate with the interaction table"
+-   [ ] Any marginal relativity: the reference population and its as-of date
+-   [ ] Any one-way exhibit: "diagnostic, not a rating factor"
+-   [ ] Any main-effect table for a variable that interacts: "profile at base; rate with the interaction table"
 
 **Avoid**
 
-- [ ] A main-effect table alone when the model has an interaction on that variable
-- [ ] A two-way partial-dependence table over $(A, B)$ when some term overlaps $\{A, B\}$ partway (a $B \times C$ term, say); deliver the term tables instead
-- [ ] Marginal relativities of a misspecified model offered as a correction for the misspecification; fix the model or reweight the fit
-- [ ] A base level chosen by habit rather than exposure
+-   [ ] A main-effect table alone when the model has an interaction on that variable
+-   [ ] A two-way partial-dependence table over $(A, B)$ when some term overlaps $\{A, B\}$ partway (a $B \times C$ term, say); deliver the term tables instead
+-   [ ] Marginal relativities of a misspecified model offered as a correction for the misspecification; fix the model or reweight the fit
+-   [ ] A base level chosen by habit rather than exposure
 
 ## Where this sits in the literature {#sec-literature}
 
@@ -387,7 +387,7 @@ Every piece of the argument exists somewhere. No source found states it as a uni
 
 **Machine-learning interpretability.** The mechanism is established in functional-ANOVA vocabulary. @friedman2001greedy, @apley2020ale and @zhao2021causal state that a partial dependence recovers a component exactly when the function splits additively across the chosen set, which is the no-partway-overlap condition in another language. @herbinger2022repid work the model $\beta_1 x_1 + \beta_2 x_2 + \beta_{12} x_1 x_2$ and show the one-way partial dependence equals $\beta_1$ only because the partner has mean zero. @lengerich2020purifying show that the split between main effects and interactions in a GAM is not identified without a data distribution and that effects change sign across distributions; @hiabu2023unifying make "partial dependence equals the main effect" an explicit choice of identification rather than a fact. @hooker2007generalized is the source for the population dependence of averaged decompositions, and @friedman2008rule build the H-statistic from $\mathrm{PD}_{AB} - \mathrm{PD}_A - \mathrm{PD}_B$, the additive form of the double ratio.
 
-**Anchored decompositions and econometrics.** Holding the other variables at a reference point instead of averaging over them is the anchored (cut-HDMR) decomposition of numerical analysis: @kuo2010decompositions give the general Möbius formula and the vanishing property behind the disjoint-terms result, @rahman2014approximation states that the anchored components need no probability measure while the averaged ones do, and @mase2019shapley and @gao2024counterfactual carry the same construction into Shapley explanations, naming the alternating sum as Möbius inversion. In econometrics the same distinction is the average marginal effect versus the marginal effect at representative values, and [Ai & Norton (2003)](<https://doi.org/10.1016/S0165-1765(03)00032-6>) is the standard reference that the interaction effect in a nonlinear model is not the interaction coefficient. None of these connects the anchored decomposition to treatment-contrast GLM coefficients or to rating tables.
+**Anchored decompositions and econometrics.** Holding the other variables at a reference point instead of averaging over them is the anchored (cut-HDMR) decomposition of numerical analysis: @kuo2010decompositions give the general Möbius formula and the vanishing property behind the disjoint-terms result, @rahman2014approximation states that the anchored components need no probability measure while the averaged ones do, and @mase2019shapley and @gao2024counterfactual carry the same construction into Shapley explanations, naming the alternating sum as Möbius inversion. In econometrics the same distinction is the average marginal effect versus the marginal effect at representative values, and [Ai & Norton (2003)](https://doi.org/10.1016/S0165-1765(03)00032-6) is the standard reference that the interaction effect in a nonlinear model is not the interaction coefficient. None of these connects the anchored decomposition to treatment-contrast GLM coefficients or to rating tables.
 
 **What this guide adds.** Monograph 16 stops at "the GLM has coefficients, the black box has a portfolio average," and Lindholm & Palmquist supply the algebra for why. This guide answers what both leave open, stated for models built from named terms: a one-way marginal relativity equals the main-effect coefficient, the partial relativity, if and only if the variable is in no interaction; the per-term recipe is exact if and only if the interaction terms are pairwise disjoint; when terms overlap, holding the partners at base, which is the treatment-contrast definition, returns the coefficient on any book; a marginal relativity that moves between refits is the sign that too few variables were held, not that the model is unstable; and an interaction coefficient survives averaging exactly when the averaged-over variables leave no full-order contrast, with averaging over a shared partner able to manufacture an interaction the model does not have. Each step is a corollary of results above. We are not aware of the combination, or of its consequence for which relativities to put in a rate filing, in the pricing literature.
 
@@ -434,15 +434,15 @@ $$ {#eq-notation-2}
 
 **Operators.** Three operators make every quantity in the guide a one-line expression that reads as code.
 
-- $\mathbb{F}_S(z)\, D$ keeps the rows of $D$ with $x_S = z$ (filter). In code: `filter()`.
-- $\mathbb{T}_S(z)\, D$ overwrites $x_S$ with $z$ in every row of $D$ and leaves exposure and every other column untouched (set). In code: `mutate()`.
-- $\boldsymbol{\Sigma}_w\, f\, D$ is the exposure-weighted mean of $f$ over the rows of $D$, $\sum_i w_i f(x_i) / \sum_i w_i$ (average). In code: `weighted.mean()`. $E_P[g]$ in the formulas below is this operator applied to $P$, $\boldsymbol{\Sigma}_w\, g\, P$, written as an expectation when the data set is fixed.
+-   $\mathbb{F}_S(z)\, D$ keeps the rows of $D$ with $x_S = z$ (filter). In code: `filter()`.
+-   $\mathbb{T}_S(z)\, D$ overwrites $x_S$ with $z$ in every row of $D$ and leaves exposure and every other column untouched (set). In code: `mutate()`.
+-   $\boldsymbol{\Sigma}_w\, f\, D$ is the exposure-weighted mean of $f$ over the rows of $D$, $\sum_i w_i f(x_i) / \sum_i w_i$ (average). In code: `weighted.mean()`. $E_P[g]$ in the formulas below is this operator applied to $P$, $\boldsymbol{\Sigma}_w\, g\, P$, written as an expectation when the data set is fixed.
 
 Expressions are read right to left, like function composition: $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \mathbb{F}_k(w)\, D$ keeps the rows with $x_k = w$, sets $x_S$ to $z$, scores with $\hat{\mu}$, and averages. A single cell is a one-row data set, so $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\} = \hat{\mu}(z_S; x^0_{\bar{S}})$ with nothing left to average. Filter and set on different variables commute; a second set on the same variable overwrites the first; a filter after a set on the same variable keeps everything or nothing. The three operations of @sec-three-operations are $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{F}_S(z)\, P$ (conditional), $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, P$ (marginal), and $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\}$ (partial); each relativity is the ratio of its operation at $z$ to the same operation at $z^0$.
 
 In R, with dplyr, the three operators are three lines; `T_j` carries the one fiddly detail, keeping factor levels so that `predict()` still recognizes the column, and `avg` reads the weight from a column so that filtered rows take their weights with them:
 
-```r
+``` r
 F_j <- function(D, var, lv) filter(D, .data[[var]] %in% lv)                        # F
 T_j <- function(D, var, z)  mutate(D, "{var}" := if (is.factor(.data[[var]]))       # T
                                         factor(z, levels = levels(.data[[var]])) else z)
@@ -463,8 +463,8 @@ The row index is summed out; PD is a function of $z$ alone. $S$ says which varia
 
 Setting the variables in $S$ to $z$ is not the same as selecting the rows that already have those values. The two operations differ by one word, and that difference is the whole distinction between a conditional (one-way) relativity and a marginal one, and holding instead of averaging is the third column:
 
-| | Filter (conditional) | Set and average (marginal) | Set and hold (partial) |
-| --- | --- | --- | --- |
+|   | Filter (conditional) | Set and average (marginal) | Set and hold (partial) |
+|------------------|------------------|------------------|------------------|
 | Operator form | $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{F}_S(z)\, P$ | $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, P$ | $\boldsymbol{\Sigma}_w\, \hat{\mu}\, \mathbb{T}_S(z)\, \{x^0\}$ |
 | Expression | $E_P[\hat{\mu}(x) \mid x_S = z]$ | $E_P[\hat{\mu}(z_S; x_{\bar{S}})]$ | $\hat{\mu}(z_S; x^0_{\bar{S}})$ |
 | Reads as | the model, averaged over the rows that already have $x_S = z$ | the model with $x_S$ set to $z$ in every row, averaged over all rows | the model at the base cell with $x_S$ set to $z$ |
@@ -501,9 +501,9 @@ $$ {#eq-lemma-1}
 
 Each term $g_t$ depends only on the coordinates of $x$ in its own set $t$. A ratio of a term to its value at base is a difference of coefficients on the log scale, $\ln[g_t(z_t) / g_t(z^0_t)] = \beta_t(z_t) - \beta_t(z^0_t)$, and under treatment contrasts $\beta_t(z^0_t) = 0$, so the ratio is $e^{\beta_t(z_t)}$ itself. Every ratio of averages below is to be read that way: as a statement about coefficient differences.
 
-**Fix the variables in $T$.** Write $(z_T;\, x_{\bar{T}})$ for the vector in which the variables in $T$ are fixed at the values $z$ and the rest, $\bar{T} = V \setminus T$, keep their own values from the row.
+**Fix the variables in** $T$. Write $(z_T;\, x_{\bar{T}})$ for the vector in which the variables in $T$ are fixed at the values $z$ and the rest, $\bar{T} = V \setminus T$, keep their own values from the row.
 
-**Partition the terms relative to $T$.** Let $Q = M \cap \mathcal{P}(T)$: the terms the model has on subsets of $T$, which means $T$ itself, the lower-order terms on its variables, and $\emptyset$ (the intercept). Every other $t \in M$ is either disjoint from $T$ or overlaps it partway, so $M$ splits into three families:
+**Partition the terms relative to** $T$. Let $Q = M \cap \mathcal{P}(T)$: the terms the model has on subsets of $T$, which means $T$ itself, the lower-order terms on its variables, and $\emptyset$ (the intercept). Every other $t \in M$ is either disjoint from $T$ or overlaps it partway, so $M$ splits into three families:
 
 $$
 \begin{aligned}
@@ -531,7 +531,7 @@ $$ {#eq-lemma-4}
 
 **If.** With $Q''$ empty, $G_{Q''} \equiv 1$, and the second factor is $E_P[G_{Q'}] / E_P[G_{Q'}] = 1$. The ratio is the product of the terms in $Q$ relative to base: the joint table for the variables in $T$. On the log scale it is $\sum_{t \in Q} [\beta_t(z_t) - \beta_t(z^0_t)]$, the sum of the coefficient differences of every term inside $T$. $P$ has cancelled, and every term in $Q'$ with it. This holds for every $P$: the training data, a different book, a synthetic grid, or a single row, which is why the recipe in the main body can hold everything at the base cell and use no data at all. The mix never enters. It enters only when $Q''$ is not empty, where the second factor is a weighted average over $P$'s rows and the weights are the mix; there the training data has no special status and is simply the mix that happens to be at hand.
 
-**Isolating $g_T$ from the joint table.** Write $R_T(z_T)$ for the ratio above: the joint table for $T$'s variables relative to base, which is itself a marginal relativity over $T$. It contains $g_T$ and the terms on proper subsets of $T$, so getting $g_T$ out means dividing those out. For the orders that occur in a rating model:
+**Isolating** $g_T$ from the joint table. Write $R_T(z_T)$ for the ratio above: the joint table for $T$'s variables relative to base, which is itself a marginal relativity over $T$. It contains $g_T$ and the terms on proper subsets of $T$, so getting $g_T$ out means dividing those out. For the orders that occur in a rating model:
 
 Main effect, $T = \{A\}$. There is nothing to divide out; the marginal relativity is the term, and its log is the coefficient difference:
 
@@ -574,7 +574,7 @@ $$ {#eq-lemma-8}
 
 a function of the fixed values alone plus a function of the moving values alone. A term that overlaps $T$ partway and splits that way carries no content that actually crosses the boundary of $T$: it could be rewritten as terms on smaller sets, some inside $T$ and some disjoint from it. So the only-if rests on one assumption: each interaction term in $M$ depends jointly on all of its variables and is not a sum of terms on smaller sets. That is what a fixed gauge (@sec-gauge) enforces, and it is an assumption about how the terms are written, not about the model.
 
-**When $Q''$ is not empty: pin its outside variables at base.** The $Q''$ factor is the only part of the decomposition that mixes $z$ and $x$, and the fix is to stop those coordinates from moving. Let
+**When** $Q''$ is not empty: pin its outside variables at base. The $Q''$ factor is the only part of the decomposition that mixes $z$ and $x$, and the fix is to stop those coordinates from moving. Let
 
 $$
 C = \bigcup_{t \in Q''} (t \setminus T)
@@ -625,7 +625,7 @@ What a different mix does: nothing, once the $Q''$ terms' outside variables are 
 **Five models, classified.** For each model: the smallest sets whose marginal relativity is population-free, and the sets whose marginal relativity depends on the mix, with the term that overlaps them partway.
 
 | Model terms | Interaction terms | Smallest sets whose PD is population-free | Sets whose PD depends on the mix, and the term that overlaps them partway | Interactions pairwise disjoint? |
-| --- | --- | --- | --- | --- |
+|---------------|---------------|---------------|---------------|---------------|
 | $A$, $B$, $AB$, $CDE$ | $AB$, $CDE$ | $\{A,B\}$; $\{C,D,E\}$ | $\{A\}$, $\{B\}$: $AB$ | Yes |
 | $A$, $B$, $AB$, $CD$, $CDE$ | $AB$, $CD$, $CDE$ | $\{A,B\}$; $\{C,D,E\}$ | $\{C,D\}$: $CDE$ (nested); $\{A\}$, $\{B\}$: $AB$ | No: $CD \subset CDE$ |
 | $A$, $B$, $AB$, $CD$, $BCE$ | $AB$, $CD$, $BCE$ | $\{A,B,C,D,E\}$ | every smaller set: $AB$ and $BCE$ share $B$, $CD$ and $BCE$ share $C$, so the terms chain together | No |
@@ -640,23 +640,23 @@ In the first two models, fixing $A$ and $B$ together, or $C$, $D$ and $E$ togeth
 
 *What the manuscript needs beyond this guide. Ticked items are done in the guide and need only transferring.*
 
-- [ ] Structure: Introduction (the four points and the vocabulary clash) · Objects, operators, catalogue · Term-based models and the decomposition · Interactions · Discussion; proofs and code in an appendix.
-- [ ] A real-data example with a mix shift and reproducible code. freMTPL2 is the convention (Lorentzen & Mayer, Henckaerts et al., Lindholm & Palmquist all use it), which also allows direct comparison with their partial-dependence plots.
-- [ ] The additive and general-link section: identity link with sums and differences in place of products and ratios; the decomposition lives on the link scale, so average the linear predictor for coefficient recovery under any link; on the response scale it is exact only for the log and identity links (Ai & Norton for logit).
-- [x] The vocabulary concordance table: conditional / marginal / partial against Friedman, Apley & Zhu, econometrics, and pricing shop talk (@sec-three-operations).
-- [ ] Check the Apley & Zhu "M-plot" usage against their paper before the table goes in the manuscript.
-- [x] The vocabulary pass across this guide: marginal relativity $\bar{r}_S(z; P)$ for set-and-average, partial relativity $r_t(z)$ for set-and-hold, conditional for one-way.
-- [ ] The same vocabulary pass across the two companion notes, which use "partial relativity" for the marginal operation and "base-risk relativity" for the partial one.
-- [x] The operator notation $\mathbb{F}$, $\mathbb{T}$, $\boldsymbol{\Sigma}_w$ defined (@sec-notation) and used in the concordance and comparison tables. The code samples are rewritten with `F_j`, `T_j`, `avg` as primitives (worked example, recipe, @sec-notation); the margin division and the `lpmatrix` intervals stay as array algebra. Still open: $E_P[\cdot]$ remains as shorthand for $\boldsymbol{\Sigma}_w\, {\cdot}\, P$ in the @sec-lemma formulas; decide whether to replace it.
-- [ ] The full catalogue table from the operator note (ICE, stratified, restricted, ALE step, observed one-ways) with operator form, sum form, and "what question it answers."
-- [x] A definition of "coefficient" for GAM smooths and penalized terms (@sec-rating-table).
-- [x] The misspecification caveat as a short section, separating the lemma, which holds for any fitted $\hat{\mu}$, from refit stability, which needs correct specification.
-- [x] A full read of Lindholm & Palmquist §2.1 with equations cited: Eq. (8)–(11) and p. 679.
-- [x] CAS Monograph 16 §9.3–9.4 read and cited as the nearest practical prior work.
-- [x] The "which coefficients survive averaging" result ($\Delta_T h_P = 0$), with the $AB + BC$ example and the $ac + bc$ counterexample (@sec-lemma). Optional: characterize the $P$-dependent sufficient conditions.
-- [x] The alternating product as the finite-difference mixed partial derivative of $\ln \hat{\mu}$ (@sec-lemma). For the manuscript, cut the line integral, elasticity, ALE, and derivative-ICE material from the calculus note.
-- [x] The spurious-interaction caveat for interaction detection (two-way PDP, H-statistic, Monograph 16's permutation score) when two variables share a partner (@sec-right-tool).
-- [x] When the marginal relativity is the right object: average effect over a named book; models without terms (@sec-right-tool).
-- [x] The contribution stated plainly, "we are not aware of," in the Summary and in @sec-literature.
-- [ ] Cut from this paper: credibility and shrinkage (kept in the guide's Estimation section as a standalone note for colleagues), posterior intervals (one sentence), the dropped-variable projection for pricing, ALE beyond a mention.
-- [ ] Venue: *Variance* or *Annals of Actuarial Science*; both take methodological tutorials with a result in them.
+-   [ ] Structure: Introduction (the four points and the vocabulary clash) · Objects, operators, catalogue · Term-based models and the decomposition · Interactions · Discussion; proofs and code in an appendix.
+-   [ ] A real-data example with a mix shift and reproducible code. freMTPL2 is the convention (Lorentzen & Mayer, Henckaerts et al., Lindholm & Palmquist all use it), which also allows direct comparison with their partial-dependence plots.
+-   [ ] The additive and general-link section: identity link with sums and differences in place of products and ratios; the decomposition lives on the link scale, so average the linear predictor for coefficient recovery under any link; on the response scale it is exact only for the log and identity links (Ai & Norton for logit).
+-   [x] The vocabulary concordance table: conditional / marginal / partial against Friedman, Apley & Zhu, econometrics, and pricing shop talk (@sec-three-operations).
+-   [ ] Check the Apley & Zhu "M-plot" usage against their paper before the table goes in the manuscript.
+-   [x] The vocabulary pass across this guide: marginal relativity $\bar{r}_S(z; P)$ for set-and-average, partial relativity $r_t(z)$ for set-and-hold, conditional for one-way.
+-   [ ] The same vocabulary pass across the two companion notes, which use "partial relativity" for the marginal operation and "base-risk relativity" for the partial one.
+-   [x] The operator notation $\mathbb{F}$, $\mathbb{T}$, $\boldsymbol{\Sigma}_w$ defined (@sec-notation) and used in the concordance and comparison tables. The code samples are rewritten with `F_j`, `T_j`, `avg` as primitives (worked example, recipe, @sec-notation); the margin division and the `lpmatrix` intervals stay as array algebra. Still open: $E_P[\cdot]$ remains as shorthand for $\boldsymbol{\Sigma}_w\, {\cdot}\, P$ in the @sec-lemma formulas; decide whether to replace it.
+-   [ ] The full catalogue table from the operator note (ICE, stratified, restricted, ALE step, observed one-ways) with operator form, sum form, and "what question it answers."
+-   [x] A definition of "coefficient" for GAM smooths and penalized terms (@sec-rating-table).
+-   [x] The misspecification caveat as a short section, separating the lemma, which holds for any fitted $\hat{\mu}$, from refit stability, which needs correct specification.
+-   [x] A full read of Lindholm & Palmquist §2.1 with equations cited: Eq. (8)–(11) and p. 679.
+-   [x] CAS Monograph 16 §9.3–9.4 read and cited as the nearest practical prior work.
+-   [x] The "which coefficients survive averaging" result ($\Delta_T h_P = 0$), with the $AB + BC$ example and the $ac + bc$ counterexample (@sec-lemma). Optional: characterize the $P$-dependent sufficient conditions.
+-   [x] The alternating product as the finite-difference mixed partial derivative of $\ln \hat{\mu}$ (@sec-lemma). For the manuscript, cut the line integral, elasticity, ALE, and derivative-ICE material from the calculus note.
+-   [x] The spurious-interaction caveat for interaction detection (two-way PDP, H-statistic, Monograph 16's permutation score) when two variables share a partner (@sec-right-tool).
+-   [x] When the marginal relativity is the right object: average effect over a named book; models without terms (@sec-right-tool).
+-   [x] The contribution stated plainly, "we are not aware of," in the Summary and in @sec-literature.
+-   [ ] Cut from this paper: credibility and shrinkage (kept in the guide's Estimation section as a standalone note for colleagues), posterior intervals (one sentence), the dropped-variable projection for pricing, ALE beyond a mention.
+-   [ ] Venue: *Variance* or *Annals of Actuarial Science*; both take methodological tutorials with a result in them.

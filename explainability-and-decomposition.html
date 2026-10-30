@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Explainability and Decomposition</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="explainability-and-decomposition_files/libs/clipboard/clipboard.min.js"></script>
+<script src="explainability-and-decomposition_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="explainability-and-decomposition_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="explainability-and-decomposition_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="explainability-and-decomposition_files/libs/quarto-html/popper.min.js"></script>
+<script src="explainability-and-decomposition_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="explainability-and-decomposition_files/libs/quarto-html/anchor.min.js"></script>
+<link href="explainability-and-decomposition_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="explainability-and-decomposition_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="explainability-and-decomposition_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="explainability-and-decomposition_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="explainability-and-decomposition_files/libs/bootstrap/bootstrap-07f16892f9593dec5d424086e903c39b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Explainability and Decomposition</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="rating-factors-in-insurance" class="level1">
+<h1>Rating Factors in Insurance</h1>
+<p>Insurance is a gamble. Intuitively, this means calculating the risk or cost of a policy relative to a base level. This has led to the concept of rating tables filled with “risk relativities”, which are so fundamental to the industry that they are regulated and need to be filed with the state.</p>
+<p>The traditional way of calculating relativities was directly from data on past losses.</p>
+<p>Example: One-way relativity for variable <span class="math inline">\(i\)</span> at value <span class="math inline">\(v\)</span> in a book of records <span class="math inline">\(k = 1, \dots, n\)</span> with observed loss cost <span class="math inline">\(y_k\)</span> and exposure <span class="math inline">\(ee_k\)</span>:</p>
+<p><span class="math display">\[
+R_i(v) \;=\; \frac{\bar{y}_i(v)}{\bar{y}}
+\;=\; \frac{\displaystyle\sum_{k:\, x_{ik} = v} ee_k\, y_k \Big/ \sum_{k:\, x_{ik} = v} ee_k}{\displaystyle\sum_{k} ee_k\, y_k \Big/ \sum_{k} ee_k}
+\]</span></p>
+<p>the exposure-weighted average loss cost among records with <span class="math inline">\(x_i = v\)</span>, divided by the same average over the whole book. Relative to a base level <span class="math inline">\(b\)</span> instead of the book average, use <span class="math inline">\(\bar{y}_i(v) / \bar{y}_i(b)\)</span>.</p>
+<p>It was always understood that one-way relativities are confounded by relationships between variables: the relativity for one variable depends on how the other variables happen to be distributed in the book.</p>
+<p>Along the way, “minimum bias” methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model controls for the other variables, the model coefficients represent the effect of each variable taken <em>ceteris paribus</em>, all other things being equal.</p>
+<p>It turns out there are some silent rules:</p>
+<ol type="1">
+<li>If there are no interactions in the model, the coefficients can be used directly as rating factors, but only <em>directly</em> under treatment (dummy) coding, where the base level of every variable is coded as <span class="math inline">\(0\)</span>.</li>
+<li>Under any other coding the factors are still recoverable, but as fixed combinations of coefficients rather than single coefficients, and the intercept is no longer the base rate.</li>
+<li>In the presence of interactions the requirement is stronger: a coefficient is the factor for its variable only when every variable it interacts with is based at the value coded as <span class="math inline">\(0\)</span>.</li>
+<li>Rating tables can always be built from a fitted model. The only choice is the base. The coding only decides whether the table entries happen to coincide with the printed coefficients.</li>
+</ol>
+<p>If these rules are ignored and coefficients are read off as factors anyway, the tables are wrong: misscaled when there are no interactions, and off by the interaction terms when there are.</p>
+</section>
+<section id="why-do-we-care" class="level1">
+<h1>Why do we care?</h1>
+<p>If all we cared about was the model output, none of this would matter. We would plug a policy into the model and read off its relative risk. But this “black box” approach does not satisfy the <em>explainability</em> requirements that insurance regulation imposes. Regulating insurance pricing means being able to see inside the rating model and observe how it works.</p>
+<p>The technical requirement behind a rating table is that the model be decomposable into parts, each of which can be examined on its own. There is an important relationship between choosing base levels and decomposition, and therefore between base levels and explainable models of any type.</p>
+</section>
+<section id="contrasts-and-base-levels" class="level1">
+<h1>Contrasts and Base Levels</h1>
+<p>There is a way to ensure that rating tables are accurate and transparent. It extends to GAM models and, under certain conditions, to machine learning models. In other words, these models can also generate <em>filable rating tables</em>.</p>
+<p>Fix a base cell <span class="math inline">\(b = (b_1, \dots, b_p)\)</span> and a target cell <span class="math inline">\(v = (v_1, \dots, v_p)\)</span>. For each variable define a difference operator acting on any function <span class="math inline">\(g\)</span> of the covariates:</p>
+<p><span class="math display">\[
+\Delta_i g \;=\; g\big|_{x_i=v_i} - g\big|_{x_i=b_i}
+\]</span></p>
+<p>everything else held fixed. Three facts about <span class="math inline">\(\Delta_i\)</span> do all the work: it is linear, it returns zero on anything that does not depend on <span class="math inline">\(x_i\)</span>, and the operators commute:</p>
+<p><span class="math display">\[
+\Delta_i(g + h) = \Delta_i g + \Delta_i h, \qquad \Delta_i g = 0 \text{ if } g \text{ is constant in } x_i, \qquad \Delta_i\Delta_j g = \Delta_j\Delta_i g
+\]</span></p>
+<p>The contrast in <span class="math inline">\(i\)</span> is, in general, still a function of the other variables:</p>
+<p><span class="math display">\[
+\Delta_i g \;=\; g(x_1,\dots,v_i,\dots,x_p) - g(x_1,\dots,b_i,\dots,x_p)
+\]</span></p>
+<p>An interaction between <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> means the effect of <span class="math inline">\(i\)</span> depends on where <span class="math inline">\(j\)</span> is. The interaction contrast is therefore the <em>difference in the first-order contrast in <span class="math inline">\(i\)</span> when <span class="math inline">\(j\)</span> moves from its base to its target</em>. Writing only the two variables that move,</p>
+<p><span class="math display">\[
+\Delta_j\Delta_i g \;=\; \big[g(v_i,v_j) - g(b_i,v_j)\big] - \big[g(v_i,b_j) - g(b_i,b_j)\big] \;=\; g(v_i,v_j) - g(b_i,v_j) - g(v_i,b_j) + g(b_i,b_j).
+\]</span></p>
+<p>Because <span class="math inline">\(\Delta_j\)</span> kills anything constant in <span class="math inline">\(x_j\)</span>, the double contrast returns zero on any additive function <span class="math inline">\(h_i(x_i) + h_j(x_j)\)</span>. It measures the departure from additivity and nothing else, and it is the only combination of the four corner values that does so (up to scale). It is not one choice among several.</p>
+<section id="the-four-term-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-four-term-model">The four-term model</h2>
+<p>Take two variables and one interaction, with a general base <span class="math inline">\(b = (b_1, b_2)\)</span> and a general target <span class="math inline">\(v = (v_1, v_2)\)</span>:</p>
+<p><span class="math display">\[
+g(x_1, x_2) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_{12}\,x_1 x_2
+\]</span></p>
+<p>The first-order contrasts are each still a function of the other variable:</p>
+<p><span class="math display">\[
+\Delta_1 g = g(v_1, x_2) - g(b_1, x_2) = (\beta_1 + \beta_{12}\,x_2)(v_1 - b_1), \qquad
+\Delta_2 g = (\beta_2 + \beta_{12}\,x_1)(v_2 - b_2)
+\]</span></p>
+<p>The second-order contrast is the change in <span class="math inline">\(\Delta_1 g\)</span> when <span class="math inline">\(x_2\)</span> moves from <span class="math inline">\(b_2\)</span> to <span class="math inline">\(v_2\)</span>:</p>
+<p><span class="math display">\[
+\Delta_2\Delta_1 g = \Delta_1 g\big|_{x_2 = v_2} - \Delta_1 g\big|_{x_2 = b_2} = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)
+\]</span></p>
+<p>The main effects <span class="math inline">\(\beta_1\)</span> and <span class="math inline">\(\beta_2\)</span> have dropped out of it entirely.</p>
+<p>Under treatment (dummy) coding each <span class="math inline">\(x\)</span> is <span class="math inline">\(0\)</span> at the reference level and <span class="math inline">\(1\)</span> otherwise, so <span class="math inline">\(b = (0,0)\)</span> and <span class="math inline">\(v = (1,1)\)</span>, and</p>
+<p><span class="math display">\[
+\Delta_1 g = \beta_1 + \beta_{12}\, x_2, \qquad \Delta_2 g = \beta_2 + \beta_{12}\, x_1
+\]</span></p>
+<p>At the base of the other variable these reduce to the coefficients, <span class="math inline">\(\Delta_1 g\big|_{x_2 = 0} = \beta_1\)</span> and <span class="math inline">\(\Delta_2 g\big|_{x_1 = 0} = \beta_2\)</span>. That is the familiar fact that GLM coefficients are rating factors. The other codings are easier to read after the decomposition, so we come back to them.</p>
+</section>
+</section>
+<section id="decomposition" class="level1">
+<h1>Decomposition</h1>
+<p>Start from the total change <span class="math inline">\(g(v) - g(b)\)</span> and split it along a path that moves one variable at a time:</p>
+<p><span class="math display">\[
+g(v_1, v_2) - g(b_1, b_2) = \big[g(v_1, v_2) - g(b_1, v_2)\big] + \big[g(b_1, v_2) - g(b_1, b_2)\big] = \Delta_1 g\big|_{x_2 = v_2} + \Delta_2 g\big|_{x_1 = b_1}
+\]</span></p>
+<p>The first term is the <span class="math inline">\(x_1\)</span> contrast evaluated at the <em>new</em> value of <span class="math inline">\(x_2\)</span>. By the definition of the second-order contrast, <span class="math inline">\(\Delta_1 g\big|_{x_2 = v_2} = \Delta_1 g\big|_{x_2 = b_2} + \Delta_2\Delta_1 g\)</span>, so</p>
+<p><span class="math display">\[
+g(v) - g(b) = \underbrace{\Delta_1 g\big|_{x_2 = b_2}}_{\text{main effect of } x_1} + \underbrace{\Delta_2 g\big|_{x_1 = b_1}}_{\text{main effect of } x_2} + \underbrace{\Delta_1\Delta_2 g}_{\text{interaction}}
+\]</span></p>
+<p>Nothing about the model was used, only the definition of <span class="math inline">\(\Delta\)</span>. Each main-effect entry is the first-order contrast with the other variable set to its base. Nothing is averaged anywhere: every entry is a difference of two values of <span class="math inline">\(g\)</span> at specific points.</p>
+<p>For the four-term model the three entries are</p>
+<p><span class="math display">\[
+\Delta_1 g\big|_{x_2 = b_2} = (\beta_1 + \beta_{12}\,b_2)(v_1 - b_1), \qquad
+\Delta_2 g\big|_{x_1 = b_1} = (\beta_2 + \beta_{12}\,b_1)(v_2 - b_2), \qquad
+\Delta_1\Delta_2 g = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)
+\]</span></p>
+<p>and they add up. The <span class="math inline">\(\beta_{12}\)</span> pieces are</p>
+<p><span class="math display">\[
+b_2(v_1 - b_1) + b_1(v_2 - b_2) + (v_1 - b_1)(v_2 - b_2) = v_1 v_2 - b_1 b_2,
+\]</span></p>
+<p>so the sum is</p>
+<p><span class="math display">\[
+\beta_1(v_1 - b_1) + \beta_2(v_2 - b_2) + \beta_{12}(v_1 v_2 - b_1 b_2) = g(v) - g(b).
+\]</span></p>
+<p>The three entries reconstruct the model exactly, for any base.</p>
+<section id="codings" class="level2">
+<h2 class="anchored" data-anchor-id="codings">Codings</h2>
+<p>A coding is just a choice of <span class="math inline">\(b\)</span> and <span class="math inline">\(v\)</span>.</p>
+<p><strong>Treatment coding</strong>, <span class="math inline">\(b = (0,0)\)</span>, <span class="math inline">\(v = (1,1)\)</span>: the entries are <span class="math inline">\(\beta_1\)</span>, <span class="math inline">\(\beta_2\)</span>, <span class="math inline">\(\beta_{12}\)</span>, summing to <span class="math inline">\(g(1,1) - g(0,0) = \beta_1 + \beta_2 + \beta_{12}\)</span>.</p>
+<p><strong>Sum coding, base at the grand mean.</strong> Each <span class="math inline">\(x\)</span> is <span class="math inline">\(-1\)</span> at one level and <span class="math inline">\(+1\)</span> at the other, and the intercept is the grand mean. With <span class="math inline">\(b = (0,0)\)</span> and <span class="math inline">\(v_i = \pm 1\)</span> the entries are <span class="math inline">\(\beta_1 v_1\)</span>, <span class="math inline">\(\beta_2 v_2\)</span>, <span class="math inline">\(\beta_{12} v_1 v_2\)</span>. The coefficients appear, but the base is not an observable cell.</p>
+<p><strong>Sum coding, base at a level</strong>, <span class="math inline">\(b = (-1,-1)\)</span>, <span class="math inline">\(v = (1,1)\)</span>: the entries are <span class="math inline">\(2(\beta_1 - \beta_{12})\)</span>, <span class="math inline">\(2(\beta_2 - \beta_{12})\)</span>, <span class="math inline">\(4\beta_{12}\)</span>. They sum to <span class="math inline">\(2\beta_1 + 2\beta_2\)</span>, and directly <span class="math inline">\(g(1,1) - g(-1,-1) = (\beta_0 + \beta_1 + \beta_2 + \beta_{12}) - (\beta_0 - \beta_1 - \beta_2 + \beta_{12}) = 2\beta_1 + 2\beta_2\)</span>. The table is correct. The entry <span class="math inline">\(2(\beta_1 - \beta_{12})\)</span> is the right number for the <span class="math inline">\(+1\)</span> level against the <span class="math inline">\(-1\)</span> level with <span class="math inline">\(x_2\)</span> at <span class="math inline">\(-1\)</span>; it is not <span class="math inline">\(\beta_1\)</span> because <span class="math inline">\(\beta_1\)</span> is the number at <span class="math inline">\(x_2 = 0\)</span>, a different place.</p>
+<p><strong>Continuous predictors</strong>, any base: the general entries above. The main-effect entry for <span class="math inline">\(x_1\)</span> is slope <span class="math inline">\(\beta_1 + \beta_{12} b_2\)</span> times distance <span class="math inline">\(v_1 - b_1\)</span>.</p>
+</section>
+<section id="the-rule" class="level2">
+<h2 class="anchored" data-anchor-id="the-rule">The rule</h2>
+<p>Reading off the general formula: the main-effect entry for <span class="math inline">\(x_1\)</span> has slope <span class="math inline">\(\beta_1\)</span> exactly when <span class="math inline">\(b_2 = 0\)</span>, that is, when the base of <span class="math inline">\(x_2\)</span> is whatever value is coded as zero. Under treatment coding the value coded as zero is the reference level, so a base at the reference level is a base at zero and the entry is <span class="math inline">\(\beta_1\)</span>. Under sum coding the value coded as zero lies between the levels, so a base at a level has <span class="math inline">\(b_2 = \pm 1\)</span> and the slope is <span class="math inline">\(\beta_1 \mp \beta_{12}\)</span>. For a continuous <span class="math inline">\(x_2\)</span> the value coded as zero is <span class="math inline">\(x_2 = 0\)</span>, and a base anywhere else has slope <span class="math inline">\(\beta_1 + \beta_{12} b_2\)</span>.</p>
+<p>Why the main-effect entry carries a <span class="math inline">\(\beta_{12} b_2\)</span> and the interaction entry carries nothing: <span class="math inline">\(\Delta_1 g\)</span> still depended on <span class="math inline">\(x_2\)</span>, through <span class="math inline">\(\beta_{12}\)</span>, and setting <span class="math inline">\(x_2 = b_2\)</span> froze that dependence at <span class="math inline">\(b_2\)</span>. <span class="math inline">\(\Delta_1\Delta_2 g\)</span> has no <span class="math inline">\(x\)</span> left in it to freeze. With <span class="math inline">\(\beta_{12} = 0\)</span> the main-effect entry is <span class="math inline">\(\beta_1(v_1 - b_1)\)</span> with no <span class="math inline">\(b_2\)</span> in it at all, at any base, so the whole dependence on where you put <span class="math inline">\(x_2\)</span> is caused by the interaction term and nothing else.</p>
+<p>In coding language: recode <span class="math inline">\(x_2\)</span> as <span class="math inline">\(x_2' = x_2 - b_2\)</span> so that your base is the new zero, multiply out, and the model’s coefficient on <span class="math inline">\(x_1\)</span> becomes <span class="math inline">\(\beta_1 + \beta_{12} b_2\)</span> while the coefficient on <span class="math inline">\(x_1 x_2'\)</span> stays <span class="math inline">\(\beta_{12}\)</span>. The entry the operator produced is the main-effect coefficient of the same model under the coding whose zero is your base. The GLM printed the one for the coding it was given.</p>
+</section>
+</section>
+<section id="rating-factors" class="level1">
+<h1>Rating Factors</h1>
+<p>Under a log link, <span class="math inline">\(\hat\mu = e^{g}\)</span>, and a contrast on <span class="math inline">\(g\)</span> becomes a ratio on <span class="math inline">\(\hat\mu\)</span>. Exponentiating the decomposition turns the sum into a product:</p>
+<p><span class="math display">\[
+\hat\mu(v) = \underbrace{e^{g(b)}}_{\text{base rate}}
+\;\times\; \underbrace{e^{(\beta_1 + \beta_{12} b_2)(v_1 - b_1)}}_{R_1}
+\;\times\; \underbrace{e^{(\beta_2 + \beta_{12} b_1)(v_2 - b_2)}}_{R_2}
+\;\times\; \underbrace{e^{\beta_{12}(v_1 - b_1)(v_2 - b_2)}}_{R_{12}}
+\]</span></p>
+<p>Each factor is a ratio of predicted means: <span class="math inline">\(R_1 = \hat\mu(v_1, b_2)/\hat\mu(b_1, b_2)\)</span>, <span class="math inline">\(R_2 = \hat\mu(b_1, v_2)/\hat\mu(b_1, b_2)\)</span>, and <span class="math inline">\(R_{12}\)</span> is the ratio of ratios. The first-order contrast became a relativity and the second-order contrast became a relativity of relativities.</p>
+<p>For two binary factors under treatment coding, the tables read <span class="math inline">\(1\)</span> at the reference level and <span class="math inline">\(e^{\beta_1}\)</span>, <span class="math inline">\(e^{\beta_2}\)</span> at the other, with <span class="math inline">\(e^{\beta_{12}}\)</span> in the single off-reference cell of the interaction table: the familiar table. Under sum coding with the base at a level, the same model gives <span class="math inline">\(e^{2(\beta_1 - \beta_{12})}\)</span>, <span class="math inline">\(e^{2(\beta_2 - \beta_{12})}\)</span> and <span class="math inline">\(e^{4\beta_{12}}\)</span>, with base rate <span class="math inline">\(e^{\beta_0 - \beta_1 - \beta_2 + \beta_{12}}\)</span>: the same four premiums, split differently. For a continuous <span class="math inline">\(x_1\)</span> the factor is a per-unit relativity <span class="math inline">\(e^{\beta_1 + \beta_{12} b_2}\)</span> compounded over the distance <span class="math inline">\(v_1 - b_1\)</span>, and it is the per-unit relativity <span class="math inline">\(e^{\beta_1}\)</span> that people quote only when <span class="math inline">\(b_2 = 0\)</span>. The interaction factor is <span class="math inline">\(e^{\beta_{12}}\)</span> compounded over the product of the two distances, so it is <span class="math inline">\(1\)</span> along both lines <span class="math inline">\(v_1 = b_1\)</span> and <span class="math inline">\(v_2 = b_2\)</span>.</p>
+</section>
+<section id="any-model-any-number-of-variables" class="level1">
+<h1>Any Model, Any Number of Variables</h1>
+<p>The decomposition never looked at the form of <span class="math inline">\(g\)</span>. It needed values of <span class="math inline">\(g\)</span> at four points, and it works the same way for a GLM under any coding, a GAM with smooth terms, or any other fitted predictor. The only choice is the base.</p>
+<p>With <span class="math inline">\(p\)</span> variables the same construction runs by inclusion–exclusion. For a subset <span class="math inline">\(S \subseteq \{1,\dots,p\}\)</span> let <span class="math inline">\(\nu(S)\)</span> be the predictor with the variables in <span class="math inline">\(S\)</span> set to their target values and the rest at base,</p>
+<p><span class="math display">\[
+\nu(S) \;=\; g(x^S), \qquad x^S_i = \begin{cases} v_i &amp; i\in S\\ b_i &amp; i\notin S,\end{cases}
+\]</span></p>
+<p>so <span class="math inline">\(\nu(\emptyset) = g(b)\)</span> and <span class="math inline">\(\nu(\{1,\dots,p\}) = g(v)\)</span>. The table entry for <span class="math inline">\(S\)</span> is the alternating sum over its subsets,</p>
+<p><span class="math display">\[
+m(S) \;=\; \sum_{T\subseteq S} (-1)^{|S|-|T|}\,\nu(T), \qquad\text{equivalently}\qquad \nu(S) \;=\; \sum_{T\subseteq S} m(T),
+\]</span></p>
+<p>which in operator language is <span class="math inline">\(\big(\prod_{i\in S}\Delta_i\big) g\)</span> with every variable outside <span class="math inline">\(S\)</span> held at <span class="math inline">\(b\)</span>. Spelled out:</p>
+<p><span class="math display">\[
+\begin{aligned}
+m(\{i\}) &amp;= \nu(\{i\})-\nu(\emptyset),\\
+m(\{i,j\}) &amp;= \nu(\{i,j\}) - \nu(\{i\}) - \nu(\{j\}) + \nu(\emptyset),\\
+m(\{i,j,k\}) &amp;= \nu(\{i,j,k\}) - \nu(\{i,j\}) - \nu(\{i,k\}) - \nu(\{j,k\}) + \nu(\{i\}) + \nu(\{j\}) + \nu(\{k\}) - \nu(\emptyset).
+\end{aligned}
+\]</span></p>
+<p>The singleton is the main effect of <span class="math inline">\(i\)</span>: move <span class="math inline">\(x_i\)</span> alone off the base and take the change in the whole predictor. The pair is the interaction contrast from before. The triple is the eight-term alternating sum for a three-way interaction.</p>
+<p>Three consequences come free.</p>
+<ol type="1">
+<li><span class="math inline">\(m(S) = 0\)</span> whenever <span class="math inline">\(v_i = b_i\)</span> for some <span class="math inline">\(i \in S\)</span>, so every table reads <span class="math inline">\(1\)</span> at the base.</li>
+<li>For a model written as a sum of terms, <span class="math inline">\(m(S) = 0\)</span> whenever no term contains all of <span class="math inline">\(S\)</span>, because <span class="math inline">\(\prod_{i\in S}\Delta_i\)</span> kills any function that misses one of the <span class="math inline">\(x_i\)</span>. In a model with main effects and pairwise interactions, <span class="math inline">\(m(S) = 0\)</span> for <span class="math inline">\(|S| \ge 3\)</span>: there is at most one nonzero table per model term.</li>
+<li>Setting <span class="math inline">\(S = \{1,\dots,p\}\)</span> in <span class="math inline">\(\nu(S) = \sum_{T\subseteq S} m(T)\)</span> gives</li>
+</ol>
+<p><span class="math display">\[
+\sum_{S\neq\emptyset} m(S) \;=\; \nu(\{1,\dots,p\}) - \nu(\emptyset) \;=\; g(v)-g(b), \qquad\text{so}\qquad \hat\mu(v) \;=\; \hat\mu(b)\prod_{S\neq\emptyset} e^{m(S)},
+\]</span></p>
+<p>one table per nonempty subset, base rate <span class="math inline">\(\hat\mu(b)\)</span>, and the product reproduces the model at every cell by construction. For a model with terms up to second order only the singletons and pairs survive, and the product is one one-way table per variable and one two-way table per interaction.</p>
+<p>Every <span class="math inline">\(\nu(S)\)</span> is a single prediction at a corner of the box <span class="math inline">\(\prod_i \{b_i, v_i\}\)</span>. The tables need only the fitted model and the base cell, and nothing about how the software labels, codes, or centers its terms.</p>
+<p>And nothing in them averages over the book. The one-way relativity at the top moved when the mix of the book moved, even if the model did not; these entries cannot, because every one of them is a difference of predictions at fixed points. That is what makes them filable for any model that can be evaluated at a point, and it is where the next talk picks up.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
