@@ -1,95 +1,147 @@
 ---
 title: "Explainability and Decomposition"
 ---
+
 # Rating Factors in Insurance
+
+" The public wants two things from insurance regulators. They want solvent insurers who are financially able to make good on the promises they have made and they want insurers to treat policyholders and claimants fairly." https://content.naic.org/sites/default/files/inline-files/topics_white_paper_hist_ins_reg.pdf
+
+p\. 3
+
+Actuary principles:
+
+Accuracy - the variable should measure cost differences Homogeneity - all members of class should have same expected cost Reliability - should have stable mean value over time Credibility - groups should be large enough to permit measuring costs
+
+These principles did not originate in statute or insurance regulation. They largely emerged from the actuarial literature on risk classification and the practical problem of constructing rate classes that are both statistically defensible and administratively useful.
+
+The canonical actuarial source is:
+
+Casualty Actuarial Society, Foundations of Casualty Actuarial Science (various editions), particularly chapters on risk classification and ratemaking.
+
+The modern formulation traces back to mid-20th-century ratemaking theory and especially the work of:
+
+Robert Bailey and Leroy Simon (1960), "Two Studies in Automobile Insurance Ratemaking" in the Proceedings of the Casualty Actuarial Society. William S. Jewell's work on credibility theory in the 1970s. CAS educational material on classification ratemaking developed from the 1960s onward.
+
+The principles are best viewed as actuarial design criteria rather than legal requirements.
+
+| Principle | Original concern |
+|----------------------------|--------------------------------------------|
+| Accuracy | Does the variable actually predict expected loss? |
+| Homogeneity | Are members within a class sufficiently similar? |
+| Credibility | Is there enough data to estimate costs reliably? |
+| Reliability/Stability | Will the relationship persist long enough to use prospectively? |
+
+Interestingly, regulators rarely use these exact four terms.
+
+Regulators generally require that rates not be:
+
+excessive, inadequate, unfairly discriminatory.
+
+| Actuarial principle | Regulatory connection                      |
+|---------------------|--------------------------------------------|
+| Accuracy            | Supports actuarially justified differences |
+| Homogeneity         | Reduces unfair discrimination within class |
+| Credibility         | Prevents rates based on noise              |
+| Reliability         | Helps ensure prospective adequacy          |
+
 Insurance is a gamble. Intuitively, this means calculating the risk or cost of a policy relative to a base level. This has led to the concept of rating tables filled with "risk relativities", which are so fundamental to the industry that they are regulated and need to be filed with the state.
 
 The traditional way of calculating relativities was directly from data on past losses.
 
 Example: One-way relativity for variable $i$ at value $v$ in a book of records $k = 1, \dots, n$ with observed loss cost $y_k$ and exposure $ee_k$:
 
-$$
-R_i(v) \;=\; \frac{\bar{y}_i(v)}{\bar{y}}
-\;=\; \frac{\displaystyle\sum_{k:\, x_{ik} = v} ee_k\, y_k \Big/ \sum_{k:\, x_{ik} = v} ee_k}{\displaystyle\sum_{k} ee_k\, y_k \Big/ \sum_{k} ee_k}
-$$
+$$R_i(v) \;=\; \frac{\bar{y}_i(v)}{\bar{y}}
+\;=\; \frac{\displaystyle\sum_{k:\, x_{ik} = v} ee_k\, y_k \Big/ \sum_{k:\, x_{ik} = v} ee_k}{\displaystyle\sum_{k} ee_k\, y_k \Big/ \sum_{k} ee_k}$$
 
 the exposure-weighted average loss cost among records with $x_i = v$, divided by the same average over the whole book. Relative to a base level $b$ instead of the book average, use $\bar{y}_i(v) / \bar{y}_i(b)$.
 
 It was always understood that one-way relativities are confounded by relationships between variables: the relativity for one variable depends on how the other variables happen to be distributed in the book.
 
-Along the way, "minimum bias" methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model controls for the other variables, the model coefficients represent the effect of each variable taken _ceteris paribus_, all other things being equal.
+Along the way, "minimum bias" methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model controls for the other variables, the model coefficients represent the effect of each variable taken *ceteris paribus*, all other things being equal.
 
 It turns out there are some silent rules:
 
-1. If there are no interactions in the model, the coefficients can be used directly as rating factors, but only _directly_ under treatment (dummy) coding, where the base level of every variable is coded as $0$.
-2. Under any other coding the factors are still recoverable, but as fixed combinations of coefficients rather than single coefficients, and the intercept is no longer the base rate.
-3. In the presence of interactions the requirement is stronger: a coefficient is the factor for its variable only when every variable it interacts with is based at the value coded as $0$.
-4. Rating tables can always be built from a fitted model. The only choice is the base. The coding only decides whether the table entries happen to coincide with the printed coefficients.
+1.  If there are no interactions in the model, the coefficients can be used directly as rating factors, but only *directly* under treatment (dummy) coding, where the base level of every variable is coded as $0$.
+2.  Under any other coding the factors are still recoverable, but as fixed combinations of coefficients rather than single coefficients, and the intercept is no longer the base rate.
+3.  In the presence of interactions the requirement is stronger: a coefficient is the factor for its variable only when every variable it interacts with is based at the value coded as $0$.
+4.  Rating tables can always be built from a fitted model. The only choice is the base. The coding only decides whether the table entries happen to coincide with the printed coefficients.
 
 If these rules are ignored and coefficients are read off as factors anyway, the tables are wrong: misscaled when there are no interactions, and off by the interaction terms when there are.
 
 # Why do we care?
-If all we cared about was the model output, none of this would matter. We would plug a policy into the model and read off its relative risk. But this "black box" approach does not satisfy the _explainability_ requirements that insurance regulation imposes. Regulating insurance pricing means being able to see inside the rating model and observe how it works.
+
+If all we cared about was the model output, none of this would matter. We would plug a policy into the model and read off its relative risk. But this "black box" approach does not satisfy the *explainability* requirements that insurance regulation imposes. Regulating insurance pricing means being able to see inside the rating model and observe how it works.
 
 The technical requirement behind a rating table is that the model be decomposable into parts, each of which can be examined on its own. There is an important relationship between choosing base levels and decomposition, and therefore between base levels and explainable models of any type.
 
 # Contrasts and Base Levels
-There is a way to ensure that rating tables are accurate and transparent. It extends to GAM models and, under certain conditions, to machine learning models. In other words, these models can also generate _filable rating tables_.
+
+There is a way to ensure that rating tables are accurate and transparent. It extends to GAM models and, under certain conditions, to machine learning models. In other words, these models can also generate *fileable rating tables*.
 
 Fix a base cell $b = (b_1, \dots, b_p)$ and a target cell $v = (v_1, \dots, v_p)$. For each variable define a difference operator acting on any function $g$ of the covariates:
 
-$$
-\Delta_i g \;=\; g\big|_{x_i=v_i} - g\big|_{x_i=b_i}
-$$
+$$\Delta_i g \;=\; g\big|_{x_i=v_i} - g\big|_{x_i=b_i}$$
 
-everything else held fixed. Three facts about $\Delta_i$ do all the work: it is linear, it returns zero on anything that does not depend on $x_i$, and the operators commute:
+everything else held fixed.
 
-$$
-\Delta_i(g + h) = \Delta_i g + \Delta_i h, \qquad \Delta_i g = 0 \text{ if } g \text{ is constant in } x_i, \qquad \Delta_i\Delta_j g = \Delta_j\Delta_i g
-$$
+Three facts about $\Delta_i$:
+
+1.  It is linear
+
+    $$\Delta_i(g + h) = \Delta_i g + \Delta_i h$$
+
+2.  It returns zero on anything that does not depend on $x_i$
+
+    $$\Delta_i g = 0 \text{ if } g \text{ is constant in } x_i$$
+
+3.   and he operators commute:
+
+    $$\Delta_i\Delta_j g = \Delta_j\Delta_i g$$
+
+$$\Delta_i(g + h) = \Delta_i g + \Delta_i h, \qquad \Delta_i g = 0 \text{ if } g \text{ is constant in } x_i, \qquad \Delta_i\Delta_j g = \Delta_j\Delta_i g$$
 
 The contrast in $i$ is, in general, still a function of the other variables:
 
-$$
-\Delta_i g \;=\; g(x_1,\dots,v_i,\dots,x_p) - g(x_1,\dots,b_i,\dots,x_p)
-$$
+$$\Delta_i g \;=\; g(x_1,\dots,v_i,\dots,x_p) - g(x_1,\dots,b_i,\dots,x_p)$$
 
-An interaction between $i$ and $j$ means the effect of $i$ depends on where $j$ is. The interaction contrast is therefore the _difference in the first-order contrast in $i$ when $j$ moves from its base to its target_. Writing only the two variables that move,
+An interaction between $i$ and $j$ means the effect of $i$ depends on the value of $j$.. The interaction contrast is therefore the *difference in the first-order contrast in* $i$ when $j$ moves from its base to its target. Writing only the two variables that move,
 
-$$
-\Delta_j\Delta_i g \;=\; \big[g(v_i,v_j) - g(b_i,v_j)\big] - \big[g(v_i,b_j) - g(b_i,b_j)\big] \;=\; g(v_i,v_j) - g(b_i,v_j) - g(v_i,b_j) + g(b_i,b_j).
-$$
+$$\Delta_j\Delta_i g \\
+= \Delta_i \left[ g(v_i, v_j) - g(v_i, b_j) \right] \\
+= \left[ \Delta_i g(v_i, v_j) - \Delta_i g(v_i, b_j) \right] \\
+= \left[ g(v_i, v_j) - g(b_i, v_j) \right] - \left[g(v_i, b_j) - g(b_i, b_j)\right]$$
+
+$$\Delta_j\Delta_i g \;=\; \big[g(v_i,v_j) - g(b_i,v_j)\big] - \big[g(v_i,b_j) - g(b_i,b_j)\big] \;=\; g(v_i,v_j) - g(b_i,v_j) - g(v_i,b_j) + g(b_i,b_j).$$
 
 Because $\Delta_j$ kills anything constant in $x_j$, the double contrast returns zero on any additive function $h_i(x_i) + h_j(x_j)$. It measures the departure from additivity and nothing else, and it is the only combination of the four corner values that does so (up to scale). It is not one choice among several.
+
+I don't understand what the paragraph on line 116 is saying. We are talking simply about contrasts. Then the paragraph introduces a number of new ideas in quick succession with no context:
+1. The operator action on a certain additive function.
+2. It measured departure from additivity.
+3. "corner values"
+4. What is issue of "up to scale" here?
+5. It is not one choice among several. Why would it be. But what does the uniqueness imply?
 
 ## The four-term model
 
 Take two variables and one interaction, with a general base $b = (b_1, b_2)$ and a general target $v = (v_1, v_2)$:
 
-$$
-g(x_1, x_2) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_{12}\,x_1 x_2
-$$
+$$g(x_1, x_2) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_{12}\,x_1 x_2$$
 
 The first-order contrasts are each still a function of the other variable:
 
-$$
-\Delta_1 g = g(v_1, x_2) - g(b_1, x_2) = (\beta_1 + \beta_{12}\,x_2)(v_1 - b_1), \qquad
-\Delta_2 g = (\beta_2 + \beta_{12}\,x_1)(v_2 - b_2)
-$$
+$$\Delta_1 g = g(v_1, x_2) - g(b_1, x_2) = (\beta_1 + \beta_{12}\,x_2)(v_1 - b_1), \qquad
+\Delta_2 g = (\beta_2 + \beta_{12}\,x_1)(v_2 - b_2)$$
 
 The second-order contrast is the change in $\Delta_1 g$ when $x_2$ moves from $b_2$ to $v_2$:
 
-$$
-\Delta_2\Delta_1 g = \Delta_1 g\big|_{x_2 = v_2} - \Delta_1 g\big|_{x_2 = b_2} = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)
-$$
+$$\Delta_2\Delta_1 g = \Delta_1 g\big|_{x_2 = v_2} - \Delta_1 g\big|_{x_2 = b_2} = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)$$
 
 The main effects $\beta_1$ and $\beta_2$ have dropped out of it entirely.
 
 Under treatment (dummy) coding each $x$ is $0$ at the reference level and $1$ otherwise, so $b = (0,0)$ and $v = (1,1)$, and
 
-$$
-\Delta_1 g = \beta_1 + \beta_{12}\, x_2, \qquad \Delta_2 g = \beta_2 + \beta_{12}\, x_1
-$$
+$$\Delta_1 g = \beta_1 + \beta_{12}\, x_2, \qquad \Delta_2 g = \beta_2 + \beta_{12}\, x_1$$
 
 At the base of the other variable these reduce to the coefficients, $\Delta_1 g\big|_{x_2 = 0} = \beta_1$ and $\Delta_2 g\big|_{x_1 = 0} = \beta_2$. That is the familiar fact that GLM coefficients are rating factors. The other codings are easier to read after the decomposition, so we come back to them.
 
@@ -97,37 +149,27 @@ At the base of the other variable these reduce to the coefficients, $\Delta_1 g\
 
 Start from the total change $g(v) - g(b)$ and split it along a path that moves one variable at a time:
 
-$$
-g(v_1, v_2) - g(b_1, b_2) = \big[g(v_1, v_2) - g(b_1, v_2)\big] + \big[g(b_1, v_2) - g(b_1, b_2)\big] = \Delta_1 g\big|_{x_2 = v_2} + \Delta_2 g\big|_{x_1 = b_1}
-$$
+$$g(v_1, v_2) - g(b_1, b_2) = \big[g(v_1, v_2) - g(b_1, v_2)\big] + \big[g(b_1, v_2) - g(b_1, b_2)\big] = \Delta_1 g\big|_{x_2 = v_2} + \Delta_2 g\big|_{x_1 = b_1}$$
 
 The first term is the $x_1$ contrast evaluated at the *new* value of $x_2$. By the definition of the second-order contrast, $\Delta_1 g\big|_{x_2 = v_2} = \Delta_1 g\big|_{x_2 = b_2} + \Delta_2\Delta_1 g$, so
 
-$$
-g(v) - g(b) = \underbrace{\Delta_1 g\big|_{x_2 = b_2}}_{\text{main effect of } x_1} + \underbrace{\Delta_2 g\big|_{x_1 = b_1}}_{\text{main effect of } x_2} + \underbrace{\Delta_1\Delta_2 g}_{\text{interaction}}
-$$
+$$g(v) - g(b) = \underbrace{\Delta_1 g\big|_{x_2 = b_2}}_{\text{main effect of } x_1} + \underbrace{\Delta_2 g\big|_{x_1 = b_1}}_{\text{main effect of } x_2} + \underbrace{\Delta_1\Delta_2 g}_{\text{interaction}}$$
 
 Nothing about the model was used, only the definition of $\Delta$. Each main-effect entry is the first-order contrast with the other variable set to its base. Nothing is averaged anywhere: every entry is a difference of two values of $g$ at specific points.
 
 For the four-term model the three entries are
 
-$$
-\Delta_1 g\big|_{x_2 = b_2} = (\beta_1 + \beta_{12}\,b_2)(v_1 - b_1), \qquad
+$$\Delta_1 g\big|_{x_2 = b_2} = (\beta_1 + \beta_{12}\,b_2)(v_1 - b_1), \qquad
 \Delta_2 g\big|_{x_1 = b_1} = (\beta_2 + \beta_{12}\,b_1)(v_2 - b_2), \qquad
-\Delta_1\Delta_2 g = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)
-$$
+\Delta_1\Delta_2 g = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)$$
 
 and they add up. The $\beta_{12}$ pieces are
 
-$$
-b_2(v_1 - b_1) + b_1(v_2 - b_2) + (v_1 - b_1)(v_2 - b_2) = v_1 v_2 - b_1 b_2,
-$$
+$$b_2(v_1 - b_1) + b_1(v_2 - b_2) + (v_1 - b_1)(v_2 - b_2) = v_1 v_2 - b_1 b_2,$$
 
 so the sum is
 
-$$
-\beta_1(v_1 - b_1) + \beta_2(v_2 - b_2) + \beta_{12}(v_1 v_2 - b_1 b_2) = g(v) - g(b).
-$$
+$$\beta_1(v_1 - b_1) + \beta_2(v_2 - b_2) + \beta_{12}(v_1 v_2 - b_1 b_2) = g(v) - g(b).$$
 
 The three entries reconstruct the model exactly, for any base.
 
@@ -155,12 +197,10 @@ In coding language: recode $x_2$ as $x_2' = x_2 - b_2$ so that your base is the 
 
 Under a log link, $\hat\mu = e^{g}$, and a contrast on $g$ becomes a ratio on $\hat\mu$. Exponentiating the decomposition turns the sum into a product:
 
-$$
-\hat\mu(v) = \underbrace{e^{g(b)}}_{\text{base rate}}
+$$\hat\mu(v) = \underbrace{e^{g(b)}}_{\text{base rate}}
 \;\times\; \underbrace{e^{(\beta_1 + \beta_{12} b_2)(v_1 - b_1)}}_{R_1}
 \;\times\; \underbrace{e^{(\beta_2 + \beta_{12} b_1)(v_2 - b_2)}}_{R_2}
-\;\times\; \underbrace{e^{\beta_{12}(v_1 - b_1)(v_2 - b_2)}}_{R_{12}}
-$$
+\;\times\; \underbrace{e^{\beta_{12}(v_1 - b_1)(v_2 - b_2)}}_{R_{12}}$$
 
 Each factor is a ratio of predicted means: $R_1 = \hat\mu(v_1, b_2)/\hat\mu(b_1, b_2)$, $R_2 = \hat\mu(b_1, v_2)/\hat\mu(b_1, b_2)$, and $R_{12}$ is the ratio of ratios. The first-order contrast became a relativity and the second-order contrast became a relativity of relativities.
 
@@ -172,37 +212,29 @@ The decomposition never looked at the form of $g$. It needed values of $g$ at fo
 
 With $p$ variables the same construction runs by inclusion–exclusion. For a subset $S \subseteq \{1,\dots,p\}$ let $\nu(S)$ be the predictor with the variables in $S$ set to their target values and the rest at base,
 
-$$
-\nu(S) \;=\; g(x^S), \qquad x^S_i = \begin{cases} v_i & i\in S\\ b_i & i\notin S,\end{cases}
-$$
+$$\nu(S) \;=\; g(x^S), \qquad x^S_i = \begin{cases} v_i & i\in S\\ b_i & i\notin S,\end{cases}$$
 
 so $\nu(\emptyset) = g(b)$ and $\nu(\{1,\dots,p\}) = g(v)$. The table entry for $S$ is the alternating sum over its subsets,
 
-$$
-m(S) \;=\; \sum_{T\subseteq S} (-1)^{|S|-|T|}\,\nu(T), \qquad\text{equivalently}\qquad \nu(S) \;=\; \sum_{T\subseteq S} m(T),
-$$
+$$m(S) \;=\; \sum_{T\subseteq S} (-1)^{|S|-|T|}\,\nu(T), \qquad\text{equivalently}\qquad \nu(S) \;=\; \sum_{T\subseteq S} m(T),$$
 
 which in operator language is $\big(\prod_{i\in S}\Delta_i\big) g$ with every variable outside $S$ held at $b$. Spelled out:
 
-$$
-\begin{aligned}
+$$\begin{aligned}
 m(\{i\}) &= \nu(\{i\})-\nu(\emptyset),\\
 m(\{i,j\}) &= \nu(\{i,j\}) - \nu(\{i\}) - \nu(\{j\}) + \nu(\emptyset),\\
 m(\{i,j,k\}) &= \nu(\{i,j,k\}) - \nu(\{i,j\}) - \nu(\{i,k\}) - \nu(\{j,k\}) + \nu(\{i\}) + \nu(\{j\}) + \nu(\{k\}) - \nu(\emptyset).
-\end{aligned}
-$$
+\end{aligned}$$
 
 The singleton is the main effect of $i$: move $x_i$ alone off the base and take the change in the whole predictor. The pair is the interaction contrast from before. The triple is the eight-term alternating sum for a three-way interaction.
 
 Three consequences come free.
 
-1. $m(S) = 0$ whenever $v_i = b_i$ for some $i \in S$, so every table reads $1$ at the base.
-2. For a model written as a sum of terms, $m(S) = 0$ whenever no term contains all of $S$, because $\prod_{i\in S}\Delta_i$ kills any function that misses one of the $x_i$. In a model with main effects and pairwise interactions, $m(S) = 0$ for $|S| \ge 3$: there is at most one nonzero table per model term.
-3. Setting $S = \{1,\dots,p\}$ in $\nu(S) = \sum_{T\subseteq S} m(T)$ gives
+1.  $m(S) = 0$ whenever $v_i = b_i$ for some $i \in S$, so every table reads $1$ at the base.
+2.  For a model written as a sum of terms, $m(S) = 0$ whenever no term contains all of $S$, because $\prod_{i\in S}\Delta_i$ kills any function that misses one of the $x_i$. In a model with main effects and pairwise interactions, $m(S) = 0$ for $|S| \ge 3$: there is at most one nonzero table per model term.
+3.  Setting $S = \{1,\dots,p\}$ in $\nu(S) = \sum_{T\subseteq S} m(T)$ gives
 
-$$
-\sum_{S\neq\emptyset} m(S) \;=\; \nu(\{1,\dots,p\}) - \nu(\emptyset) \;=\; g(v)-g(b), \qquad\text{so}\qquad \hat\mu(v) \;=\; \hat\mu(b)\prod_{S\neq\emptyset} e^{m(S)},
-$$
+$$\sum_{S\neq\emptyset} m(S) \;=\; \nu(\{1,\dots,p\}) - \nu(\emptyset) \;=\; g(v)-g(b), \qquad\text{so}\qquad \hat\mu(v) \;=\; \hat\mu(b)\prod_{S\neq\emptyset} e^{m(S)},$$
 
 one table per nonempty subset, base rate $\hat\mu(b)$, and the product reproduces the model at every cell by construction. For a model with terms up to second order only the singletons and pairs survive, and the product is one one-way table per variable and one two-way table per interaction.
 
