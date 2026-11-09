@@ -1,7 +1,9 @@
 ---
 title: "Explainability and Decomposition"
 ---
+
 # Rating Factors in Insurance
+
 Insurance is a gamble. Intuitively, this means calculating the risk or cost of a policy relative to base level. This has led to the concept of rating tables filled with "risk relativities" which are so fundamental to the industry that they are regulated and need to be filed with the state.
 
 The traditional way of calculating relativities was directly from data on past losses.
@@ -17,24 +19,26 @@ the exposure-weighted average loss cost among records with $x_i = v$, divided by
 
 It was always understood that one-way relativities are confounded by relationships between variables.
 
-Along the way, smoothed, "minimum bias" methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model naturally controls for the other variables, the model coefficients represent the relative effect of each variable taken _ceteris paribus_, i.e. all other things being equal.
+Along the way, smoothed, "minimum bias" methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model naturally controls for the other variables, the model coefficients represent the relative effect of each variable taken *ceteris paribus*, i.e. all other things being equal.
 
 It turns out there are some silent rules:
 
-1. If there are no interactions in the model, then the model coefficients can be used directly as rating factors
-2. However, only _directly_ if the base levels are set to 0 (treatment coding, dummy coding)
-3. In the presence of interactions, the requirement becomes stronger.
-4. It is always possible to extract rating tables from a GLM, but some algebra is required that depends on how variables are coded.
+1.  If there are no interactions in the model, then the model coefficients can be used directly as rating factors
+2.  However, only *directly* if the base levels are set to 0 (treatment coding, dummy coding)
+3.  In the presence of interactions, the requirement becomes stronger.
+4.  It is always possible to extract rating tables from a GLM, but some algebra is required that depends on how variables are coded.
 
-If these rules are not followed, then accurate, transparent rating tables _cannot_ be derived from the model coefficients.
+If these rules are not followed, then accurate, transparent rating tables *cannot* be derived from the model coefficients.
 
 # Why do we care?
-If all we cared about was the model output, knowing how to create rating tables from model coefficients would not matter. We would just plug a policy into the model and calculate the relative risk. However, this "black box" approach does not satisfy the _explainability_ requirements our insurance regulations impose. Regulating insurance pricing means being able to see inside rating models and observe how they work.
+
+If all we cared about was the model output, knowing how to create rating tables from model coefficients would not matter. We would just plug a policy into the model and calculate the relative risk. However, this "black box" approach does not satisfy the *explainability* requirements our insurance regulations impose. Regulating insurance pricing means being able to see inside rating models and observe how they work.
 
 The technical requirement for rating tables is that our model is decomposable into parts. This is what allows explainability. You can examine each part individually. It turns out that there is an important (and deep) relationship between choosing base levels and decomposition, and therefore having explainable models of any type.
 
 # Contrasts and Base Levels
-There is a way to ensure that rating tables are accurate and transparent. And it extends also to GAM models and even machine learning models under certain conditions. In other words, these models can also generate _filable rating tables_.
+
+There is a way to ensure that rating tables are accurate and transparent. And it extends also to GAM models and even machine learning models under certain conditions. In other words, these models can also generate *filable rating tables*.
 
 For each variable define a difference operator acting on any function $g$ of the covariates:
 
@@ -54,12 +58,11 @@ $$
 \Delta_i g \;=\; g(x_1,\dots,v_i,\dots,x_p) - g(x_1,\dots,b_i,\dots,x_p)
 $$
 
-In order to find the interaction contrast, we need to define what an interaction contrast is. The general concept is that for a 2nd order interaction, a contrast is the _difference in the first order contrast in variable i relative to changes in variable j_. Using our operator notation, the 2nd order difference is:
-    
+In order to find the interaction contrast, we need to define what an interaction contrast is. The general concept is that for a 2nd order interaction, a contrast is the *difference in the first order contrast in variable i relative to changes in variable j*. Using our operator notation, the 2nd order difference is:
+
 $$
 \Delta_i\Delta_j f_{ij} \;=\; \big[f_{ij}(v_i,v_j) - f_{ij}(b_i,v_j)\big] - \big[f_{ij}(v_i,b_j) - f_{ij}(b_i,b_j)\big] \;=\; f_{ij}(v_i,v_j) - f_{ij}(b_i,v_j) - f_{ij}(v_i,b_j) + f_{ij}(b_i,b_j).
 $$
-
 
 Let's apply it to a four-term model, a general base $b = (b_1, b_2)$, and a general target $v = (v_1, v_2)$.
 
@@ -100,7 +103,6 @@ $$
 
 which is $\beta_1 v_1$ at $x_2 = 0$: slope times distance from base. For a general base $b$, replace $v_i$ by $(v_i - b_i)$.
 
-
 The first-order contrasts, each still a function of the other variable:
 
 $$
@@ -138,14 +140,13 @@ $$
 \Delta_1\Delta_2 g = \beta_{12}\,(v_1 - b_1)(v_2 - b_2)
 $$
 
-Check that they add up. The $\beta_{12}$ pieces are 
+Check that they add up. The $\beta_{12}$ pieces are
 
 $$
 b_2(v_1 - b_1) + b_1(v_2 - b_2) + (v_1 - b_1)(v_2 - b_2) = v_1 v_2 - b_1 b_2,
 $$
 
-so the sum is 
-$$
+so the sum is $$
 \beta_1(v_1 - b_1) + \beta_2(v_2 - b_2) + \beta_{12}(v_1 v_2 - b_1 b_2) = g(v) - g(b).
 $$
 
@@ -201,9 +202,9 @@ Requiring $L h_i = 0$ for every function $h_i(x_i)$ gives $c_{00}+c_{01}=0$ and 
 
 The sanity checks then fall out the same way they do for main effects:
 
-- bilinear $f_{ij}=\beta x_ix_j$: $\Delta_i\Delta_j f_{ij} = \beta\big(v_iv_j - b_iv_j - v_ib_j + b_ib_j\big) = \beta(v_i-b_i)(v_j-b_j)$, the product-of-deviations term of a linear model centered at $b$;
-- two factors with treatment coding and $b$ the reference levels: $f_{ij}(x_i,x_j) = \sum_{a\neq b_i}\sum_{c\neq b_j}\beta_{ac}\,\mathbf{1}[x_i=a]\,\mathbf{1}[x_j=c]$, so the slices $f_{ij}(\cdot,b_j)$ and $f_{ij}(b_i,\cdot)$ are identically zero and the DiD collapses to $f_{ij}(v_i,v_j) = \beta_{v_iv_j}$, i.e. the interaction coefficient;
-- any additive $f_{ij}$: zero.
+-   bilinear $f_{ij}=\beta x_ix_j$: $\Delta_i\Delta_j f_{ij} = \beta\big(v_iv_j - b_iv_j - v_ib_j + b_ib_j\big) = \beta(v_i-b_i)(v_j-b_j)$, the product-of-deviations term of a linear model centered at $b$;
+-   two factors with treatment coding and $b$ the reference levels: $f_{ij}(x_i,x_j) = \sum_{a\neq b_i}\sum_{c\neq b_j}\beta_{ac}\,\mathbf{1}[x_i=a]\,\mathbf{1}[x_j=c]$, so the slices $f_{ij}(\cdot,b_j)$ and $f_{ij}(b_i,\cdot)$ are identically zero and the DiD collapses to $f_{ij}(v_i,v_j) = \beta_{v_iv_j}$, i.e. the interaction coefficient;
+-   any additive $f_{ij}$: zero.
 
 **An accounting consequence worth noticing.** For a smooth, the slice terms don't vanish, so if you report $\Delta_i f_i$ as the main-effect contrast and $\Delta_i\Delta_j f_{ij}$ as the interaction contrast, the pieces won't sum to $\eta(v)-\eta(b)$. The telescoping identity says where the missing pieces belong: the baseline-anchored main effect of $i$ is
 
@@ -242,4 +243,3 @@ The singleton is exactly the slice-inclusive main effect above; the pair is the 
 $$\sum_{S\neq\emptyset} m(S) \;=\; \nu(\{1,\dots,p\}) - \nu(\emptyset) \;=\; \eta(v)-\eta(b), \qquad\text{so}\qquad \hat\mu(v) \;=\; \hat\mu(b)\prod_{S\neq\emptyset} e^{m(S)},$$
 
 and the whole scheme is consistent by construction. Every $\nu(S)$ is a single `predict()` call at a corner of the box $\prod_i\{b_i,v_i\}$, so the tables need only the fitted model and the baseline cell, and nothing about how the software labels or centers its terms.
-

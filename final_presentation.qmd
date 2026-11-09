@@ -2,7 +2,45 @@
 title: "Final Presentation"
 ---
 
-# Why Rating Tables
+# Rating Factors in Insurance
+
+# Rating Factors in Insurance
+
+" The public wants two things from insurance regulators. They want solvent insurers who are financially able to make good on the promises they have made and they want insurers to treat policyholders and claimants fairly." https://content.naic.org/sites/default/files/inline-files/topics_white_paper_hist_ins_reg.pdf
+
+p\. 3
+
+Actuary principles:
+
+Accuracy - the variable should measure cost differences Homogeneity - all members of class should have same expected cost Reliability - should have stable mean value over time Credibility - groups should be large enough to permit measuring costs
+
+These principles did not originate in statute or insurance regulation. They largely emerged from the actuarial literature on risk classification and the practical problem of constructing rate classes that are both statistically defensible and administratively useful.
+
+The canonical actuarial source is:
+
+Casualty Actuarial Society, Foundations of Casualty Actuarial Science (various editions), particularly chapters on risk classification and ratemaking.
+
+The modern formulation traces back to mid-20th-century ratemaking theory and especially the work of:
+
+Robert Bailey and Leroy Simon (1960), "Two Studies in Automobile Insurance Ratemaking" in the Proceedings of the Casualty Actuarial Society. William S. Jewell's work on credibility theory in the 1970s. CAS educational material on classification ratemaking developed from the 1960s onward.
+
+
+Insurance is a gamble. Intuitively, this means calculating the risk or cost of a policy relative to a base level. This has led to the concept of rating tables filled with "risk relativities", which are so fundamental to the industry that they are regulated and need to be filed with the state.
+
+The traditional way of calculating relativities was directly from data on past losses.
+
+Example: One-way relativity for variable $i$ at value $v$ in a book of records $k = 1, \dots, n$ with observed loss cost $y_k$ and exposure $ee_k$:
+
+$$R_i(v) \;=\; \frac{\bar{y}_i(v)}{\bar{y}}
+\;=\; \frac{\displaystyle\sum_{k:\, x_{ik} = v} ee_k\, y_k \Big/ \sum_{k:\, x_{ik} = v} ee_k}{\displaystyle\sum_{k} ee_k\, y_k \Big/ \sum_{k} ee_k}$$
+
+the exposure-weighted average loss cost among records with $x_i = v$, divided by the same average over the whole book. Relative to a base level $b$ instead of the book average, use $\bar{y}_i(v) / \bar{y}_i(b)$.
+
+It was always understood that one-way relativities are confounded by relationships between variables: the relativity for one variable depends on how the other variables happen to be distributed in the book.
+
+Along the way, "minimum bias" methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model controls for the other variables, the model coefficients represent the effect of each variable taken *ceteris paribus*, all other things being equal.
+
+## Why Rating Tables
 
 -   Transparency
 
@@ -10,23 +48,42 @@ title: "Final Presentation"
 
 # Requirements
 
--   Actuarial Requirements
+## Actuarial Requirements
 
-    -   The list of four
+The principles are best viewed as actuarial design criteria rather than legal requirements.
 
--   Mathematical Requirements
+| Principle | Original concern |
+|----------------------------|--------------------------------------------|
+| Accuracy | Does the variable actually predict expected loss? |
+| Homogeneity | Are members within a class sufficiently similar? |
+| Credibility | Is there enough data to estimate costs reliably? |
+| Reliability/Stability | Will the relationship persist long enough to use prospectively? |
 
-    -   Bailey and Simon's
+Interestingly, regulators rarely use these exact four terms.
 
-    -   Tables match loss
+Regulators generally require that rates not be:
 
-    -   Build model, model matches loss, build tables from model?
+excessive, inadequate, unfairly discriminatory.
 
-# Model Shape
+| Actuarial principle | Regulatory connection                      |
+|---------------------|--------------------------------------------|
+| Accuracy            | Supports actuarially justified differences |
+| Homogeneity         | Reduces unfair discrimination within class |
+| Credibility         | Prevents rates based on noise              |
+| Reliability         | Helps ensure prospective adequacy          |
 
--   Distributions tend to be log link: Poisson, Negative Binomial, Tweedie
 
--   Conveniently, these can be expressed as products of terms. For example, a GAM model has the form:
+## Mathematical Requirements
+
+-   Bailey and Simon's
+-   Tables match loss
+-   Build model, model matches loss, build tables from model?
+
+## Model Shape
+
+-   Distributions tend to be exponential: Poisson, Negative Binomial, Tweedie
+
+-   Conveniently, these can be expressed as products of terms. For example, a GAM model with a log link has the form:
 
 $$
 \ln \mu(\mathbf{x}) = f_0 + \sum_i f_i(x_i) + \sum_{i<j} f_{ij}(x_i, x_j) + \sum_{i<j<k} f_{ijk}(x_i, x_j, x_k) + \cdots
@@ -47,8 +104,8 @@ $$ \mu(\mathbf{v}) = \mu(\mathbf{b}) \times \prod_i r_i(v_i) \times \prod_{i<j}r
 In this way, $r_T$ is the $n$-way rating table for the term $T$ which involves a subset of variables $\{T: T \subseteq \{x_1, \dots, x_p\}\}$ and $n_T = |T|$. Likewise, $x_S = (x_i)_{i \in S}$
 
 Assuming we are free to choose $\mathbf{x}^b$, it's obvious this requires\
-$$ \prod_i r_i(v_i) \times \prod_{i<j}r_{ij}(v_i, v_j) \times \prod_{i<j<} r_{ijk}(v_i, v_j, v_k) \times \cdots = 1 $$\
-\
+$$ \prod_i r_i(v_i) \times \prod_{i<j}r_{ij}(v_i, v_j) \times \prod_{i<j<} r_{ijk}(v_i, v_j, v_k) \times \cdots = 1 $$
+
 But, for true modularity, we have a stronger requirement. We want to make sure that the tables represent only their specific variables and no others. To do that, we must require that $r_T(\mathbf{x}_T) = 1$ when $x_i \equiv x_i^b$ for any $x_i \in T$.
 
 The question is, then, given our model @eq-log-link-gam and our choice of $\mathbf{x}^b$, can we build the rating tables $r_T$ out of the GAM functions $f_T$? That is to say, while the model’s terms $f_T$ are not the rating tables, can we construct the tables to meet the requirements of a rating plan? We can, and we can also show that the construction is unique.
@@ -60,12 +117,30 @@ In what follows, we will do [N] things:
 3. Show that it reduces to the simple GLM case we are familiar with 4. Show that that, to the extent that we consider model terms explainable, if we build an exact model, then we can create exact explainable (and therefore potentially fileable) tables fromexact, filable tables from any model with declared interaction structure (GAM tensor terms, GBM with interaction constraints, depth-limited trees); an audit of existing GLM tables wherever a continuous variable sits inside an interaction and the base isn’t its coded zero; and the non-term tables as a diagnostic for interactions the model is missing.
 
 # The Construction
+## Log Space
 To construct the tables, we first switch to log space so that
 
 $$ \ln \mu(\mathbf{v}) = \ln \mu(\mathbf{b}) + \sum_i g_i(v_i) + \sum_{i<j}g_{ij}(v_i, v_j) +  \sum_{i<j<}g_{ijk}(v_i, v_j, v_k) + \cdots $$
 
 where $g_T = \ln r_T$.
 
+$
+\sum_i g_i(x_i) + \sum_{i<j} g_{ij}(x_i, x_j) + \sum_{i<j<k} g_{ijk}(x_i, x_j, x_k) + \cdots := 0
+$$
+
+$$
+\ln \mu(\mathbf{x}^b) = f_0 
+$$
+
+This defines our *base rating*, and it applies to a cell we
+
+The loss for any given policy with cell value $\mathbf{v} = (v_1, v_2, \dots, v_p)$ will, then, be
+
+$$
+\mu(\mathbf{v}) = \mu(\mathbf{x}^b) \prod_i g_i(x_i) \prod_{i<j}g_{ij}(x_i, x_j)\cdots
+$$
+
+## Operators
 We want to express the loss (or risk or rate) of a particular policy or target $\mathbf{v}$ relative to the baseline value $\mathbf{b}$. To facilitate this, we define the following operators. 
 
 Let $\Delta_i$ operate on any function $F(\mathbf{x})$ such that
@@ -124,23 +199,21 @@ Let's examine the properties.
     \prod_k \mathbb{V}_k = \prod_k(\mathbb{B}_k + \Delta_k) = \sum_S \mathbb{B}_{-S}\Delta_S
     $$
 
+    The $k^{th}$ term has $k$ $B$s and $p-k$ $\Delta$s. Every term has exactly one operator per variable, either $\mathbb{B}_k$ or $\Delta_k$, so a term with $|S|$ $\Delta$’s has $p - |S|$ $\mathbb{B}$’s. But the terms aren’t indexed by the count alone; they’re indexed by which variables got the $\Delta$, and that set is $S$
 
-Also, 
+## Recipe
+To find the function $g_T$:
 
-$$ \ln \mu(\mathbf{v}) - \ln \mu(\mathbf{b}) \\
-= \sum_i g_i(v_i) + \sum_{i<j}g_{ij}(v_i, v_j) +  \sum_{i<j<}g_{ijk}(v_i, v_j, v_k) + \cdots \\
-= \sum_i g_i(v_i) + \sum_{i<j}g_{ij}(v_i, v_j) +  \sum_{i<j<}g_{ijk}(v_i, v_j, v_k) + \cdots  \\
--  \sum_i g_i(b_i) + \sum_{i<j}g_{ij}(b_i, b_j) +  \sum_{i<j<}g_{ijk}(b_i, b_j, b_k) + \cdots$$
-
-Using the fact that
+First measure the difference of the rate from baseline.
 
 $$
-F(\mathbf{v}) = \prod_i V_i F(\mathbf{x}) \\
-F(\mathbf{b}) = \prod_i B_i F(\mathbf{x}) \\
+\Delta_T \ln \mu(\mathbf{x}) = \ln \mu(\mathbf{v}_T, \mathbf{x}_{\T}) - \ln \mu(\mathbf{b}_T, \mathbf{x}_{\T})
 $$
 
-$\prod_i (V_i - B_i)$
+This is still, in general a function of the other variables. We only measured the difference for variables in T.
 
-$\prod_k \mathbb{V}_k = \prod_k(\mathbb{B}_k + \Delta_k) = \sum_S \mathbb{B}_{-S}\Delta_S$
+Next,to make the g individual and comparable, *ceteris paribus*, also set variables not in the term to baseline: 
 
-The, kth term has k Bs and p-k \\Deltas.
+$$
+\B_{\T} \Delta_T \ln \mu(\mathbf{x}) = \ln \mu(\mathbf{v}_T, \mathbf{b}_{\T}) - \ln \mu(\mathbf{b}_T, \mathbf{b}_{\T})
+$$
