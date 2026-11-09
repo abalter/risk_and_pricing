@@ -1,0 +1,340 @@
+---
+title: "Rating Tables from Any Model"
+author: "Ariel Balter, Ph.D."
+date: today
+date-format: long
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 2
+    toc-title: "Table of Contents"
+    toc-location: left
+---
+
+# Rating Factors in Insurance
+
+> "The public wants two things from insurance regulators. They want solvent insurers who are financially able to make good on the promises they have made and they want insurers to treat policyholders and claimants fairly." — NAIC, [*History of Insurance Regulation*](https://content.naic.org/sites/default/files/inline-files/topics_white_paper_hist_ins_reg.pdf), p. 3
+
+Actuarial principles for a rating variable:
+
+-   **Accuracy**: the variable should measure cost differences.
+-   **Homogeneity**: all members of a class should have the same expected cost.
+-   **Reliability**: the relationship should be stable over time.
+-   **Credibility**: groups should be large enough to permit measuring costs.
+
+These principles did not originate in statute or insurance regulation. They emerged from the actuarial literature on risk classification and the practical problem of constructing rate classes that are both statistically defensible and administratively useful. The canonical source is the CAS *Foundations of Casualty Actuarial Science*, particularly the chapters on risk classification and ratemaking; the modern formulation traces to Bailey and Simon (1960), "Two Studies in Automobile Insurance Ratemaking," *PCAS*, to Jewell's work on credibility in the 1970s, and to CAS educational material on classification ratemaking from the 1960s onward.
+
+Insurance is a gamble. Intuitively, this means calculating the risk or cost of a policy relative to a base level. This has led to the concept of rating tables filled with "risk relativities," which are so fundamental to the industry that they are regulated and must be filed with the state.
+
+The traditional way of calculating relativities was directly from data on past losses. The one-way relativity for variable $i$ at value $v$, in a book of records $k = 1, \dots, n$ with observed loss cost $y_k$ and exposure $ee_k$, is
+
+$$
+R_i(v) \;=\; \frac{\bar{y}_i(v)}{\bar{y}}
+\;=\; \frac{\displaystyle\sum_{k:\, x_{ik} = v} ee_k\, y_k \Big/ \sum_{k:\, x_{ik} = v} ee_k}{\displaystyle\sum_{k} ee_k\, y_k \Big/ \sum_{k} ee_k},
+$$
+
+the exposure-weighted average loss cost among records with $x_i = v$, divided by the same average over the whole book. Relative to a base level $b$ instead of the book average, use $\bar{y}_i(v) / \bar{y}_i(b)$.
+
+It was always understood that one-way relativities are confounded by relationships between variables: the relativity for one variable depends on how the other variables happen to be distributed in the book.
+
+Along the way, "minimum bias" methods were developed, which were ultimately found to coincide with GLM coefficients. This led to the idea of creating rating tables from GLM models. Because a linear model controls for the other variables, the coefficients represent the effect of each variable taken *ceteris paribus*, all other things being equal.
+
+## Why Rating Tables
+
+-   **Transparency.** Every number in the plan can be traced to specific predictions of the model.
+-   **Modularity.** Each table can be read on its own.
+
+These two words will become two precise requirements below.
+
+# Requirements
+
+## Actuarial Requirements
+
+The principles are best viewed as actuarial design criteria rather than legal requirements.
+
+| Principle | Original concern |
+|------------------------------------|------------------------------------|
+| Accuracy | Does the variable actually predict expected loss? |
+| Homogeneity | Are members within a class sufficiently similar? |
+| Credibility | Is there enough data to estimate costs reliably? |
+| Reliability / Stability | Will the relationship persist long enough to use prospectively? |
+
+Regulators rarely use these four terms. They generally require that rates not be *excessive*, *inadequate*, or *unfairly discriminatory*.
+
+| Actuarial principle | Regulatory connection                        |
+|---------------------|----------------------------------------------|
+| Accuracy            | Supports actuarially justified differences   |
+| Homogeneity         | Reduces unfair discrimination within a class |
+| Credibility         | Prevents rates based on noise                |
+| Reliability         | Helps ensure prospective adequacy            |
+
+## Mathematical Requirements
+
+The rating plan must reproduce experience. Bailey and Simon's balance criterion asks that the plan reproduce actual losses in total for each level of each rating variable. That requirement has two components:
+
+1.  **The model matches loss.** This is statistics: distribution, link, variable selection, validation. (A Poisson GLM with a log link reproduces total losses exactly within every level of every categorical variable in the model; other distributions and penalized fits do so approximately.)
+2.  **The tables reproduce the model exactly.** This is algebra, and it is the subject of this talk.
+
+If the *tables reproduce the model* and *the model matches loss*, then *the tables match loss*. We take the first as given and settle the second.
+
+# Model Shape
+
+Frequency and severity models use exponential-family distributions (Poisson, negative binomial, gamma, Tweedie) and, by convention, a log link. With a log link the mean is a product of exponentiated terms. A GAM has the form
+
+$$
+\ln \mu(\mathbf{x}) = f_0 + \sum_i f_i(x_i) + \sum_{i<j} f_{ij}(x_i, x_j) + \sum_{i<j<k} f_{ijk}(x_i, x_j, x_k) + \cdots
+$$ {#eq-log-link-gam}
+
+where each successive sum collects terms of higher order. Most of the possible terms are absent from any given model. Finding the *correct* terms is the art of model selection.[^1]
+
+[^1]: Because this discussion relates model to tables to facts, it also has the potential to contribute to model selection which is something to discuss later.
+
+## Notation
+
+### Variables
+
+There are $p$ variables, indexed by $[p] = \{1, \dots, p\}$.
+
+### Terms
+
+A *term* is identified with the set of variables it involves. So, a term is a subset $T \subseteq [p]$. The *order* of $T$ is $|T|$, the number of variables which contribute to the term. The intercept (often denoted as $f_0$) is the term $T = \emptyset$. For any subset $S$ of $[p]$, $\mathbf{x}_S = (x_i)_{i \in S}$ is the sub-vector of the variables in $S$, and $\mathbf{x}_{-S}$ is the sub-vector of the variables *not* in $S$[^2]. The model is then
+
+[^2]: **Note:** A *cell* or *coordinate* is an ordered tuple of variables $(x_1, ..., x_p)$. That said, we will sometimes use a convenient but slightly confusing notation that allows us to write the coordinates out of order, but with enough information that they know how to go back to their proper places when required. For example. $F(\mathbf{v}_S, \mathbf{b}_{\S})$ is the function $F$ evaluated on the vector that has the coordinates in $S$ determined by the vector $\mathbf{v}$ and the coordinates *not* in S determined from the vector $\mathbf{b}$.
+
+$$
+\ln\mu(\mathbf{x}) = \sum_{T} f_T(\mathbf{x}_T),
+$$
+
+the sum running over the terms the model actually contains. A GLM is the special case in which $f_i$ is linear in $x_i$ (or a set of dummies), $f_{ij} = \beta_{ij} x_i x_j$, and so on.
+
+# Rating Plans
+
+A rating plan built as a product of tables needs a predetermined **base rate** $\mu^b$, applying to a **base cell** $\mathbf{b} = (b_1, \dots, b_p)$ that we choose on principles we decide. It often makes sense to choose the most common value of each variable, so that the base cell is the most common policy. The base rate is the model's prediction at the base cell, up to an overall level adjustment:
+
+$$
+\mu^b = \mu(\mathbf{b}) \times (\text{level adjustment}).
+$$
+
+The level adjustment is set by the overall rate indication and absorbs the off-balance; the tables are unaffected by it, so we drop it from here on.
+
+The plan then needs tables for variables and for combinations of variables, so that for any policy with cell $\mathbf{v} = (v_1, \dots, v_p)$,
+
+$$
+\mu(\mathbf{v}) \;=\; \mu(\mathbf{b}) \times \prod_i r_i(v_i) \times \prod_{i<j} r_{ij}(v_i, v_j) \times \prod_{i<j<k} r_{ijk}(v_i, v_j, v_k) \times \cdots
+$$ {#eq-plan}
+
+Here $r_T$ is the $|T|$-way **rating table** for the variable set $T$: a table with $|T|$ columns giving the levels of the variables in $T$ and one column giving the rating factor, one row per cell $\mathbf{v}_T$. A **factor** is one entry $r_T(\mathbf{v}_T)$. The plan is the base rate together with all the tables. Rating a policy means finding, in each table, the one row that matches the policy's values of that table's variables, and multiplying those factors into the base rate.
+
+## Requirement 1: consistency at the base cell
+
+Set $\mathbf{v} = \mathbf{b}$ in @eq-plan. The product of all the factors at base must be $1$. Since tables are read separately, this must hold table by table:
+
+$$
+r_T(\mathbf{b}_T) = 1 \quad \text{for every } T.
+$$
+
+## Requirement 2: modularity
+
+For the tables to be separately interpretable we need more. A table indexed by $T$ must represent the joint effect of the variables in $T$ and nothing else:
+
+$$
+r_T(\mathbf{x}_T) = 1 \quad \text{whenever } x_i = b_i \text{ for some } i \in T.
+$$
+
+Requirement 1 is the special case in which every variable of $T$ is at base.
+
+**Why the stronger requirement.** A table indexed by $T$ prices the joint departure of the variables in $T$ from base. On a row where one of them, $x_i$, sits at its base value, there is no departure of $x_i$, so there is no joint departure for this table to price. Whatever that row charges depends only on the other variables in $T$, and pricing those is the business of a smaller table.
+
+This is the base-rate principle applied at every level. We put everything that depends on no departure into the base rate, so that no table relitigates it. The same rule says: put everything that depends on the departure of $x_1$ alone into the $x_1$ table, so that no larger table relitigates it. Requirement 1 is the rule applied to the base rate; Requirement 2 is the rule applied to every table.
+
+The cost of violating it is exact. Consider the policy $(v_1, \mathbf{b}_{-1})$: level $v_1$ of $x_1$, everything else at base. The model fixes its total. By the standard definition (Werner and Modlin), the rate differential for level $v_1$ is measured relative to the base level with everything else at base, so it *is* this policy's total, and the one-way table $r_1$ is the table that holds rate differentials. The only other tables with a row for this policy are the larger tables containing $x_1$, at their rows where the other variables sit at base. If any of those rows is not $1$, then either the policy is overcharged, or, if the plan is forced to balance, $r_1(v_1)$ understates the differential it claims to report, and a reader must open every table containing $x_1$ and multiply to recover it. Requirement 2 says those rows are $1$.
+
+**An objection.** *We agreed to put everything related to the base into the base rate so we never double charge. But then you rate a youth driver in a truck with both an age table and an age×vehicle table. Isn't that the same thing?* Applying two tables is not charging twice. The age table holds the youth surcharge for the base vehicle. The age×vehicle table is $1$ for the base vehicle, so it contains none of that; it holds only the amount by which the youth surcharge for a truck differs from the youth surcharge for the base vehicle. Two lines on the bill, one charge. It would be a double charge only if the age×vehicle table were not $1$ at the base vehicle, which is exactly what Requirement 2 forbids.
+
+## The question
+
+Given the model @eq-log-link-gam and a choice of base cell $\mathbf{b}$, can we build tables $r_T$ satisfying @eq-plan and Requirement 2 out of the model's terms $f_T$? The terms are not themselves the tables. But we can construct the tables from them, and the construction is unique. In what follows we:
+
+1.  Give the construction.
+2.  Show the tables it produces reproduce the model exactly.
+3.  Show no other tables could.
+4.  Show it reduces to the familiar GLM case, and say exactly when coefficients are factors.
+5.  Say what this gives us.
+
+# The Construction
+
+## Log scale
+
+Write $g_T = \ln r_T$. The plan @eq-plan becomes additive,
+
+$$
+\ln\mu(\mathbf{x}) \;=\; \ln\mu(\mathbf{b}) + \sum_{T \neq \emptyset} g_T(\mathbf{x}_T) \qquad \text{for every cell } \mathbf{x},
+$$ {#eq-plan-log}
+
+and Requirement 2 becomes: $g_T(\mathbf{x}_T) = 0$ whenever $x_i = b_i$ for some $i \in T$. We write the plan with a generic cell $\mathbf{x}$ as its argument because the operators below act on functions of $\mathbf{x}$. The sum is over every nonempty subset $T$ of $[p]$; the tables that the model does not need will come out identically zero.
+
+## Operators
+
+We want to express the rate for a target policy $\mathbf{v}$ relative to the base policy $\mathbf{b}$. Define three operators on any function $F(\mathbf{x})$:
+
+$$
+\mathbb{V}_i F(\mathbf{x}) = F(\mathbf{x})\big|_{x_i = v_i}, \qquad
+\mathbb{B}_i F(\mathbf{x}) = F(\mathbf{x})\big|_{x_i = b_i}, \qquad
+\Delta_i = \mathbb{V}_i - \mathbb{B}_i .
+$$
+
+$\mathbb{V}_i$ sets variable $i$ to its target value, $\mathbb{B}_i$ sets it to its base value, and $\Delta_i$ measures the change. All three return functions of the remaining variables:
+
+$$
+\Delta_i F \;=\; F(x_1, \dots, v_i, \dots, x_p) - F(x_1, \dots, b_i, \dots, x_p).
+$$
+
+For a set $S$ write $\mathbb{V}_S = \prod_{i \in S}\mathbb{V}_i$, $\mathbb{B}_S = \prod_{i \in S}\mathbb{B}_i$, $\Delta_S = \prod_{i \in S}\Delta_i$, and $\mathbb{B}_{-S} = \prod_{j \notin S}\mathbb{B}_j$ for "set every variable outside $S$ to base."
+
+**Properties.**
+
+1.  *Linearity.* $\mathbb{V}_i(F + H) = \mathbb{V}_i F + \mathbb{V}_i H$, likewise $\mathbb{B}_i$, hence $\Delta_i(F + H) = \Delta_i F + \Delta_i H$.
+
+2.  *Commutativity across variables.* Operators acting on different variables commute: $\mathbb{V}_i\mathbb{B}_j = \mathbb{B}_j\mathbb{V}_i$, $\Delta_i\Delta_j = \Delta_j\Delta_i$, and so on, for $i \neq j$.
+
+3.  *Pass-through.* If $F$ does not depend on $x_j$, setting $x_j$ changes nothing: $\mathbb{V}_j F = \mathbb{B}_j F = F$. Therefore $$
+    \Delta_j F = F - F = 0 \qquad \text{if } F \text{ does not depend on } x_j .
+    $$ In particular, $\Delta_j$ kills any term $f_T$ with $j \notin T$, and $\mathbb{B}_j$ leaves it alone.
+
+4.  *First applied wins.* Composition is read right to left. When two operators act on the same variable, the first one applied fixes that variable's value, and the second finds no $x_i$ to act on: $$
+    \mathbb{V}_i\mathbb{V}_i = \mathbb{V}_i, \quad \mathbb{B}_i\mathbb{B}_i = \mathbb{B}_i, \quad \mathbb{V}_i\mathbb{B}_i = \mathbb{B}_i, \quad \mathbb{B}_i\mathbb{V}_i = \mathbb{V}_i .
+    $$ Consequently $\Delta_i\Delta_i = 0$; $\mathbb{B}_i\Delta_i = \mathbb{V}_i\Delta_i = \Delta_i$ (setting a variable after differencing it does nothing); and $\Delta_i\mathbb{B}_i = \Delta_i\mathbb{V}_i = 0$ (differencing a variable after setting it gives nothing to difference).
+
+5.  *Requirement 2 in operator form.* "$g_T$ is zero whenever one of its own variables is at base" is exactly $$
+    \mathbb{B}_i\, g_T = 0 \qquad \text{for every } i \in T .
+    $$
+
+6.  *An expansion identity, saved for later.* Substitute $\mathbb{V}_k = \mathbb{B}_k + \Delta_k$ into the product over all variables and multiply out: $$
+    \prod_{k=1}^{p} \mathbb{V}_k \;=\; \prod_{k=1}^{p} (\mathbb{B}_k + \Delta_k) \;=\; \sum_{S \subseteq [p]} \mathbb{B}_{-S}\,\Delta_S .
+    $$ Each of the $2^p$ terms chooses $\mathbb{B}_k$ or $\Delta_k$ for every variable; $S$ is the set of variables that got $\Delta$, and the operators commute, so the term is $\mathbb{B}_{-S}\Delta_S$. The $S = \emptyset$ term is $\prod_k \mathbb{B}_k$. Moving it across, $$
+    \prod_k \mathbb{V}_k - \prod_k \mathbb{B}_k \;=\; \sum_{S \neq \emptyset} \mathbb{B}_{-S}\,\Delta_S .
+    $$ {#eq-expansion} For $p = 2$: $\mathbb{V}_1\mathbb{V}_2 - \mathbb{B}_1\mathbb{B}_2 = \mathbb{B}_2\Delta_1 + \mathbb{B}_1\Delta_2 + \Delta_1\Delta_2$.
+
+## Recipe
+
+To find $g_T$:
+
+**Step 1. Measure the change in the log rate when the variables in** $T$ change from base to target. Apply $\Delta_T$ to the whole model:
+
+$$
+\Delta_T \ln\mu(\mathbf{x}).
+$$
+
+For a single variable this is the two-point difference $\ln\mu(v_i, \mathbf{x}_{-i}) - \ln\mu(b_i, \mathbf{x}_{-i})$. For two variables it is the difference applied twice,
+
+$$
+\Delta_i\Delta_j \ln\mu = \ln\mu(v_i, v_j, \cdot) - \ln\mu(b_i, v_j, \cdot) - \ln\mu(v_i, b_j, \cdot) + \ln\mu(b_i, b_j, \cdot),
+$$
+
+the change in the $x_i$ effect when $x_j$ moves, which is what an interaction is; and so on. In every case the result is still a function of the other variables $\mathbf{x}_{-T}$. We have only measured the change in the variables of $T$.
+
+**Step 2. Set the other variables to base.** To make the table a number that depends only on the model, the base, and the target values of its own variables, *ceteris paribus*:
+
+$$
+g_T(\mathbf{v}_T) \;:=\; \mathbb{B}_{-T}\,\Delta_T\,\ln\mu .
+$$ {#eq-recipe}
+
+For a single variable this reads $g_i(v_i) = \ln\mu(v_i, \mathbf{b}_{-i}) - \ln\mu(\mathbf{b})$, which is the rate differential for level $v_i$ relative to base with everything else at base: the textbook definition. On the rate scale, $r_T = e^{g_T}$.
+
+**The tables satisfy Requirement 2, for free.** If $v_i = b_i$ for some $i \in T$, then $\mathbb{V}_i = \mathbb{B}_i$, so $\Delta_i = 0$, so $g_T = 0$. A table built by differencing in its own variables vanishes whenever one of them has not moved.
+
+**The tables reproduce the model.** Apply @eq-expansion to $\ln\mu$. The left side is $\ln\mu(\mathbf{v}) - \ln\mu(\mathbf{b})$. Each term on the right is a table entry @eq-recipe. So
+
+$$
+\ln\mu(\mathbf{v}) \;=\; \ln\mu(\mathbf{b}) + \sum_{S \neq \emptyset} g_S(\mathbf{v}_S),
+$$
+
+which is @eq-plan-log at $\mathbf{x} = \mathbf{v}$, for every $\mathbf{v}$. Exponentiating gives @eq-plan. The plan prices every policy exactly as the model does.
+
+## Uniqueness
+
+The recipe determines *existence*. We can also prove that no other recipe exists.
+
+Suppose $\{g_T\}$ is *any* family of tables satisfying @eq-plan-log and Requirement 2. Apply $\mathbb{B}_{-S}\Delta_S$ to both sides of @eq-plan-log. On the right, go through the terms:
+
+-   $\ln\mu(\mathbf{b})$ is a constant: killed by $\Delta_S$ (property 3).
+-   $g_T$ with some variable of $S$ missing from $T$: killed by that $\Delta_i$ (property 3).
+-   $g_T$ with all of $S$ and some extra variable $j \in T \setminus S$: $\mathbb{B}_j$ is a factor of $\mathbb{B}_{-S}$, commutes past $\Delta_S$ (property 2), and kills $g_T$ (property 5).
+-   $g_T$ with $T = S$: $\mathbb{B}_{-S}$ passes through (property 3). Expand $\Delta_S = \prod_{i \in S}(\mathbb{V}_i - \mathbb{B}_i)$; every term containing some $\mathbb{B}_i$, $i \in S$, kills $g_S$ (property 5), leaving $\mathbb{V}_S\, g_S = g_S(\mathbf{v}_S)$.
+
+So $\mathbb{B}_{-S}\Delta_S$ applied to the right side returns $g_S(\mathbf{v}_S)$ alone, and applied to the left side returns $\mathbb{B}_{-S}\Delta_S\ln\mu$. Any tables satisfying the requirements are the recipe's tables. The construction is unique.
+
+## From the Model's Terms
+
+We claimed that we could create the rating tables from the model terms. Apply the recipe to the model written as a sum of terms. By property 3, $\Delta_S$ kills every term that does not contain all of $S$, and for a term that does, $\mathbb{B}_{-S}$ has only the variables $T \setminus S$ to act on:
+
+$$
+g_S(\mathbf{v}_S) \;=\; \sum_{S \subseteq T} \mathbb{B}_{T \setminus S}\,\Delta_S\, f_T .
+$$ {#eq-recipe-terms}
+
+The table for $S$ collects a contribution from every term containing $S$. The term of the same name contributes $\Delta_S f_S$; every larger term contributes the part of itself that remains after differencing in $S$ and setting its other variables to base. This is why terms are not tables: a term with two variables contributes to three tables, and a one-way table gathers from every term that mentions its variable. The same identity read the other way says where a term goes:
+
+$$
+f_T(\mathbf{v}_T) - f_T(\mathbf{b}_T) \;=\; \sum_{\emptyset \neq S \subseteq T} \mathbb{B}_{T \setminus S}\,\Delta_S\, f_T ,
+$$
+
+one piece to each table for a subset of $T$. Only when no term strictly contains $S$ does $g_S = \Delta_S f_S$.
+
+## Transparency
+
+Every entry @eq-recipe is a signed sum of model predictions at cells where only the variables of $T$ are off base, one prediction per cell. The tables need nothing but the fitted model and the base cell: not the term labels, not the coding, not the software's centering conventions. This has a powerful implication:
+
+> Whatever the fitted model is---GLM, GAM, GBM, or tree ensemble---the recipe produces a (putatively) fileable set of tables that reproduce it exactly at every cell. 
+
+In practice, this requires a declared and bounded interaction structure (which variables may interact, up to what order). This structure keeps the term number and order manageable and tells us which of the $2^p - 1$ possible tables are nonzero. However, the recipe only guarantees that the tables match the model. I's still up to the modeler to make sure the model matches the losses.
+
+# Reduction to the GLM Case
+
+Take two variables and one interaction, with a general base $\mathbf{b} = (b_1, b_2)$ and target $\mathbf{v} = (v_1, v_2)$:
+
+$$
+\ln\mu(x_1, x_2) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_{12}\,x_1 x_2 .
+$$
+
+Step 1 of the recipe gives $\Delta_1\ln\mu = (\beta_1 + \beta_{12}x_2)(v_1 - b_1)$, still a function of $x_2$. Step 2 sets $x_2 = b_2$. The three tables are
+
+$$
+g_1 = (\beta_1 + \beta_{12}\,b_2)(v_1 - b_1), \qquad
+g_2 = (\beta_2 + \beta_{12}\,b_1)(v_2 - b_2), \qquad
+g_{12} = \beta_{12}\,(v_1 - b_1)(v_2 - b_2),
+$$
+
+and they add to $\beta_1(v_1 - b_1) + \beta_2(v_2 - b_2) + \beta_{12}(v_1 v_2 - b_1 b_2) = \ln\mu(\mathbf{v}) - \ln\mu(\mathbf{b})$, as they must. The base rate is $e^{\beta_0 + \beta_1 b_1 + \beta_2 b_2 + \beta_{12} b_1 b_2}$ and the factors are $r_1 = e^{g_1}$, $r_2 = e^{g_2}$, $r_{12} = e^{g_{12}}$.
+
+Now the codings, which are just choices of $\mathbf{b}$ and $\mathbf{v}$.
+
+-   **Treatment (dummy) coding, base at the reference cell.** Each $x$ is $0$ at the reference level and $1$ otherwise, so $\mathbf{b} = (0, 0)$ and $\mathbf{v} = (1, 1)$. The tables are $e^{\beta_1}$, $e^{\beta_2}$, $e^{\beta_{12}}$, and the base rate is $e^{\beta_0}$. The coefficients are the factors. This is the familiar case, and the only one in the textbooks.
+-   **Sum (effect) coding, base at a level.** Each $x$ is $\pm 1$, so $\mathbf{b} = (-1, -1)$ and $\mathbf{v} = (1, 1)$. The tables are $e^{2(\beta_1 - \beta_{12})}$, $e^{2(\beta_2 - \beta_{12})}$, $e^{4\beta_{12}}$. They price every cell correctly, and they are not the coefficients: $\beta_1$ is the slope at $x_2 = 0$, which under this coding is the grand mean, not a cell.
+-   **Continuous predictors, base at a chosen point.** The tables are the general formulas above: the one-way factor is $e^{\beta_1 + \beta_{12} b_2}$ per unit of $x_1$, compounded over the distance $v_1 - b_1$. It is $e^{\beta_1}$ per unit only when $b_2 = 0$.
+
+The general rule, for a GLM written as a sum of product terms $\ln\mu = \sum_T \beta_T \prod_{i \in T} x_i$: applying @eq-recipe-terms,
+
+$$
+g_S(\mathbf{v}_S) \;=\; \Big(\sum_{T \supseteq S} \beta_T \prod_{j \in T \setminus S} b_j\Big)\prod_{i \in S}(v_i - b_i) ,
+$$
+
+because $\Delta_i$ turns each $x_i$ with $i \in S$ into $v_i - b_i$ and $\mathbb{B}_j$ turns each remaining $x_j$ into $b_j$. The bracket is the coefficient of the same model rewritten in coordinates centered at $\mathbf{b}$. So:
+
+> **A GLM coefficient is a rating factor exactly when every variable in a term strictly containing its own is based at the value the coding assigns to zero.** Treatment coding based at the reference cell satisfies this for every coefficient at once, because its zero is a cell. For any other coding, or for a continuous variable inside an interaction with its base anywhere but zero, the one-way factor is $\beta_S$ plus a base-weighted share of every interaction coefficient above it.
+
+With no interactions the bracket is just $\beta_S$ at any base, and the only effect of the coding is scale. The entire base-dependence of the main-effect tables is caused by interaction terms and nothing else.
+
+# What This Gives Us
+
+1.  **Exact, filable tables from any model with declared interaction structure.** The recipe never used the form of $\ln\mu$. A GAM with tensor-product smooths, a boosted model fit under interaction constraints, or depth-limited trees all have a known maximum interaction order $d$, and every table of order above $d$ is identically zero. The plan is the base rate times one table per nonzero $S$, reproducing the model at every cell, built from predictions alone.
+
+2.  **An audit of existing GLM tables.** Wherever a continuous variable, or a factor under any coding but treatment, sits inside an interaction and its base is not the coding's zero, reading coefficients as factors misstates the one-way table by the omitted $\beta_{12} b_2$ piece. The recipe says what the table should be.
+
+3.  **A diagnostic.** The recipe produces a table for every subset $S$, whether or not the model has a term there. Computing the tables for subsets the model does *not* have, from the cross-classified data where the book allows it, and checking that they are near $1$, is a direct test for interactions the model is missing.
+
+4.  **Nothing here averages over the book.** The one-way relativity at the start of this talk moves when the mix of the book moves, even when the model does not. Every entry here is a signed sum of predictions at fixed cells, and cannot. That is what makes the tables a property of the model rather than of a particular year's book.
+
+# Note: Relation to Contrasts and ANOVA
+
+For later. The operator $\Delta_i$ is a contrast in variable $i$, and choosing the base cell is the same decision as choosing a contrast coding: treatment coding is the coding whose zero is a cell, which is why its coefficients coincide with the tables. The decomposition of $\ln\mu$ into one table per subset of variables is an ANOVA decomposition in which "set the other variables to base" replaces "average over the other variables." The averaged version produces components that are uncorrelated over the book but depend on it, and is the partial-dependence family; the base-anchored version produces components that are separately interpretable and book-free, which is what a filed table has to be. The construction and the uniqueness proof are identical in the two versions; only the operator that handles the other variables differs.

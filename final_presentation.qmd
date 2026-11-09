@@ -1,0 +1,146 @@
+---
+title: "Final Presentation"
+---
+
+# Why Rating Tables
+
+-   Transparency
+
+-   Modularity
+
+# Requirements
+
+-   Actuarial Requirements
+
+    -   The list of four
+
+-   Mathematical Requirements
+
+    -   Bailey and Simon's
+
+    -   Tables match loss
+
+    -   Build model, model matches loss, build tables from model?
+
+# Model Shape
+
+-   Distributions tend to be log link: Poisson, Negative Binomial, Tweedie
+
+-   Conveniently, these can be expressed as products of terms. For example, a GAM model has the form:
+
+$$
+\ln \mu(\mathbf{x}) = f_0 + \sum_i f_i(x_i) + \sum_{i<j} f_{ij}(x_i, x_j) + \sum_{i<j<k} f_{ijk}(x_i, x_j, x_k) + \cdots
+$$ {#eq-log-link-gam}
+
+each successive term has higher order interactions.
+
+A set of rating system made of a product of tables requires a pre-determined *base rate* $\mu^b$ that applies to the *base cell* $\mathbf{b} = (b_1, b_2, \dots, b_p)$ we define, up to a scaling factor, on principles we decide so that
+
+$$
+\mu^b = \mu(\mathbf{b}) 
+$$
+
+For instance, it often makes sense to choose the base values as the most common ones because they represent the most common policy. Then it needs tables for variables and combinations of variables so that for any given policy with cell value $\mathbf{v} = (v_1, v_2, \dots, v_p)$, the effective rate can be calculated as
+
+$$ \mu(\mathbf{v}) = \mu(\mathbf{b}) \times \prod_i r_i(v_i) \times \prod_{i<j}r_{ij}(v_i, v_j) \times \prod_{i<j<} r_{ijk}(v_i, v_j, v_k) \times \cdots $$
+
+In this way, $r_T$ is the $n$-way rating table for the term $T$ which involves a subset of variables $\{T: T \subseteq \{x_1, \dots, x_p\}\}$ and $n_T = |T|$. Likewise, $x_S = (x_i)_{i \in S}$
+
+Assuming we are free to choose $\mathbf{x}^b$, it's obvious this requires\
+$$ \prod_i r_i(v_i) \times \prod_{i<j}r_{ij}(v_i, v_j) \times \prod_{i<j<} r_{ijk}(v_i, v_j, v_k) \times \cdots = 1 $$\
+\
+But, for true modularity, we have a stronger requirement. We want to make sure that the tables represent only their specific variables and no others. To do that, we must require that $r_T(\mathbf{x}_T) = 1$ when $x_i \equiv x_i^b$ for any $x_i \in T$.
+
+The question is, then, given our model @eq-log-link-gam and our choice of $\mathbf{x}^b$, can we build the rating tables $r_T$ out of the GAM functions $f_T$? That is to say, while the model’s terms $f_T$ are not the rating tables, can we construct the tables to meet the requirements of a rating plan? We can, and we can also show that the construction is unique.
+
+In what follows, we will do [N] things: 
+
+1. Show the construction 
+2. Show it is unique 
+3. Show that it reduces to the simple GLM case we are familiar with 4. Show that that, to the extent that we consider model terms explainable, if we build an exact model, then we can create exact explainable (and therefore potentially fileable) tables fromexact, filable tables from any model with declared interaction structure (GAM tensor terms, GBM with interaction constraints, depth-limited trees); an audit of existing GLM tables wherever a continuous variable sits inside an interaction and the base isn’t its coded zero; and the non-term tables as a diagnostic for interactions the model is missing.
+
+# The Construction
+To construct the tables, we first switch to log space so that
+
+$$ \ln \mu(\mathbf{v}) = \ln \mu(\mathbf{b}) + \sum_i g_i(v_i) + \sum_{i<j}g_{ij}(v_i, v_j) +  \sum_{i<j<}g_{ijk}(v_i, v_j, v_k) + \cdots $$
+
+where $g_T = \ln r_T$.
+
+We want to express the loss (or risk or rate) of a particular policy or target $\mathbf{v}$ relative to the baseline value $\mathbf{b}$. To facilitate this, we define the following operators. 
+
+Let $\Delta_i$ operate on any function $F(\mathbf{x})$ such that
+
+$$
+\Delta_i F(\mathbf{x}) = F(\mathbf{x})\big|_{x_i = v_i} - F(\mathbf{x})\big|_{x_i = b_i}
+$$
+
+$$
+\mathbb{V}_i F(\mathbf{x}) = F(\mathbf{x})\big|_{x_i = v_i}
+$$
+
+$$ \mathbb{B}_i F(\mathbf{x}) = F(\mathbf{x})\big|_{x_i = b_i} $$
+
+$$
+\Delta_i = \mathbb{V}_i - \mathbb{B}_i
+$$
+
+$V_i F$, $B_i F$, and $\Delta_i F$ are, in general, still a function of the other variables:
+
+$$\Delta_i F \;=\; F(x_1,\dots,v_i,\dots,x_p) - F(x_1,\dots,b_i,\dots,x_p)$$
+
+Let's examine the properties.
+
+1.  Linearity
+
+    $$V_i(F + H) = V_i F + V_i H$$
+    $$B_i(F + H) = B_i F + B_i H$$
+    Therefore:
+    $$\Delta_i(F + H) = \Delta_i F + \Delta_i H$$
+
+2. Commutativity
+   $$V_i V_j F = V_j V_i F$$
+   $$B_i B_j F = B_j B_i F$$
+   $$\Delta_i\Delta_j F = \Delta_j\Delta_i F$$
+
+3. Idempotence
+   
+   $$V_{\T} F_T = F_T$$
+   $$B_{\T} F_T = F_T$$
+   Therefore
+   $$\Delta_{\T} F_T = 0$$
+
+4. Last one wins
+   
+   $$V_T' B_T'' F_T(\mathbf{x}) = F_T \Big_{x'''}$$ where x''' = 
+   {x_i: i \in T\(T' \cup T')}
+   {v_i: i \in (T \cap T') \ T''} (or maybe T \cup (T' \ T''))
+   {b_i: i \in (T \cap T'') \ T'} (or maybe T \cup (T'' \ T'))
+
+(show a few examples with a few ij)
+
+5. A last property to save for later:
+
+    $$
+    \prod_k \mathbb{V}_k = \prod_k(\mathbb{B}_k + \Delta_k) = \sum_S \mathbb{B}_{-S}\Delta_S
+    $$
+
+
+Also, 
+
+$$ \ln \mu(\mathbf{v}) - \ln \mu(\mathbf{b}) \\
+= \sum_i g_i(v_i) + \sum_{i<j}g_{ij}(v_i, v_j) +  \sum_{i<j<}g_{ijk}(v_i, v_j, v_k) + \cdots \\
+= \sum_i g_i(v_i) + \sum_{i<j}g_{ij}(v_i, v_j) +  \sum_{i<j<}g_{ijk}(v_i, v_j, v_k) + \cdots  \\
+-  \sum_i g_i(b_i) + \sum_{i<j}g_{ij}(b_i, b_j) +  \sum_{i<j<}g_{ijk}(b_i, b_j, b_k) + \cdots$$
+
+Using the fact that
+
+$$
+F(\mathbf{v}) = \prod_i V_i F(\mathbf{x}) \\
+F(\mathbf{b}) = \prod_i B_i F(\mathbf{x}) \\
+$$
+
+$\prod_i (V_i - B_i)$
+
+$\prod_k \mathbb{V}_k = \prod_k(\mathbb{B}_k + \Delta_k) = \sum_S \mathbb{B}_{-S}\Delta_S$
+
+The, kth term has k Bs and p-k \\Deltas.

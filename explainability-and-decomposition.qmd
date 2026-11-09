@@ -94,9 +94,11 @@ Three facts about $\Delta_i$:
 
     $$\Delta_i g = 0 \text{ if } g \text{ is constant in } x_i$$
 
-3.   and he operators commute:
+3.  and he operators commute:
 
-    $$\Delta_i\Delta_j g = \Delta_j\Delta_i g$$
+```         
+$$\Delta_i\Delta_j g = \Delta_j\Delta_i g$$
+```
 
 $$\Delta_i(g + h) = \Delta_i g + \Delta_i h, \qquad \Delta_i g = 0 \text{ if } g \text{ is constant in } x_i, \qquad \Delta_i\Delta_j g = \Delta_j\Delta_i g$$
 
@@ -104,23 +106,16 @@ The contrast in $i$ is, in general, still a function of the other variables:
 
 $$\Delta_i g \;=\; g(x_1,\dots,v_i,\dots,x_p) - g(x_1,\dots,b_i,\dots,x_p)$$
 
-An interaction between $i$ and $j$ means the effect of $i$ depends on the value of $j$.. The interaction contrast is therefore the *difference in the first-order contrast in* $i$ when $j$ moves from its base to its target. Writing only the two variables that move,
-
-$$\Delta_j\Delta_i g \\
-= \Delta_i \left[ g(v_i, v_j) - g(v_i, b_j) \right] \\
-= \left[ \Delta_i g(v_i, v_j) - \Delta_i g(v_i, b_j) \right] \\
-= \left[ g(v_i, v_j) - g(b_i, v_j) \right] - \left[g(v_i, b_j) - g(b_i, b_j)\right]$$
+An interaction between $i$ and $j$ means the effect of $i$ depends on the value of $j$.. The interaction contrast is therefore the *difference in the first-order contrast in* $i$ when $j$ moves from its base to its target. Writing only the two variables that move, $$\Delta_j\Delta_i g \\
+= \Delta_j \left[ g(v_i, v_j) - g(b_i, v_j) \right] \\
+= \left[ \Delta_j g(v_i, v_j) - \Delta_j g(b_i, v_j) \right] \\
+= \left[ g(v_i, v_j) - g(v_i, b_j \right] - \left[g(b_i, v_j) - g(b_i, b_j)\right]$$
 
 $$\Delta_j\Delta_i g \;=\; \big[g(v_i,v_j) - g(b_i,v_j)\big] - \big[g(v_i,b_j) - g(b_i,b_j)\big] \;=\; g(v_i,v_j) - g(b_i,v_j) - g(v_i,b_j) + g(b_i,b_j).$$
 
-Because $\Delta_j$ kills anything constant in $x_j$, the double contrast returns zero on any additive function $h_i(x_i) + h_j(x_j)$. It measures the departure from additivity and nothing else, and it is the only combination of the four corner values that does so (up to scale). It is not one choice among several.
+If the model has no interaction between $i$ and $j$, it can be written $g = h_i(x_i) + h_j(x_j)$ (for the four-term model, $\beta_{12} = 0$). Then $\Delta_j\Delta_i g = 0$: $\Delta_i$ returns zero on $h_j$, and $\Delta_i h_i = h_i(v_i) - h_i(b_i)$ is a number with no $x_j$ in it, so $\Delta_j$ returns zero on that. The interaction contrast is zero exactly when the model has no interaction, which is the one property an interaction table must have. In the four-term model, this is the main effects dropping out.
 
-I don't understand what the paragraph on line 116 is saying. We are talking simply about contrasts. Then the paragraph introduces a number of new ideas in quick succession with no context:
-1. The operator action on a certain additive function.
-2. It measured departure from additivity.
-3. "corner values"
-4. What is issue of "up to scale" here?
-5. It is not one choice among several. Why would it be. But what does the uniqueness imply?
+It is also the only quantity with that property that can be built from the four predictions $g(b_i,b_j)$, $g(v_i,b_j)$, $g(b_i,v_j)$, $g(v_i,v_j)$, the corners of the rectangle $x_i \in \{b_i,v_i\}$, $x_j \in \{b_j,v_j\}$. Take any weighted sum $c_{bb}\,g(b_i,b_j) + c_{vb}\,g(v_i,b_j) + c_{bv}\,g(b_i,v_j) + c_{vv}\,g(v_i,v_j)$ and require it to vanish for every $h_i(x_i)$ and every $h_j(x_j)$. Vanishing on $h_i$ forces $c_{bb} + c_{bv} = 0$ and $c_{vb} + c_{vv} = 0$; vanishing on $h_j$ forces $c_{bb} + c_{vb} = 0$ and $c_{bv} + c_{vv} = 0$. The only solutions are $c\,(1,-1,-1,1)$, and $c = 1$ is the normalization that reproduces $\beta_{12}(v_1 - b_1)(v_2 - b_2)$ in the four-term model. So once the base is chosen, the interaction entry is not a convention: there is exactly one number that reads zero for every model without an interaction. Any other interaction measure must use predictions at points other than these four, which is what averaging over the book does.
 
 ## The four-term model
 
@@ -195,6 +190,8 @@ In coding language: recode $x_2$ as $x_2' = x_2 - b_2$ so that your base is the 
 
 # Rating Factors
 
+\[\[Explicitly write out rating factor tables for different codings\]\]
+
 Under a log link, $\hat\mu = e^{g}$, and a contrast on $g$ becomes a ratio on $\hat\mu$. Exponentiating the decomposition turns the sum into a product:
 
 $$\hat\mu(v) = \underbrace{e^{g(b)}}_{\text{base rate}}
@@ -240,4 +237,50 @@ one table per nonempty subset, base rate $\hat\mu(b)$, and the product reproduce
 
 Every $\nu(S)$ is a single prediction at a corner of the box $\prod_i \{b_i, v_i\}$. The tables need only the fitted model and the base cell, and nothing about how the software labels, codes, or centers its terms.
 
-And nothing in them averages over the book. The one-way relativity at the top moved when the mix of the book moved, even if the model did not; these entries cannot, because every one of them is a difference of predictions at fixed points. That is what makes them filable for any model that can be evaluated at a point, and it is where the next talk picks up.
+And nothing in them averages over the book. The one-way relativity at the top moved when the mix of the book moved, even if the model did not; these entries cannot, because every one of them is a difference of predictions at fixed points. That is what makes them fileable for any model that can be evaluated at a point, and it is where the next talk picks up.
+
+------------------------------------------------------------------------
+
+The paragraph is a one-sentence compression of a half-page uniqueness proof in your original, and compressing it kept the conclusions while dropping every step that made them mean something. Taking your questions in order:
+
+1.  **The additive function.** $h_i(x_i) + h_j(x_j)$ is the general form of a model with no interaction between $i$ and $j$: $\beta_i x_i + \beta_j x_j$, or two separate smooths, or anything else that splits into a piece depending only on $x_i$ plus a piece depending only on $x_j$. The claim is that $\Delta_j\Delta_i$ returns zero on every such model, and the proof is two uses of the rule you already stated: $\Delta_i$ returns zero on $h_j$ because $h_j$ has no $x_i$ in it, and $\Delta_i h_i = h_i(v_i) - h_i(b_i)$ is a number with no $x_j$ in it, so $\Delta_j$ returns zero on that. In the four-term model this is the step where $\beta_1$ and $\beta_2$ dropped out.
+
+2.  **"Departure from additivity"** is "interaction" said another way, since a model is additive in $i$ and $j$ exactly when it has no interaction between them. The sentence restates point 1 as a property: zero when there is no interaction, nonzero when there is, so the number it returns is the interaction and nothing else. It should just say that.
+
+3.  **"Corner values."** Put $x_i$ and $x_j$ on axes; the base and target values mark out a rectangle, and its four corners are the points $(b_i,b_j)$, $(v_i,b_j)$, $(b_i,v_j)$, $(v_i,v_j)$. The double contrast is $g$ at those four corners, with $+$ on the diagonal pair $(b,b)$, $(v,v)$ and $-$ on the other two.
+
+4.  **"Up to scale."** Take any weighted sum of the four corner values, $c_{bb}\,g(b_i,b_j) + c_{vb}\,g(v_i,b_j) + c_{bv}\,g(b_i,v_j) + c_{vv}\,g(v_i,v_j)$, and ask which weights make it zero for every no-interaction model. Zero on every $h_i(x_i)$ forces $c_{bb} + c_{bv} = 0$ and $c_{vb} + c_{vv} = 0$ (collect the terms multiplying $h_i(b_i)$ and $h_i(v_i)$); zero on every $h_j(x_j)$ forces $c_{bb} + c_{vb} = 0$ and $c_{bv} + c_{vv} = 0$. The only solutions are $c\,(1,-1,-1,1)$. The sign pattern is forced; the constant $c$ is not, because doubling all four weights keeps zero zero. That one free constant is the "scale," and it is fixed by any normalization, for instance requiring the four-term model to give $\beta_{12}(v_1-b_1)(v_2-b_2)$.
+
+5.  **Why it could have been a choice, and what uniqueness buys.** The definition "difference in the $i$-contrast when $j$ moves" reads like one reasonable definition among several. Someone could propose $g(v_i,v_j) - g(b_i,b_j)$ with main effects subtracted off some other way, or the $i$-contrast averaged over the values of $x_j$. The uniqueness says that if the interaction entry is built from the four corner predictions and must read zero for every model without an interaction, there is exactly one candidate. So once the base is fixed the interaction table is not a convention. The escape hatch is the informative part: the only way to get a different interaction measure is to use predictions at points other than the four corners, and that is what book-averaging methods do. The book-dependence you are avoiding enters at exactly that door.
+
+Here is a replacement that says all of this in order. The second paragraph is the uniqueness; it stands alone and can be cut without affecting anything after it.
+
+If the model has no interaction between $i$ and $j$, it can be written $g = h_i(x_i) + h_j(x_j)$ (for the four-term model, $\beta_{12} = 0$). Then $\Delta_j\Delta_i g = 0$: $\Delta_i$ returns zero on $h_j$, and $\Delta_i h_i = h_i(v_i) - h_i(b_i)$ is a number with no $x_j$ in it, so $\Delta_j$ returns zero on that. The interaction contrast is zero exactly when the model has no interaction, which is the one property an interaction table must have. In the four-term model, this is the main effects dropping out.
+
+It is also the only quantity with that property that can be built from the four predictions $g(b_i,b_j)$, $g(v_i,b_j)$, $g(b_i,v_j)$, $g(v_i,v_j)$, the corners of the rectangle $x_i \in \{b_i,v_i\}$, $x_j \in \{b_j,v_j\}$. Take any weighted sum $c_{bb}\,g(b_i,b_j) + c_{vb}\,g(v_i,b_j) + c_{bv}\,g(b_i,v_j) + c_{vv}\,g(v_i,v_j)$ and require it to vanish for every $h_i(x_i)$ and every $h_j(x_j)$. Vanishing on $h_i$ forces $c_{bb} + c_{bv} = 0$ and $c_{vb} + c_{vv} = 0$; vanishing on $h_j$ forces $c_{bb} + c_{vb} = 0$ and $c_{bv} + c_{vv} = 0$. The only solutions are $c\,(1,-1,-1,1)$, and $c = 1$ is the normalization that reproduces $\beta_{12}(v_1 - b_1)(v_2 - b_2)$ in the four-term model. So once the base is chosen, the interaction entry is not a convention: there is exactly one number that reads zero for every model without an interaction. Any other interaction measure must use predictions at points other than these four, which is what averaging over the book does.
+
+One thing in the derivation you pasted above it: the second line substitutes $v_i$ too early. After $\Delta_j$ acts, $x_i$ is still free, so the bracket should be $\Delta_i\big[g(x_i, v_j) - g(x_i, b_j)\big]$; as written, $\Delta_i$ is acting on expressions with no $x_i$ in them and would return zero. (Strictly, $\Delta_j\Delta_i$ also means $\Delta_i$ first, but since they commute that only affects how the lines read, not the result.)
+
+
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+Suppose that once we fix the order of the model (i.e. the highest order of interactions), we can define the in such a way that for some *base cell*, meaning a particular set of values $\mathbf{x^b} = (x_1^b, x_2^b, \dots, x_p^b)$,
+
+$$
+\sum_i g_i(x_i) + \sum_{i<j} g_{ij}(x_i, x_j) + \sum_{i<j<k} g_{ijk}(x_i, x_j, x_k) + \cdots := 0
+$$
+
+$$
+\ln \mu(\mathbf{x}^b) = f_0 
+$$
+
+This defines our *base rating*, and it applies to a cell we
+
+The loss for any given policy with cell value $\mathbf{v} = (v_1, v_2, \dots, v_p)$ will, then, be
+
+$$
+\mu(\mathbf{v}) = \mu(\mathbf{x}^b) \prod_i g_i(x_i) \prod_{i<j}g_{ij}(x_i, x_j)\cdots
+$$
