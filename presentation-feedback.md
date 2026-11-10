@@ -194,8 +194,7 @@ A gentler introduction
 
 If Stanley feels too abstract:
 
-Miklós Bóna, A Walk Through Combinatorics
-
+    
 has an accessible introduction to posets and the Boolean lattice.
 
 Less depth on Möbius inversion but easier to enter.
