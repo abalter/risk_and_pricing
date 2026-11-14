@@ -2,22 +2,22 @@ I think the manuscript's strongest contribution is not the operator machinery. I
 
 On your specific concern:
 
-I know it should, but I'm having trouble understanding exactly why gTg_T should be 0 whenever one variable in TT is at baseline.
+I know it should, but I'm having trouble understanding exactly why $g_T$ should be $0$ whenever one variable in $T$ is at baseline.
 
 I think the current justification is too operational ("otherwise a reader has to open other tables"). That's a consequence, not the fundamental reason.
 
-The deeper reason is that you are defining gTg_T as a pure interaction departure from the base cell.
+The deeper reason is that you are defining $g_T$ as a pure interaction departure from the base cell.
 
-For example, for a two-way table g12g_{12}:
+For example, for a two-way table $g_{12}$:
 
-g12(v1,v2)g_{12}(v_1,v_2) is supposed to measure what happens when both variables depart from base together.
-If v2=b2v_2=b_2, then there is no joint departure.
-Whatever remains is attributable solely to x1x_1.
-Therefore it belongs in g1g_1, not g12g_{12}.
+$g_{12}(v_1, v_2)$ is supposed to measure what happens when both variables depart from base together.
+If $v_2 = b_2$, then there is no joint departure.
+Whatever remains is attributable solely to $x_1$.
+Therefore it belongs in $g_1$, not $g_{12}$.
 
 In other words:
 
-A table indexed by TT is intended to measure the incremental effect associated with the simultaneous departure from baseline of every variable in TT. If any variable in TT remains at baseline, the simultaneous departure does not occur, so the incremental effect represented by gTg_T must be zero.
+A table indexed by $T$ is intended to measure the incremental effect associated with the simultaneous departure from baseline of every variable in $T$. If any variable in $T$ remains at baseline, the simultaneous departure does not occur, so the incremental effect represented by $g_T$ must be zero.
 
 That's essentially the same principle that defines interaction contrasts in ANOVA.
 
@@ -25,13 +25,20 @@ I'd actually connect this to the uniqueness theorem.
 
 Your uniqueness proof really says:
 
-BigT=0,i∈T\mathbb B_i g_T = 0,\quad i\in T
+$$
+\mathbb{B}_i\, g_T = 0, \quad i \in T
+$$
 
 is what prevents effects from being arbitrarily shifted between tables.
 
 Without that condition:
 
-g1′(x1)=g1(x1)+h(x1)g_1'(x_1)=g_1(x_1)+h(x_1) g12′(x1,x2)=g12(x1,x2)−h(x1)g_{12}'(x_1,x_2)=g_{12}(x_1,x_2)-h(x_1)
+$$
+\begin{aligned}
+g_1'(x_1) &= g_1(x_1) + h(x_1) \\
+g_{12}'(x_1, x_2) &= g_{12}(x_1, x_2) - h(x_1)
+\end{aligned}
+$$
 
 produces exactly the same total model.
 
@@ -39,9 +46,11 @@ So the decomposition is not unique.
 
 The condition
 
-gT=0g_T=0
+$$
+g_T = 0
+$$
 
-whenever any member of TT is at base is precisely what anchors the decomposition and makes uniqueness possible.
+whenever any member of $T$ is at base is precisely what anchors the decomposition and makes uniqueness possible.
 
 Personally I'd rewrite the motivation section around that:
 
@@ -59,14 +68,16 @@ Right now the paper spends many pages before the reader learns what the result a
 
 I'd move something like this near the beginning:
 
-Main theorem. For a chosen base cell b\mathbf b, there exists a unique family of tables {rT}\{r_T\} satisfying:
+Main theorem. For a chosen base cell $\mathbf{b}$, there exists a unique family of tables $\{r_T\}$ satisfying:
 
 Exact reproduction of the model.
-rT=1r_T=1 whenever any variable in TT is at base.
+$r_T = 1$ whenever any variable in $T$ is at base.
 
 The tables are
 
-gT=B−TΔTlog⁡μ.g_T=\mathbb B_{-T}\Delta_T\log\mu .
+$$
+g_T = \mathbb{B}_{-T}\,\Delta_T\,\log\mu .
+$$
 
 Then prove it.
 
@@ -76,7 +87,9 @@ You never quite say this.
 
 The expansion
 
-∏i(Bi+Δi)\prod_i(\mathbb B_i+\Delta_i)
+$$
+\prod_i (\mathbb{B}_i + \Delta_i)
+$$
 
 is a Möbius inversion on the Boolean lattice of subsets.
 
@@ -128,7 +141,7 @@ Hierarchical attribution
 Incremental-effect principle
 Anchored interaction principle
 
-Something that emphasizes that gTg_T measures only the effect that remains after all lower-order effects have already been accounted for.
+Something that emphasizes that $g_T$ measures only the effect that remains after all lower-order effects have already been accounted for.
 
 Of these, anchored interaction principle feels closest to what the proof actually uses.
 
@@ -216,15 +229,25 @@ Why your construction is the Boolean lattice
 
 You index everything by subsets:
 
-T⊆[p].T \subseteq [p].
+$$
+T \subseteq [p].
+$$
 
 The relationships are:
 
-g{1,2}g_{\{1,2\}}
+$$
+g_{\{1,2\}}
+$$
 
 depends on
 
-{1},{2},{1,2}.\{1\},\{2\},\{1,2\}. g{1,2,3}g_{\{1,2,3\}}
+$$
+\{1\}, \{2\}, \{1,2\}.
+$$
+
+$$
+g_{\{1,2,3\}}
+$$
 
 depends on all subsets below it.
 
@@ -232,9 +255,11 @@ That subset structure is the Boolean lattice.
 
 Your expansion
 
-∏i(Bi+Δi)=∑SB−SΔS\prod_i(\mathbb B_i+\Delta_i) = \sum_S \mathbb B_{-S}\Delta_S
+$$
+\prod_i (\mathbb{B}_i + \Delta_i) = \sum_S \mathbb{B}_{-S}\,\Delta_S
+$$
 
-is really traversing every subset SS.
+is really traversing every subset $S$.
 
 The Boolean lattice is hiding in plain sight.
 
@@ -242,25 +267,33 @@ The connection I'd find most illuminating
 
 Forget the operators for a moment and define
 
-F(S)=log⁡μ(vS,b−S),F(S) = \log \mu(\mathbf v_S,\mathbf b_{-S}),
+$$
+F(S) = \log\mu(\mathbf{v}_S, \mathbf{b}_{-S}),
+$$
 
-the prediction obtained when exactly the variables in SS are moved away from baseline.
+the prediction obtained when exactly the variables in $S$ are moved away from baseline.
 
 Then your decomposition says
 
-F(S)=∑R⊆SgR.F(S) = \sum_{R\subseteq S} g_R.
+$$
+F(S) = \sum_{R \subseteq S} g_R.
+$$
 
 For example,
 
-F({1,2})=g∅+g1+g2+g12.F(\{1,2\}) = g_\emptyset+g_1+g_2+g_{12}.
+$$
+F(\{1,2\}) = g_\emptyset + g_1 + g_2 + g_{12}.
+$$
 
 This is exactly the standard Möbius inversion setup on a poset:
 
-F(x)=∑y≤xg(y).F(x)=\sum_{y\le x} g(y).
+$$
+F(x) = \sum_{y \le x} g(y).
+$$
 
-Recovering gg from FF is the inversion.
+Recovering $g$ from $F$ is the inversion.
 
-The finite-difference operators Δi\Delta_i are just a slick way to perform that inversion.
+The finite-difference operators $\Delta_i$ are just a slick way to perform that inversion.
 
 A surprising connection
 
@@ -272,7 +305,7 @@ Your method: fix other variables at baseline.
 
 Mathematically these are all projections onto subset-indexed components.
 
-The choice differs only in the operator used on the variables outside SS:
+The choice differs only in the operator used on the variables outside $S$:
 
 averaging operator
 conditional expectation operator
